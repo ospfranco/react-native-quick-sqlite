@@ -1,11 +1,8 @@
 #import <React/RCTBridgeModule.h>
-
-#ifdef __cplusplus
-
-#import "example.h"
-
-#endif
+#import "react-native-sequel.h"
 
 @interface Sequel : NSObject <RCTBridgeModule>
+
+@property (nonatomic, assign) BOOL setBridgeOnMainQueue;
 
 @end

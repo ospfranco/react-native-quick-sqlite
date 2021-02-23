@@ -1,14 +1,13 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import Sequel from 'react-native-sequel';
-
+import { multiplyA } from 'react-native-sequel';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
 
   React.useEffect(() => {
-    Sequel.multiply(3, 7).then(setResult);
+    setResult(multiplyA());
   }, []);
 
   return (

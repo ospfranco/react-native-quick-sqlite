@@ -1,9 +1,5 @@
-import { NativeModules } from 'react-native';
+declare function multiply(a: number, b: number): number;
 
-type SequelType = {
-  multiply(a: number, b: number): Promise<number>;
-};
-
-const { Sequel } = NativeModules;
-
-export default Sequel as SequelType;
+export function multiplyA(): number {
+  return multiply(2, 2);
+}
