@@ -1,6 +1,6 @@
-declare function openDb(): boolean;
-declare function multiply(a: number, b: number): number;
+// declare function openDb(name: string): boolean;
 
-export function multiplyA(): number {
-  return multiply(2, 2);
+export function openDb(name: string): boolean {
+  // @ts-ignore
+  return global.sequel_open(name)
 }

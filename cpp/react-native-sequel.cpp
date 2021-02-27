@@ -2,33 +2,32 @@
 #import "sequel.h"
 
 #include <iostream>
-// #include <sstream>
 
 using namespace facebook;
 
 void installSequel(jsi::Runtime& runtime) {
-  std::cout << "Initializing react-native-sequel" << "\n";
+  std::cout << "react-native-sequel: registering JSI bindings" << "\n";
 
-  auto multiply = jsi::Function::createFromHostFunction(
-    runtime,
-    jsi::PropNameID::forAscii(runtime, "multiply"),
-    2, // number of arguments
-    [](jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
-      if(!arguments[0].isNumber() || !arguments[1].isNumber()) {
-        jsi::detail::throwJSError(runtime, "Non number arguments passed to sequel");
-      }
+  // auto multiply = jsi::Function::createFromHostFunction(
+  //   runtime,
+  //   jsi::PropNameID::forAscii(runtime, "multiply"),
+  //   2, // number of arguments
+  //   [](jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+  //     if(!arguments[0].isNumber() || !arguments[1].isNumber()) {
+  //       jsi::detail::throwJSError(runtime, "Non number arguments passed to sequel");
+  //     }
 
-      double res = arguments[0].asNumber() * arguments[1].asNumber();
+  //     double res = arguments[0].asNumber() * arguments[1].asNumber();
 
-      return jsi::Value(res);
-    }
-  );
+  //     return jsi::Value(res);
+  //   }
+  // );
 
-  runtime.global().setProperty(runtime, "multiply", std::move(multiply));
+  // runtime.global().setProperty(runtime, "multiply", std::move(multiply));
 
   auto openDb = jsi::Function::createFromHostFunction(
     runtime,
-    jsi::PropNameID::forAscii(runtime, "openDb"),
+    jsi::PropNameID::forAscii(runtime, "sequel_open"),
     1,
     [](jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* args, size_t count) -> jsi::Value {
       if(!args[0].isString()) {
@@ -41,7 +40,7 @@ void installSequel(jsi::Runtime& runtime) {
     }
   );
 
-  runtime.global().setProperty(runtime, "openDb", std::move(openDb));
+  runtime.global().setProperty(runtime, "sequel_open", std::move(openDb));
 }
 
 void cleanUpSequel() {
