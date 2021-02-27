@@ -1,18 +1,17 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import { multiplyA } from 'react-native-sequel';
+// import { multiplyA } from 'react-native-sequel';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
 
   React.useEffect(() => {
-    setResult(multiplyA());
+    openDb("sequel.db")
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      {/* <Text>Result: {result}</Text> */}
     </View>
   );
 }
