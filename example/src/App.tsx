@@ -8,7 +8,8 @@ export default function App() {
 
   React.useEffect(() => {
     // setIsDbOpen(openDb("sequel.db"))
-    initDb()
+    const res = initDb()
+    console.warn('init db res', res)
   }, []);
 
   return (

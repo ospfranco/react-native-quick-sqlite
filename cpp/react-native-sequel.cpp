@@ -3,10 +3,11 @@
 
 #include <iostream>
 
+using namespace std;
 using namespace facebook;
 
 void installSequel(jsi::Runtime& runtime) {
-  std::cout << "react-native-sequel: registering JSI bindings" << "\n";
+  cout << "react-native-sequel: registering JSI bindings" << endl;
 
   // auto multiply = jsi::Function::createFromHostFunction(
   //   runtime,
@@ -40,20 +41,38 @@ void installSequel(jsi::Runtime& runtime) {
     }
   );
 
-  runtime.global().setProperty(runtime, "sequel_open", std::move(openDb));
+  runtime.global().setProperty(runtime, "sequel_open", move(openDb));
 
   auto init = jsi::Function::createFromHostFunction(
     runtime,
     jsi::PropNameID::forAscii(runtime, "sequel_init"),
     0,
     [](jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* args, size_t count) -> jsi::Value {
-      std::vector<std::map<string, string> > results = sequel_init();
-      
-      return jsi::Value(true);
+      vector<std::map<string, string> > results = sequel_init();
+//      jsi::Array res = jsi::Array::createArray(results.size());
+//      jsi::HostObject firstObj = jsi::HostObject();
+//      jsi::Object firstObj = jsi::Object();
+//      auto firstObj = jsi::Object::createFromHostObject(runtime, results[0]);
+      auto arrayRes = jsi::Array(runtime, results.size());
+      for(const auto& row: results) {
+          jsi::Object rowRes = jsi::Object(runtime);
+
+          for(auto it = row.begin(); it != row.end(); it++) {
+              string key = it->first;
+//              string keyValue = it->s
+//            rowRes.setProperty(runtime, it->first, jsi::Value(jsi::String::createFromUtf8(it->second)));
+            rowRes.setProperty(runtime, key.c_str(), jsi::Value(true));
+          }
+      }
+
+//      firstObj.set(runtime, jsi::PropNameID::forAscii(runtime, "test"), jsi::Value(true));
+
+      // firstObj.setProperty(runtime, results[0].ke, <#T &&value#>)
+      return arrayRes;
     }
   );
 
-  runtime.global().setProperty(runtime, "sequel_init", std::move(init));
+  runtime.global().setProperty(runtime, "sequel_init", move(init));
 }
 
 void cleanUpSequel() {
