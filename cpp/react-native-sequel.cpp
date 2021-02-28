@@ -41,6 +41,18 @@ void installSequel(jsi::Runtime& runtime) {
   );
 
   runtime.global().setProperty(runtime, "sequel_open", std::move(openDb));
+
+  auto init = jsi::Function::createFromHostFunction(
+    runtime,
+    jsi::PropNameID::forAscii(runtime, "sequel_init"),
+    0,
+    [](jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* args, size_t count) -> jsi::Value {
+      sequel_init();
+      return jsi::Value(true);
+    }
+  );
+
+  runtime.global().setProperty(runtime, "sequel_init", std::move(init));
 }
 
 void cleanUpSequel() {

@@ -1,13 +1,14 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import { openDb } from 'react-native-sequel';
+import { initDb } from 'react-native-sequel';
 
 export default function App() {
   const [isDbOpen, setIsDbOpen] = React.useState(false)
 
   React.useEffect(() => {
-    setIsDbOpen(openDb("sequel.db"))
+    // setIsDbOpen(openDb("sequel.db"))
+    initDb()
   }, []);
 
   return (
