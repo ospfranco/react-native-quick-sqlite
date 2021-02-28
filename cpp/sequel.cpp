@@ -91,34 +91,33 @@ std::vector<std::map<string, string> > sequel_init() {
   cout << "Opened database successfully!" << endl;
 
   string sql = "DROP TABLE PEOPLE;";
-
-  rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
+//
+//  rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
+//
+//  cout << "dropped table PEOPLE" << endl;
   
-  cout << "dropped table PEOPLE" << endl;
-  
-  sql = "CREATE TABLE PEOPLE ("  \
-      "ID TEXT PRIMARY KEY     NOT NULL," \
-      "NAME           TEXT    NOT NULL);";
+//  sql = "CREATE TABLE PEOPLE ("  \
+//      "ID TEXT PRIMARY KEY     NOT NULL," \
+//      "NAME           TEXT    NOT NULL);";
+//
+//  rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
+//
+//  cout << "Created table: PEOPLE" << endl;
 
-  rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-  
-  cout << "Created table: PEOPLE" << endl;
-
-  for(int ii = 0; ii < 10000; ii++) {
-    sql = "INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('" + to_string(ii) + "', '" + gen_random(12) + "')";
-
-    rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-  }
+//  for(int ii = 0; ii < 10000; ii++) {
+//    sql = "INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('" + to_string(ii) + "', '" + gen_random(12) + "')";
+//
+//    rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
+//  }
 
   sql = "SELECT * FROM 'PEOPLE';";
 
   // this time we will first compile the SQL
   sqlite3_stmt *statement;
 
-  // if(sqlite3_prepare_v2(db, sql.c_str(), -1, &statement, NULL) != SQLITE_OK) {
-  //   cout << "INVALID SQL QUERY" << endl;
-  //   return;
-  // }
+    if(sqlite3_prepare_v2(db, sql.c_str(), -1, &statement, NULL) != SQLITE_OK) {
+     cout << "INVALID SQL QUERY" << endl;
+    }
 
   bool isConsuming = true;
   int result, i, count, column_type;
@@ -159,6 +158,7 @@ std::vector<std::map<string, string> > sequel_init() {
         break;
 
       case SQLITE_DONE:
+        cout << "Done consuming STATEMENT" << endl;
         isConsuming = false;
         break;
       

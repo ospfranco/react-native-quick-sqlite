@@ -3,7 +3,7 @@ export function openDb(name: string): boolean {
   return global.sequel_open(name)
 }
 
-export function initDb(): boolean {
+export function initDb(): Array<any> {
   // @ts-ignore
   return global.sequel_init();
 }
