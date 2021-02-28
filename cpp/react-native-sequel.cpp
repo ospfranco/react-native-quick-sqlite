@@ -47,7 +47,8 @@ void installSequel(jsi::Runtime& runtime) {
     jsi::PropNameID::forAscii(runtime, "sequel_init"),
     0,
     [](jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* args, size_t count) -> jsi::Value {
-      sequel_init();
+      std::vector<std::map<string, string> > results = sequel_init();
+      
       return jsi::Value(true);
     }
   );
