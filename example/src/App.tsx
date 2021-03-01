@@ -5,15 +5,19 @@ import { initDb } from 'react-native-sequel';
 
 export default function App() {
   const [rows, setRows] = React.useState([])
+  const [finalTime, setFinalTime] = React.useState(0);
 
   React.useEffect(() => {
-    // setIsDbOpen(openDb("sequel.db"))
+    const initTime = new Date();
     const res = initDb()
+
     setRows(res);
+    setFinalTime(new Date().getTime() - initTime.getTime());
   }, []);
 
   return (
     <View style={styles.container}>
+      <Text>Total time: {finalTime} ms</Text>
       <FlatList
         data={rows}
         renderItem={(info: any) => {
@@ -32,6 +36,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
