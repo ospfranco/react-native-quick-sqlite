@@ -1,5 +1,7 @@
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
 
-void installSequel(facebook::jsi::Runtime& jsiRuntime);
+using namespace facebook;
+
+void installSequel(jsi::Runtime& jsiRuntime);
 void cleanUpSequel();

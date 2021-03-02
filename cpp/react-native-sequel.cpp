@@ -48,22 +48,24 @@ void installSequel(jsi::Runtime& runtime) {
     jsi::PropNameID::forAscii(runtime, "sequel_init"),
     0,
     [](jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* args, size_t count) -> jsi::Value {
-      vector<std::map<string, string> > results = sequel_init();
-      auto arrayRes = jsi::Array(runtime, results.size());
-      for(std::vector<int>::size_type i = 0; i != results.size(); i++) {
-          auto row = results[i];
-          jsi::Object rowRes = jsi::Object(runtime);
-
-          for(auto it = row.begin(); it != row.end(); it++) {
-            string column = it->first;
-            string columnValue = it->second;
-            rowRes.setProperty(runtime, column.c_str(), jsi::String::createFromAscii(runtime, columnValue.c_str()));
-          }
-
-          arrayRes.setValueAtIndex(runtime, i, rowRes);
+      vector<jsi::Object> results = sequel_init(runtime);
+//      auto res = jsi::Array::createWithElements(runtime, results);
+      auto res = jsi::Array(runtime, results.size());
+      for(int i = 0; i != results.size(); i++) {
+//          auto row = results[i];
+//          jsi::Object rowRes = jsi::Object(runtime);
+//
+//          for(auto it = row.begin(); it != row.end(); it++) {
+//            string column = it->first;
+//            string columnValue = it->second;
+//            rowRes.setProperty(runtime, column.c_str(), jsi::String::createFromAscii(runtime, columnValue.c_str()));
+//          }
+//
+//          arrayRes.setValueAtIndex(runtime, i, rowRes);
+          
       }
 
-      return arrayRes;
+      return res;
     }
   );
 
