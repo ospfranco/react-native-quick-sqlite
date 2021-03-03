@@ -27,6 +27,7 @@ export default function App() {
             </View>
           )
         }}
+        keyExtractor={(item) => item.ID}
       />
       {/* <Text>is db open: {isDbOpen.toString()}</Text> */}
     </View>

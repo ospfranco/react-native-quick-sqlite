@@ -1,5 +1,4 @@
-#import "sequel.h"
-
+#include "sequel.h"
 #include <iostream>
 #include <sstream>
 #include <sqlite3.h>
@@ -132,13 +131,13 @@ std::vector<jsi::Object> sequel_init(jsi::Runtime &runtime)
     bool isConsuming = true;
     int result, i, count, column_type;
     string column_name;
-    jsi::Object entry = jsi::Object(runtime);
+    
     vector<jsi::Object> results;
 
     while (isConsuming)
     {
         result = sqlite3_step(statement);
-        entry = jsi::Object(runtime);
+        jsi::Object entry = jsi::Object(runtime);
 
         switch (result)
         {
@@ -153,14 +152,34 @@ std::vector<jsi::Object> sequel_init(jsi::Runtime &runtime)
 
                 switch (column_type)
                 {
-                    case SQLITE_TEXT: {
-                        const char* text = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
-                        entry.setProperty(runtime, column_name.c_str(), jsi::String::createFromAscii(runtime, text));
-                        break;
-                    }
+                
+                case SQLITE_INTEGER:
+                {
+                    int column_value = sqlite3_column_int(statement, i);
+                    entry.setProperty(runtime, column_name.c_str(), jsi::Value(column_value));
+                    break;
+                }
 
+                case SQLITE_FLOAT:
+                {
+                    double column_value = sqlite3_column_double(statement, i);
+                    entry.setProperty(runtime, column_name.c_str(), jsi::Value(column_value));
+                    break;
+                }
+
+                case SQLITE_TEXT:
+                {
+                    // TODO: not all the stored text is ASCII, replace this for UTF 8
+                    const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
+                    entry.setProperty(runtime, column_name.c_str(), jsi::String::createFromAscii(runtime, column_value));
+                    break;
+                }
+
+                case SQLITE_NULL:
+                // Intentionally left blank to switch to default case
                 default:
-                    cout << "Unrecognized column type: " << column_type << endl;
+                    entry.setProperty(runtime, column_name.c_str(), jsi::Value(nullptr));
+                    break;
                 }
 
                 i++;
@@ -170,15 +189,16 @@ std::vector<jsi::Object> sequel_init(jsi::Runtime &runtime)
             break;
 
         case SQLITE_DONE:
-//            cout << "Done consuming STATEMENT" << endl;
             isConsuming = false;
             break;
 
         default:
-            cout << "ERROR EXECUTING QUERY" << endl;
+            cout << "react-native-sequel: Error executing query" << endl;
             isConsuming = false;
         }
     }
+
+    sqlite3_finalize(statement);
 
     sqlite3_close(db);
 
@@ -187,4 +207,5 @@ std::vector<jsi::Object> sequel_init(jsi::Runtime &runtime)
 
 void sequel_execute(string const &query)
 {
+    // TODO
 }
