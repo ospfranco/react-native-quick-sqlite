@@ -7,7 +7,7 @@ You then realize you need to use some big boy database tools, yet your options a
 **React-native-sequel** aims to solve all of the issues once and for all.
 
 1) **It is the FASTEST (and lazy)**, not only because it is written in C++, it uses react-native JSI bindings which completely removes almost all the overhead of javascript <-> C++ communication. It has both a sync and async API, which allows you to fetch data from disk on demand (at blazing speeds!).
-2) **It is relational (ACID complaint)**, don't mess with noSQL, it will bite you in the ass sooner or later, applications nowadays are more complex than ever, you need to join, query and sort complex sets of data.
+2) **It is relational (SQLite under the hood, ACID complaint)**, don't mess with noSQL, it will bite you in the ass sooner or later, applications nowadays are more complex than ever, you need to join, query and sort complex sets of data.
 3) **It provides a sane sync mechanism**, do not waste your time mutating/storing state, most importantly, it let's you in control of your application.
 4) **It sits on the right level of abstraction**, if you really need to optimize queries you can hand write performance-tuned SQL, otherwise you can build simple queries with (or even re-use your server queries) with typeORM.
 
