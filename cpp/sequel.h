@@ -6,8 +6,8 @@
 using namespace std;
 using namespace facebook;
 
-bool sequel_open(string const& dbName);
+bool sequel_open(string const &dbName);
 
-void sequel_execute(string const& query);
+bool sequel_close(string const &dbName);
 
-std::vector<jsi::Object> sequel_init(jsi::Runtime& runtime);
+std::vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const& query);

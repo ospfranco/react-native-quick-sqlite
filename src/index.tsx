@@ -1,9 +1,14 @@
 export function openDb(name: string): boolean {
   // @ts-ignore
-  return global.sequel_open(name)
+  return global.sequel_open(name);
 }
 
-export function initDb(): Array<any> {
+export function closeDb(name: string): boolean {
   // @ts-ignore
-  return global.sequel_init();
+  return global.sequel_close(name);
+}
+
+export function execSQL(sql: string): any {
+  // @ts-ignore
+  return global.sequel_execSQL(sql);
 }

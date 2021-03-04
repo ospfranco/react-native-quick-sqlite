@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text, FlatList } from 'react-native';
-import { initDb } from 'react-native-sequel';
+import { openDb, execSQL, closeDb } from 'react-native-sequel';
 
 export default function App() {
   const [rows, setRows] = React.useState([])
@@ -9,27 +9,31 @@ export default function App() {
 
   React.useEffect(() => {
     const initTime = new Date();
-    const res = initDb()
+    // const res = initDb()
+    openDb('sample.sqlite');
 
-    setRows(res);
+    const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
+    
+    setRows(rows);
     setFinalTime(new Date().getTime() - initTime.getTime());
+    // closeDb('sample.sqlite');
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Total time: {finalTime} ms</Text>
+      <Text style={{fontWeight: 'bold'}}>Loaded {rows.length} items in {finalTime} ms</Text>
       <FlatList
         data={rows}
         renderItem={(info: any) => {
           return (
-            <View key={info.key}>
+            <View>
               <Text>{info.item.ID} - {info.item.NAME}</Text>
             </View>
           )
         }}
-        keyExtractor={(item) => item.ID}
+        keyExtractor={(item: any) => item.ID}
       />
-      {/* <Text>is db open: {isDbOpen.toString()}</Text> */}
+
     </View>
   );
 }
@@ -38,8 +42,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   box: {
     width: 60,
