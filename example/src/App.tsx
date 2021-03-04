@@ -9,14 +9,22 @@ export default function App() {
 
   React.useEffect(() => {
     const initTime = new Date();
-    // const res = initDb()
+
     openDb('sample.sqlite');
+
+    // execSQL(`DROP TABLE 'PEOPLE';`);
+
+    // execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
+
+    // for(let ii = 0; ii < 10000; ii++) {
+    //   let sql = `INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('${ii}', 'value of ${ii}')`;
+    //   execSQL(sql);
+    // }
 
     const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
     
     setRows(rows);
     setFinalTime(new Date().getTime() - initTime.getTime());
-    // closeDb('sample.sqlite');
   }, []);
 
   return (
