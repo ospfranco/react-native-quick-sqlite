@@ -4,9 +4,27 @@
 #include <sqlite3.h>
 #include <ctime>
 #include <unistd.h>
+#include <sys/stat.h>
 
 using namespace std;
 using namespace facebook;
+
+inline bool file_exists (const std::string& name) {
+  struct stat buffer;
+  return (stat (name.c_str(), &buffer) == 0);
+}
+
+string get_db_path(const string &dbName)
+{
+    char *home = getenv("HOME");
+    char const *subdir = "/Documents/";
+
+    stringstream ss;
+    ss << home << subdir << dbName;
+    string dbPath = ss.str();
+
+    return dbPath;
+}
 
 string gen_random(const int len)
 {
@@ -33,13 +51,7 @@ bool sequel_open(string const &dbName)
 {
     cout << "[react-native-sequel] Opening DB" << endl;
 
-    char *home = getenv("HOME");
-    char *subdir = "/Documents/";
-
-    stringstream ss;
-    ss << home << subdir << dbName;
-    string dbPath = ss.str();
-
+    string dbPath = get_db_path(dbName);
     int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
     int exit = 0;
@@ -55,7 +67,6 @@ bool sequel_open(string const &dbName)
         cout << "Opened database successfully!" << endl;
     }
 
-//    sqlite3_close(db);
     return true;
 }
 
@@ -73,72 +84,23 @@ bool sequel_close(string const &dbName)
     return true;
 }
 
-//int callback(void *NotUsed, int argc, char **argv, char **azColName)
-//{
-//    for (int ii = 0; ii < argc; ii++)
-//    {
-//        cout << azColName[ii] << ": " << argv[ii] << endl;
-//    }
-//
-//    cout << endl;
-//
-//    return 0;
-//}
-//
-//std::vector<jsi::Object> sequel_init(jsi::Runtime &runtime)
-//{
-//    cout << "----sequel---: INIT" << endl;
-//
-//    char *home = getenv("HOME");
-//    char *subdir = "/Documents/";
-//
-//    // Save any error messages
-//    char *zErrMsg = 0;
-//
-//    stringstream ss;
-//    ss << home << subdir << "sample.sqlite";
-//    string dbPath = ss.str();
-//
-//    int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-//
-//    int rc;
-//    rc = sqlite3_open_v2(dbPath.c_str(), &db, sqlOpenFlags, nullptr);
-//
-//    // if(rc != SQLITE_OK) {
-//    //   cout << "react-native-sequel: Error opening database [sample.sqlite]: " << sqlite3_errmsg(db) << endl;
-//    //   return;
-//    // }
-//
-//    cout << "Opened database successfully!" << endl;
-//
-//    string sql = "DROP TABLE PEOPLE;";
-//    //
-//    //  rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-//    //
-//    //  cout << "dropped table PEOPLE" << endl;
-//
-//    //  sql = "CREATE TABLE PEOPLE ("  \
-////      "ID TEXT PRIMARY KEY     NOT NULL," \
-////      "NAME           TEXT    NOT NULL);";
-//    //
-//    //  rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-//    //
-//    //  cout << "Created table: PEOPLE" << endl;
-//
-//    //  for(int ii = 0; ii < 10000; ii++) {
-//    //    sql = "INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('" + to_string(ii) + "', '" + gen_random(12) + "')";
-//    //
-//    //    rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-//    //  }
-//
-//    sql = "SELECT * FROM 'PEOPLE';";
-//
-//
-//
-//    sqlite3_close(db);
-//
-//
-//}
+bool sequel_delete(string const &dbName)
+{
+    cout << "[react-native-sequel] Deleting DB" << endl;
+
+    string dbPath = get_db_path(dbName);
+
+    if(file_exists(dbPath)) {
+        remove(dbPath.c_str());
+        cout << "[react-native-sequel] DB at " << dbPath << "has been deleted." << endl;
+    } else {
+        cout << "[react-native-sequel] File not found" << endl;
+        return false;
+    }
+
+
+    return true;
+}
 
 std::vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
 {

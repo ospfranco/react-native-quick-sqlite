@@ -10,4 +10,6 @@ bool sequel_open(string const &dbName);
 
 bool sequel_close(string const &dbName);
 
+bool sequel_delete(string const $dbName);
+
 std::vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const& query);

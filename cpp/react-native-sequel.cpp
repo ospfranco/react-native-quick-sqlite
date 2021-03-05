@@ -8,6 +8,9 @@ using namespace facebook;
 void installSequel(jsi::Runtime &runtime)
 {
 
+    /**
+            OPEN DB INSTANCE
+     */
     auto openDb = jsi::Function::createFromHostFunction(
         runtime,
         jsi::PropNameID::forAscii(runtime, "sequel_open"),
@@ -25,6 +28,9 @@ void installSequel(jsi::Runtime &runtime)
 
     runtime.global().setProperty(runtime, "sequel_open", move(openDb));
 
+    /**
+            CLOSE DB INSTANCE
+     */
     auto closeDb = jsi::Function::createFromHostFunction(
         runtime,
         jsi::PropNameID::forAscii(runtime, "sequel_close"),
@@ -42,7 +48,30 @@ void installSequel(jsi::Runtime &runtime)
 
     runtime.global().setProperty(runtime, "sequel_close", move(closeDb));
 
+    /**
+            DELETE DB INSTANCE
+     */
+    auto deleteDb = jsi::Function::createFromHostFunction(
+        runtime,
+        jsi::PropNameID::forAscii(runtime, "sequel_delete"),
+        1,
+        [](jsi::Runtime &runtime, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+            if (!args[0].isString())
+            {
+                jsi::detail::throwJSError(runtime, "dbName must be a string");
+            }
 
+            std::string dbName = args[0].asString(runtime).utf8(runtime);
+
+            return sequel_delete(dbName);
+        });
+
+    runtime.global().setProperty(runtime, "sequel_delete", move(closeDb));
+
+
+    /**
+            EXECUTE SQL (SYNC)
+     */
     auto execSQL = jsi::Function::createFromHostFunction(
         runtime,
         jsi::PropNameID::forAscii(runtime, "sequel_execSQL"),

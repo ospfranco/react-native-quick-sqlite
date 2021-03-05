@@ -23,8 +23,8 @@ export default function App() {
 
     const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
     
-    setRows(rows);
     setFinalTime(new Date().getTime() - initTime.getTime());
+    setRows(rows);
   }, []);
 
   return (
