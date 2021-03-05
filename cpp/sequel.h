@@ -1,5 +1,4 @@
 #include <vector>
-
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
 
@@ -12,4 +11,4 @@ bool sequel_close(string const &dbName);
 
 bool sequel_delete(string const $dbName);
 
-std::vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const& query);
+vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query);

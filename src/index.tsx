@@ -12,3 +12,8 @@ export function execSQL(sql: string): any {
   // @ts-ignore
   return global.sequel_execSQL(sql);
 }
+
+export function deleteDb(name: string): boolean {
+  // @ts-ignore
+  return global.sequel_delete(name);
+}

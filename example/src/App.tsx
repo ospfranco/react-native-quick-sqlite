@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text, FlatList } from 'react-native';
-import { openDb, execSQL, closeDb } from 'react-native-sequel';
+import { openDb, execSQL, closeDb, deleteDb } from 'react-native-sequel';
 
 export default function App() {
   const [rows, setRows] = React.useState([])
@@ -11,18 +11,24 @@ export default function App() {
     const initTime = new Date();
 
     openDb('sample.sqlite');
+    
+    execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
+
+    const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
+
+    if(rows.length === 0) {
+      for(let ii = 0; ii < 10000; ii++) {
+        let sql = `INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('${ii}', 'value of ${ii}')`;
+        execSQL(sql);
+      }
+    }
+
+    closeDb('sample.sqlite');
+
+    deleteDb('sample.sqlite');
 
     // execSQL(`DROP TABLE 'PEOPLE';`);
 
-    // execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
-
-    // for(let ii = 0; ii < 10000; ii++) {
-    //   let sql = `INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('${ii}', 'value of ${ii}')`;
-    //   execSQL(sql);
-    // }
-
-    const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
-    
     setFinalTime(new Date().getTime() - initTime.getTime());
     setRows(rows);
   }, []);

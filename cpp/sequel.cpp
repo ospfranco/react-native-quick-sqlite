@@ -9,9 +9,11 @@
 using namespace std;
 using namespace facebook;
 
-inline bool file_exists (const std::string& name) {
+sqlite3 *db;
+
+inline bool file_exists (const string &path) {
   struct stat buffer;
-  return (stat (name.c_str(), &buffer) == 0);
+  return (stat (path.c_str(), &buffer) == 0);
 }
 
 string get_db_path(const string &dbName)
@@ -25,27 +27,6 @@ string get_db_path(const string &dbName)
 
     return dbPath;
 }
-
-string gen_random(const int len)
-{
-
-    string tmp_s;
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-
-    srand((unsigned)time(NULL) * getpid());
-
-    tmp_s.reserve(len);
-
-    for (int i = 0; i < len; ++i)
-        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
-
-    return tmp_s;
-}
-
-sqlite3 *db;
 
 bool sequel_open(string const &dbName)
 {
@@ -98,11 +79,10 @@ bool sequel_delete(string const &dbName)
         return false;
     }
 
-
     return true;
 }
 
-std::vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
+vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
 {
     // this time we will first compile the SQL
     sqlite3_stmt *statement;
