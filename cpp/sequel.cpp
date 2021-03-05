@@ -16,7 +16,7 @@ inline bool file_exists (const string &path) {
   return (stat (path.c_str(), &buffer) == 0);
 }
 
-string get_db_path(const string &dbName)
+string get_db_path(string const &dbName)
 {
     char *home = getenv("HOME");
     char const *subdir = "/Documents/";
@@ -65,19 +65,19 @@ bool sequel_close(string const &dbName)
     return true;
 }
 
-bool sequel_delete(string const &dbName)
+bool sequel_remove(string const &dbName)
 {
     cout << "[react-native-sequel] Deleting DB" << endl;
 
     string dbPath = get_db_path(dbName);
 
-    if(file_exists(dbPath)) {
-        remove(dbPath.c_str());
-        cout << "[react-native-sequel] DB at " << dbPath << "has been deleted." << endl;
-    } else {
+    if(!file_exists(dbPath)) {
         cout << "[react-native-sequel] File not found" << endl;
         return false;
     }
+
+    remove(dbPath.c_str());
+    cout << "[react-native-sequel] DB at " << dbPath << "has been deleted." << endl;
 
     return true;
 }

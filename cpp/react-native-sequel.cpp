@@ -43,7 +43,7 @@ void installSequel(jsi::Runtime &runtime)
 
             string dbName = args[0].asString(runtime).utf8(runtime);
 
-            return sequel_delete(dbName);
+            return sequel_remove(dbName);
         });
 
     runtime.global().setProperty(runtime, "sequel_delete", move(deleteDb));
