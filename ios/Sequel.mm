@@ -1,7 +1,17 @@
 #import "Sequel.h"
+
 #import <React/RCTBridge+Private.h>
+#import <jsi/jsi.h>
+
 #import <React/RCTUtils.h>
 #import "react-native-sequel.h"
+#import <ReactCommon/CallInvoker.h>
+
+#import <memory>
+
+@interface RCTBridge (RCTTurboModule)
+- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
+@end
 
 @implementation Sequel
 
@@ -23,7 +33,7 @@ RCT_EXPORT_MODULE()
     return;
   }
 
-  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, cxxBridge.jsCallInvoker);
 }
 
 - (void)invalidate {

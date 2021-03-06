@@ -1,36 +1,39 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text, FlatList } from 'react-native';
-import { openDb, execSQL, closeDb, deleteDb } from 'react-native-sequel';
+import { openDb, execSQL, closeDb, deleteDb, asyncExecSQL } from 'react-native-sequel';
 
 export default function App() {
   const [rows, setRows] = React.useState([])
   const [finalTime, setFinalTime] = React.useState(0);
 
   React.useEffect(() => {
-    const initTime = new Date();
+    // const initTime = new Date();
 
-    openDb('sample.sqlite');
+    // openDb('sample.sqlite');
     
-    execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
+    // execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
 
-    const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
+    // const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
 
-    if(rows.length === 0) {
-      for(let ii = 0; ii < 10000; ii++) {
-        let sql = `INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('${ii}', 'value of ${ii}')`;
-        execSQL(sql);
-      }
-    }
+    // if(rows.length === 0) {
+    //   for(let ii = 0; ii < 10000; ii++) {
+    //     let sql = `INSERT INTO PEOPLE ('ID', 'NAME') VALUES ('${ii}', 'value of ${ii}')`;
+    //     execSQL(sql);
+    //   }
+    // }
 
-    closeDb('sample.sqlite');
+    // closeDb('sample.sqlite');
 
-    deleteDb('sample.sqlite');
+    // deleteDb('sample.sqlite');
 
-    // execSQL(`DROP TABLE 'PEOPLE';`);
+    // // execSQL(`DROP TABLE 'PEOPLE';`);
 
-    setFinalTime(new Date().getTime() - initTime.getTime());
-    setRows(rows);
+    // setFinalTime(new Date().getTime() - initTime.getTime());
+    // setRows(rows);
+    asyncExecSQL('blah').then((res) => {
+      console.warn('ASYNC EXEC SQL has resolved', res);
+    })
   }, []);
 
   return (
