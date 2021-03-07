@@ -1,24 +1,24 @@
-export function openDb(name: string): boolean {
+export function openDb(dbName: string): boolean {
   // @ts-ignore
-  return global.sequel_open(name);
+  return global.sequel_open(dbName);
 }
 
-export function closeDb(name: string): boolean {
+export function closeDb(dbName: string): boolean {
   // @ts-ignore
-  return global.sequel_close(name);
+  return global.sequel_close(dbName);
 }
 
-export function execSQL(sql: string): any {
+export function execSQL(dbName: string, sql: string): any {
   // @ts-ignore
-  return global.sequel_execSQL(sql);
+  return global.sequel_execSQL(dbName, sql);
 }
 
-export function deleteDb(name: string): boolean {
+export function deleteDb(dbName: string): boolean {
   // @ts-ignore
-  return global.sequel_delete(name);
+  return global.sequel_delete(dbName);
 }
 
-export function asyncExecSQL(sql: string): Promise<any> {
+export function asyncExecSQL(dbName: string, sql: string): Promise<any> {
   // @ts-ignore
-  return global.sequel_asyncExecSQL(sql);
+  return global.sequel_asyncExecSQL(dbName, sql);
 }

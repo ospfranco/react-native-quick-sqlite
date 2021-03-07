@@ -9,7 +9,7 @@ export default function App() {
 
   React.useEffect(() => {
     
-    openDb('sample.sqlite');
+    openDb(`sample.sqlite`);
     
     const initTime = new Date();
     // execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
@@ -30,7 +30,7 @@ export default function App() {
     // // execSQL(`DROP TABLE 'PEOPLE';`);
 
     // setRows(rows);
-    asyncExecSQL(`SELECT * FROM 'PEOPLE';`).then((res) => {
+    asyncExecSQL(`sample.sqlite`, `SELECT * FROM 'PEOPLE';`).then((res) => {
       setRows(res);
       
       setFinalTime(new Date().getTime() - initTime.getTime());
