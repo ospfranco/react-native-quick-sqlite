@@ -1,3 +1,13 @@
+/*
+ * sequel.cpp
+ *
+ * Created by Oscar Franco on 2021/03/07
+ * Copyright (c) 2021 Oscar Franco
+ *
+ * This code is licensed under the SSPL license
+ * https://www.mongodb.com/licensing/server-side-public-license
+ */
+
 #include "sequel.h"
 #include <iostream>
 #include <sstream>
@@ -5,11 +15,12 @@
 #include <ctime>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <map>
 
 using namespace std;
 using namespace facebook;
 
-sqlite3 *db;
+std::map<string, sqlite3*> dbMap = std::map<string, sqlite3*>();
 
 inline bool file_exists (const string &path) {
   struct stat buffer;
@@ -35,6 +46,7 @@ bool sequel_open(string const &dbName)
     string dbPath = get_db_path(dbName);
     int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
+    sqlite3 *db;
     int exit = 0;
     exit = sqlite3_open_v2(dbPath.c_str(), &db, sqlOpenFlags, nullptr);
 
@@ -46,6 +58,7 @@ bool sequel_open(string const &dbName)
     else
     {
         cout << "Opened database successfully!" << endl;
+        dbMap[dbName] = db;
     }
 
     return true;
@@ -55,12 +68,16 @@ bool sequel_close(string const &dbName)
 {
     cout << "[react-native-sequel] Closing DB" << endl;
 
-    if(db == NULL) {
-        cout << "[react-native-sequel] No DB open" << endl;
+    if(dbMap.count(dbName) == 0){
+        cout << "[react-native-sequel]: No DB open" << endl;
         return true;
     }
 
+    sqlite3 *db = dbMap[dbName];
+
     sqlite3_close(db);
+
+    dbMap.erase(dbName);
 
     return true;
 }
@@ -68,6 +85,10 @@ bool sequel_close(string const &dbName)
 bool sequel_remove(string const &dbName)
 {
     cout << "[react-native-sequel] Deleting DB" << endl;
+
+    if(dbMap.count(dbName) == 1){
+        sequel_close(dbName);
+    }
 
     string dbPath = get_db_path(dbName);
 
@@ -82,8 +103,17 @@ bool sequel_remove(string const &dbName)
     return true;
 }
 
-vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
+vector<jsi::Object> sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query)
 {
+    vector<jsi::Object> results;
+
+    sqlite3 *db = dbMap[dbName];
+
+    if(dbMap.count(dbName) == 0){
+        cout << "[react-native-sequel]: "<< dbName << " database is not open" << endl;
+        return results;
+    }
+
     // this time we will first compile the SQL
     sqlite3_stmt *statement;
 
@@ -96,12 +126,12 @@ vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
     int result, i, count, column_type;
     string column_name;
 
-    vector<jsi::Object> results;
+
 
     while (isConsuming)
     {
         result = sqlite3_step(statement);
-        jsi::Object entry = jsi::Object(runtime);
+        jsi::Object entry = jsi::Object(rt);
 
         switch (result)
         {
@@ -120,14 +150,14 @@ vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
                 case SQLITE_INTEGER:
                 {
                     int column_value = sqlite3_column_int(statement, i);
-                    entry.setProperty(runtime, column_name.c_str(), jsi::Value(column_value));
+                    entry.setProperty(rt, column_name.c_str(), jsi::Value(column_value));
                     break;
                 }
 
                 case SQLITE_FLOAT:
                 {
                     double column_value = sqlite3_column_double(statement, i);
-                    entry.setProperty(runtime, column_name.c_str(), jsi::Value(column_value));
+                    entry.setProperty(rt, column_name.c_str(), jsi::Value(column_value));
                     break;
                 }
 
@@ -135,14 +165,14 @@ vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
                 {
                     // TODO: not all the stored text is ASCII, replace this for UTF 8
                     const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
-                    entry.setProperty(runtime, column_name.c_str(), jsi::String::createFromAscii(runtime, column_value));
+                    entry.setProperty(rt, column_name.c_str(), jsi::String::createFromAscii(rt, column_value));
                     break;
                 }
 
                 case SQLITE_NULL:
                 // Intentionally left blank to switch to default case
                 default:
-                    entry.setProperty(runtime, column_name.c_str(), jsi::Value(nullptr));
+                    entry.setProperty(rt, column_name.c_str(), jsi::Value(nullptr));
                     break;
                 }
 
@@ -165,8 +195,4 @@ vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
     sqlite3_finalize(statement);
 
     return results;
-}
-
-void sequel_execute_async(jsi::Runtime &rt, const jsi::Value &resolve) {
-    resolve.asObject(rt).asFunction(rt).call(rt, jsi::Value(42));
 }

@@ -1,3 +1,13 @@
+/*
+ * react-native-sequel.cpp
+ *
+ * Created by Oscar Franco on 2021/03/07
+ * Copyright (c) 2021 Oscar Franco
+ *
+ * This code is licensed under the SSPL license
+ * https://www.mongodb.com/licensing/server-side-public-license
+ */
+
 #include "react-native-sequel.h"
 #include "sequel.h"
 
@@ -72,57 +82,62 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
     rt.global().setProperty(rt, "sequel_close", move(closeDb));
 
     /**
-            EXECUTE SQL (SYNC)
+            EXECUTE SQL
      */
     auto execSQL = jsi::Function::createFromHostFunction(
         rt,
         jsi::PropNameID::forAscii(rt, "sequel_execSQL"),
-        1,
+        2,
         [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-              vector<jsi::Object> results = sequel_execute(rt, args[0].asString(rt).utf8(rt));
+            const string dbName = args[0].asString(rt).utf8(rt);
+            const string query = args[1].asString(rt).utf8(rt);
+            vector<jsi::Object> results = sequel_execute(rt, dbName, query);
 
-              auto res = jsi::Array(rt, results.size());
-              for(int i = 0; i < results.size(); i++) {
-                  res.setValueAtIndex(rt, i, move(results[i]));
-              }
+            auto res = jsi::Array(rt, results.size());
+            for(int i = 0; i < results.size(); i++) {
+              res.setValueAtIndex(rt, i, move(results[i]));
+            }
 
-              return res;
+            return res;
         });
 
     rt.global().setProperty(rt, "sequel_execSQL", move(execSQL));
 
+    /**
+            ASYNC EXECUTE SQL
+     */
     auto asyncExecSQL = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
-      1,
+      2,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-
-        string query = args[0].asString(rt).utf8(rt);
+        const string dbName = args[0].asString(rt).utf8(rt);
+        const string query = args[1].asString(rt).utf8(rt);
 
         jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(
           rt,
           jsi::Function::createFromHostFunction(
-                                                rt,
-                                                jsi::PropNameID::forAscii(rt, "executor"),
-                                                2,
-                                                [query](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
+            rt,
+            jsi::PropNameID::forAscii(rt, "executor"),
+            2,
+            [dbName, query](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
+                thread t1([&rt, &dbName, &query, resolve{ std::make_shared<jsi::Value>(rt, args[0]) }] {
+                    vector<jsi::Object> results = sequel_execute(rt, dbName, query);
 
-            thread t1([&rt, &query, resolve{ std::make_shared<jsi::Value>(rt, args[0]) }] {
-                vector<jsi::Object> results = sequel_execute(rt, query);
+                    auto res = jsi::Array(rt, results.size());
+                    for(int i = 0; i < results.size(); i++) {
+                        res.setValueAtIndex(rt, i, move(results[i]));
+                    }
 
-                auto res = jsi::Array(rt, results.size());
-                for(int i = 0; i < results.size(); i++) {
-                    res.setValueAtIndex(rt, i, move(results[i]));
-                }
+                    resolve->asObject(rt).asFunction(rt).call(rt, res);
+                });
 
-                resolve->asObject(rt).asFunction(rt).call(rt, res);
-            });
-
-            t1.detach();
+                t1.detach();
 
 
-            return {};
-        }));
+                return {};
+            })
+        );
 
         return promise;
     });
