@@ -5,13 +5,11 @@ import { openDb, execSQL, closeDb, deleteDb, asyncExecSQL } from 'react-native-s
 
 export default function App() {
   const [rows, setRows] = React.useState([])
-  const [finalTime, setFinalTime] = React.useState(0);
 
   React.useEffect(() => {
     
     openDb(`sample.sqlite`);
     
-    const initTime = new Date();
     // execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
 
     // const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
@@ -32,14 +30,11 @@ export default function App() {
     // setRows(rows);
     asyncExecSQL(`sample.sqlite`, `SELECT * FROM 'PEOPLE';`).then((res) => {
       setRows(res);
-      
-      setFinalTime(new Date().getTime() - initTime.getTime());
     })
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={{fontWeight: 'bold'}}>Loaded {rows.length} items in {finalTime} ms</Text>
       <FlatList
         data={rows}
         renderItem={(info: any) => {

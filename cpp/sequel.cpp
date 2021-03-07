@@ -29,6 +29,7 @@ inline bool file_exists (const string &path) {
 
 string get_db_path(string const &dbName)
 {
+    // TODO: This probably doesn't work on ANDROID
     char *home = getenv("HOME");
     char const *subdir = "/Documents/";
 
@@ -39,9 +40,12 @@ string get_db_path(string const &dbName)
     return dbPath;
 }
 
+/*
+ * Opens/creates the database
+ */
 bool sequel_open(string const &dbName)
 {
-    cout << "[react-native-sequel] Opening DB" << endl;
+//    cout << "[react-native-sequel]: opening DB" << endl;
 
     string dbPath = get_db_path(dbName);
     int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
@@ -98,7 +102,7 @@ bool sequel_remove(string const &dbName)
     }
 
     remove(dbPath.c_str());
-    cout << "[react-native-sequel] DB at " << dbPath << "has been deleted." << endl;
+    cout << "[react-native-sequel] DB at " << dbName << "has been deleted." << endl;
 
     return true;
 }
