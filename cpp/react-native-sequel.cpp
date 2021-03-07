@@ -96,16 +96,26 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
       jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
       1,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+
+        string query = args[0].asString(rt).utf8(rt);
+
         jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(
           rt,
           jsi::Function::createFromHostFunction(
                                                 rt,
                                                 jsi::PropNameID::forAscii(rt, "executor"),
                                                 2,
-                                                [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
+                                                [query](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
 
-            thread t1([&rt, resolve{ std::make_shared<jsi::Value>(rt, args[0]) }] {
-                resolve->asObject(rt).asFunction(rt).call(rt, jsi::Value(42));
+            thread t1([&rt, &query, resolve{ std::make_shared<jsi::Value>(rt, args[0]) }] {
+                vector<jsi::Object> results = sequel_execute(rt, query);
+
+                auto res = jsi::Array(rt, results.size());
+                for(int i = 0; i < results.size(); i++) {
+                    res.setValueAtIndex(rt, i, move(results[i]));
+                }
+
+                resolve->asObject(rt).asFunction(rt).call(rt, res);
             });
 
             t1.detach();

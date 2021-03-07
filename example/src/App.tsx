@@ -8,10 +8,10 @@ export default function App() {
   const [finalTime, setFinalTime] = React.useState(0);
 
   React.useEffect(() => {
-    // const initTime = new Date();
-
-    // openDb('sample.sqlite');
     
+    openDb('sample.sqlite');
+    
+    const initTime = new Date();
     // execSQL(`CREATE TABLE PEOPLE (ID TEXT PRIMARY KEY NOT NULL, NAME TEXT NOT NULL);`);
 
     // const rows = execSQL(`SELECT * FROM 'PEOPLE';`);
@@ -29,10 +29,11 @@ export default function App() {
 
     // // execSQL(`DROP TABLE 'PEOPLE';`);
 
-    // setFinalTime(new Date().getTime() - initTime.getTime());
     // setRows(rows);
-    asyncExecSQL('blah').then((res) => {
-      console.warn('ASYNC EXEC SQL has resolved', res);
+    asyncExecSQL(`SELECT * FROM 'PEOPLE';`).then((res) => {
+      setRows(res);
+      
+      setFinalTime(new Date().getTime() - initTime.getTime());
     })
   }, []);
 
