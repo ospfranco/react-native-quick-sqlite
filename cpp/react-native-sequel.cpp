@@ -104,13 +104,11 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
                                                 2,
                                                 [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
 
-//            thread t1(sequel_execute_async, ref(rt), ref(args[0]));
-            jsi::Function cb = args[0].asObject(rt).asFunction(rt);
-            auto resolve = std::make_shared<jsi::Function>(std::move(cb));
-
-            thread t1([rt, resolve] {
-                resolve->call(rt, jsi::Value(42));
+            thread t1([&rt, resolve{ std::make_shared<jsi::Value>(rt, args[0]) }] {
+                resolve->asObject(rt).asFunction(rt).call(rt, jsi::Value(42));
             });
+
+            t1.detach();
 
 
             return {};
