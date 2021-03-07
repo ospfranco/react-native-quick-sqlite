@@ -11,4 +11,6 @@ bool sequel_remove(string const &dbName);
 
 bool sequel_close(string const &dbName);
 
-vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query);
+vector<jsi::Object> sequel_execute(jsi::Runtime &rt, string const &query);
+
+void sequel_execute_async(jsi::Runtime &rt, const jsi::Value &resolve);

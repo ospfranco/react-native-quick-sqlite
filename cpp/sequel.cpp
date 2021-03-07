@@ -166,3 +166,7 @@ vector<jsi::Object> sequel_execute(jsi::Runtime &runtime, string const &query)
 
     return results;
 }
+
+void sequel_execute_async(jsi::Runtime &rt, const jsi::Value &resolve) {
+    resolve.asObject(rt).asFunction(rt).call(rt, jsi::Value(42));
+}
