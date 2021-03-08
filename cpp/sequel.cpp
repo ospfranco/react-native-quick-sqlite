@@ -99,25 +99,35 @@ SequelResult sequel_close(string const &dbName)
     };
 }
 
-bool sequel_remove(string const &dbName)
+SequelResult sequel_remove(string const &dbName)
 {
-    cout << "[react-native-sequel] Deleting DB" << endl;
+//    cout << "[react-native-sequel] Deleting DB" << endl;
 
     if(dbMap.count(dbName) == 1){
-        sequel_close(dbName);
+        SequelResult closeResult = sequel_close(dbName);
+        if(closeResult.type == SequelResultError) {
+            return closeResult;
+        }
     }
 
     string dbPath = get_db_path(dbName);
 
     if(!file_exists(dbPath)) {
-        cout << "[react-native-sequel] File not found" << endl;
-        return false;
+//        cout << "[react-native-sequel] File not found" << endl;
+        return SequelResult{
+            SequelResultError,
+            "Db file not found"
+        };
     }
 
     remove(dbPath.c_str());
-    cout << "[react-native-sequel] DB at " << dbName << "has been deleted." << endl;
+//    cout << "[react-native-sequel] DB at " << dbName << "has been deleted." << endl;
 
-    return true;
+    return SequelResult{
+        SequelResultOk,
+        "",
+        jsi::Value::undefined()
+    };
 }
 
 vector<jsi::Object> sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query)

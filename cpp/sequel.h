@@ -21,6 +21,6 @@ SequelResult sequel_open(string const &dbName);
 
 SequelResult sequel_close(string const &dbName);
 
-bool sequel_remove(string const &dbName);
+SequelResult sequel_remove(string const &dbName);
 
 vector<jsi::Object> sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query);

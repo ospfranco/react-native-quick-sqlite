@@ -88,11 +88,19 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
             if (!args[0].isString())
             {
                 jsi::detail::throwJSError(rt, "dbName must be a string");
+                return {};
             }
 
             string dbName = args[0].asString(rt).utf8(rt);
 
-            return sequel_remove(dbName);
+            SequelResult result = sequel_remove(dbName);
+
+            if(result.type == SequelResultError) {
+                jsi::detail::throwJSError(rt, result.message.c_str());
+                return {};
+            }
+
+            return jsi::Value::undefined();
         });
 
     rt.global().setProperty(rt, "sequel_delete", move(deleteDb));

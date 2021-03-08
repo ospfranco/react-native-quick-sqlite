@@ -29,9 +29,17 @@ export function closeDb(dbName: string): RNSequelResponse<string> {
     return {error}
   }
 }
-export function deleteDb(dbName: string): boolean {
-  // @ts-ignore
-  return global.sequel_delete(dbName);
+
+export function deleteDb(dbName: string): RNSequelResponse<string> {
+  try {
+    // @ts-ignore
+    global.sequel_delete(dbName);
+    return {
+      result: dbName
+    }
+  } catch(error) {
+    return {error}
+  }
 }
 
 export function execSQL(dbName: string, sql: string): any {
