@@ -1,5 +1,5 @@
 /*
- * sequel.h
+ * SequelResult.h
  *
  * Created by Oscar Franco on 2021/03/07
  * Copyright (c) 2021 Oscar Franco
@@ -8,19 +8,22 @@
  * https://www.mongodb.com/licensing/server-side-public-license
  */
 
-#include <vector>
+#pragma once
+
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
-
-#include "SequelResult.h"
+#include <string>
 
 using namespace std;
 using namespace facebook;
 
-SequelResult sequel_open(string const &dbName);
+enum ResultType {
+    SequelResultOk,
+    SequelResultError
+};
 
-bool sequel_remove(string const &dbName);
-
-bool sequel_close(string const &dbName);
-
-vector<jsi::Object> sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query);
+struct SequelResult {
+    ResultType type;
+    string message;
+    jsi::Value value;
+};

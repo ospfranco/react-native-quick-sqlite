@@ -10,6 +10,7 @@
 
 #include "react-native-sequel.h"
 #include "sequel.h"
+#include "SequelResult.h"
 
 #include <iostream>
 #include <thread>
@@ -31,11 +32,19 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
             if (!args[0].isString())
             {
                 jsi::detail::throwJSError(rt, "dbName must be a string");
+                return {};
             }
 
             string dbName = args[0].asString(rt).utf8(rt);
+            SequelResult result = sequel_open(dbName);
 
-            return sequel_open(dbName);
+            if(result.type == SequelResultError) {
+                jsi::detail::throwJSError(rt, result.message.c_str());
+                return {};
+            }
+
+
+            return move(result.value);
         });
 
     rt.global().setProperty(rt, "sequel_open", move(openDb));
