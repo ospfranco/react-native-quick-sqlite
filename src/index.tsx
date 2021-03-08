@@ -42,12 +42,26 @@ export function deleteDb(dbName: string): RNSequelResponse<string> {
   }
 }
 
-export function execSQL(dbName: string, sql: string): any {
-  // @ts-ignore
-  return global.sequel_execSQL(dbName, sql);
+export function execSQL(dbName: string, sql: string): RNSequelResponse<any[]> {
+  try {
+    // @ts-ignore
+    let result = global.sequel_execSQL(dbName, sql);
+    return {
+      result
+    }
+  } catch(error) {
+    return {
+      error
+    }
+  }
 }
 
-export function asyncExecSQL(dbName: string, sql: string): Promise<any> {
-  // @ts-ignore
-  return global.sequel_asyncExecSQL(dbName, sql);
+export async function asyncExecSQL(dbName: string, sql: string): Promise<RNSequelResponse<any[]>> {
+  try {
+    // @ts-ignore
+    let result = await global.sequel_asyncExecSQL(dbName, sql);
+    return { result }
+  } catch(error) {
+    return { error }
+  }
 }

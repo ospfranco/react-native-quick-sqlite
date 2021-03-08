@@ -8,10 +8,8 @@
  * https://www.mongodb.com/licensing/server-side-public-license
  */
 
-#include <vector>
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
-
 #include "SequelResult.h"
 
 using namespace std;
@@ -23,4 +21,4 @@ SequelResult sequel_close(string const &dbName);
 
 SequelResult sequel_remove(string const &dbName);
 
-vector<jsi::Object> sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query);
+SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query);

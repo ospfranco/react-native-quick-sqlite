@@ -115,14 +115,14 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
         [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
             const string dbName = args[0].asString(rt).utf8(rt);
             const string query = args[1].asString(rt).utf8(rt);
-            vector<jsi::Object> results = sequel_execute(rt, dbName, query);
+            SequelResult result = sequel_execute(rt, dbName, query);
 
-            auto res = jsi::Array(rt, results.size());
-            for(int i = 0; i < results.size(); i++) {
-              res.setValueAtIndex(rt, i, move(results[i]));
+            if(result.type == SequelResultError) {
+                jsi::detail::throwJSError(rt, result.message.c_str());
+                return {};
             }
 
-            return res;
+            return move(result.value);
         });
 
     rt.global().setProperty(rt, "sequel_execSQL", move(execSQL));
@@ -146,14 +146,13 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
             2,
             [dbName, query](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
                 thread t1([&rt, &dbName, &query, resolve{ std::make_shared<jsi::Value>(rt, args[0]) }] {
-                    vector<jsi::Object> results = sequel_execute(rt, dbName, query);
+                    SequelResult result = sequel_execute(rt, dbName, query);
 
-                    auto res = jsi::Array(rt, results.size());
-                    for(int i = 0; i < results.size(); i++) {
-                        res.setValueAtIndex(rt, i, move(results[i]));
+                    if(result.type == SequelResultError) {
+                        jsi::detail::throwJSError(rt, result.message.c_str());
+                    } else {
+                        resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
                     }
-
-                    resolve->asObject(rt).asFunction(rt).call(rt, res);
                 });
 
                 t1.detach();

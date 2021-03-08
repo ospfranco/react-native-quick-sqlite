@@ -4,7 +4,7 @@ import { StyleSheet, View, Text, FlatList } from 'react-native';
 import { openDb, execSQL, closeDb, deleteDb, asyncExecSQL } from 'react-native-sequel';
 
 export default function App() {
-  const [rows, setRows] = React.useState([])
+  const [rows, setRows] = React.useState<any[]>([])
 
   React.useEffect(() => {
     
@@ -28,8 +28,12 @@ export default function App() {
     // // execSQL(`DROP TABLE 'PEOPLE';`);
 
     // setRows(rows);
-    asyncExecSQL(`sample.sqlite`, `SELECT * FROM 'PEOPLE';`).then((res) => {
-      setRows(res);
+    asyncExecSQL(`sample.sqlite`, `SELECT * FROM 'PEOPLE';`).then(({error, result}) => {
+      if(error) {
+        console.warn('something went wrong executing query')
+      } else {
+        setRows(result!);
+      }
     })
   }, []);
 

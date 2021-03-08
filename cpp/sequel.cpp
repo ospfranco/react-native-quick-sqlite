@@ -16,11 +16,12 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <map>
+#include <vector>
 
 using namespace std;
 using namespace facebook;
 
-std::map<string, sqlite3*> dbMap = std::map<string, sqlite3*>();
+map<string, sqlite3*> dbMap = map<string, sqlite3*>();
 
 inline bool file_exists (const string &path) {
   struct stat buffer;
@@ -130,7 +131,7 @@ SequelResult sequel_remove(string const &dbName)
     };
 }
 
-vector<jsi::Object> sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query)
+SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query)
 {
     vector<jsi::Object> results;
 
@@ -138,7 +139,10 @@ vector<jsi::Object> sequel_execute(jsi::Runtime &rt,string const &dbName, string
 
     if(dbMap.count(dbName) == 0){
         cout << "[react-native-sequel]: "<< dbName << " database is not open" << endl;
-        return results;
+        return SequelResult{
+            SequelResultError,
+            "Database " + dbName + " is not open"
+        };
     }
 
     // this time we will first compile the SQL
@@ -221,5 +225,14 @@ vector<jsi::Object> sequel_execute(jsi::Runtime &rt,string const &dbName, string
 
     sqlite3_finalize(statement);
 
-    return results;
+    auto res = jsi::Array(rt, results.size());
+    for(int i = 0; i < results.size(); i++) {
+      res.setValueAtIndex(rt, i, move(results[i]));
+    }
+
+    return {
+        SequelResultOk,
+        "",
+        move(res)
+    };
 }
