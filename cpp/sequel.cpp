@@ -22,8 +22,6 @@ using namespace facebook;
 
 std::map<string, sqlite3*> dbMap = std::map<string, sqlite3*>();
 
-//jsi::Array generate_sequel_res()
-
 inline bool file_exists (const string &path) {
   struct stat buffer;
   return (stat (path.c_str(), &buffer) == 0);
@@ -75,13 +73,17 @@ SequelResult sequel_open(string const &dbName)
     };
 }
 
-bool sequel_close(string const &dbName)
+SequelResult sequel_close(string const &dbName)
 {
 //    cout << "[react-native-sequel] Closing DB" << endl;
 
     if(dbMap.count(dbName) == 0){
         cout << "[react-native-sequel]: No DB open" << endl;
-        return true;
+        return SequelResult{
+            SequelResultError,
+            dbName + " is not open",
+            jsi::Value::undefined()
+        };
     }
 
     sqlite3 *db = dbMap[dbName];
@@ -90,7 +92,11 @@ bool sequel_close(string const &dbName)
 
     dbMap.erase(dbName);
 
-    return true;
+    return SequelResult{
+        SequelResultOk,
+        "",
+        jsi::Value::undefined()
+    };
 }
 
 bool sequel_remove(string const &dbName)

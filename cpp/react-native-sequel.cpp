@@ -48,6 +48,34 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
         });
 
     rt.global().setProperty(rt, "sequel_open", move(openDb));
+
+    /**
+            CLOSE DB INSTANCE
+     */
+    auto closeDb = jsi::Function::createFromHostFunction(
+        rt,
+        jsi::PropNameID::forAscii(rt, "sequel_close"),
+        1,
+        [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+            if (!args[0].isString())
+            {
+                jsi::detail::throwJSError(rt, "dbName must be a string");
+                return {};
+            }
+
+            string dbName = args[0].asString(rt).utf8(rt);
+
+            SequelResult result = sequel_close(dbName);
+
+            if(result.type == SequelResultError) {
+                jsi::detail::throwJSError(rt, result.message.c_str());
+                return {};
+            }
+
+            return move(result.value);
+        });
+
+    rt.global().setProperty(rt, "sequel_close", move(closeDb));
         
     /**
             DELETE DB INSTANCE
@@ -68,27 +96,6 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
         });
 
     rt.global().setProperty(rt, "sequel_delete", move(deleteDb));
-
-
-    /**
-            CLOSE DB INSTANCE
-     */
-    auto closeDb = jsi::Function::createFromHostFunction(
-        rt,
-        jsi::PropNameID::forAscii(rt, "sequel_close"),
-        1,
-        [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-            if (!args[0].isString())
-            {
-                jsi::detail::throwJSError(rt, "dbName must be a string");
-            }
-
-            string dbName = args[0].asString(rt).utf8(rt);
-
-            return sequel_close(dbName);
-        });
-
-    rt.global().setProperty(rt, "sequel_close", move(closeDb));
 
     /**
             EXECUTE SQL
