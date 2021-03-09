@@ -21,4 +21,6 @@ SequelResult sequel_close(string const &dbName);
 
 SequelResult sequel_remove(string const &dbName);
 
+//SequelResult sequel_attach(string const &dbName);
+
 SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query);

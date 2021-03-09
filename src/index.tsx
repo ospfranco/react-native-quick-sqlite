@@ -3,10 +3,12 @@ interface RNSequelResponse<T> {
   result?: T
 }
 
+
+
 export function openDb(dbName: string): RNSequelResponse<string> {
   try {
     // @ts-ignore
-    global.sequel_open(dbName);
+    sqlite.open(dbName);
     
     return {
       result: dbName
@@ -21,7 +23,7 @@ export function openDb(dbName: string): RNSequelResponse<string> {
 export function closeDb(dbName: string): RNSequelResponse<string> {
   try {
     // @ts-ignore
-    global.sequel_close(dbName);
+    sqlite.close(dbName);
     return {
       result: dbName
     }
@@ -33,7 +35,7 @@ export function closeDb(dbName: string): RNSequelResponse<string> {
 export function deleteDb(dbName: string): RNSequelResponse<string> {
   try {
     // @ts-ignore
-    global.sequel_delete(dbName);
+    sqlite.delete(dbName);
     return {
       result: dbName
     }
@@ -45,7 +47,7 @@ export function deleteDb(dbName: string): RNSequelResponse<string> {
 export function execSQL(dbName: string, sql: string): RNSequelResponse<any[]> {
   try {
     // @ts-ignore
-    let result = global.sequel_execSQL(dbName, sql);
+    let result = sqlite.execSQL(dbName, sql);
     return {
       result
     }
@@ -59,7 +61,7 @@ export function execSQL(dbName: string, sql: string): RNSequelResponse<any[]> {
 export async function asyncExecSQL(dbName: string, sql: string): Promise<RNSequelResponse<any[]>> {
   try {
     // @ts-ignore
-    let result = await global.sequel_asyncExecSQL(dbName, sql);
+    let result = await sqlite.asyncExecSQL(dbName, sql);
     return { result }
   } catch(error) {
     return { error }

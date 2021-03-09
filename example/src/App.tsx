@@ -30,7 +30,7 @@ export default function App() {
     // setRows(rows);
     asyncExecSQL(`sample.sqlite`, `SELECT * FROM 'PEOPLE';`).then(({error, result}) => {
       if(error) {
-        console.warn('something went wrong executing query')
+        console.warn('something went wrong executing query', error.toString())
       } else {
         setRows(result!);
       }

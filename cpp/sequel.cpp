@@ -79,7 +79,7 @@ SequelResult sequel_close(string const &dbName)
 //    cout << "[react-native-sequel] Closing DB" << endl;
 
     if(dbMap.count(dbName) == 0){
-        cout << "[react-native-sequel]: No DB open" << endl;
+        cout << "[react-native-sequel]: DB " << dbName << " not open" << endl;
         return SequelResult{
             SequelResultError,
             dbName + " is not open",
@@ -99,6 +99,30 @@ SequelResult sequel_close(string const &dbName)
         jsi::Value::undefined()
     };
 }
+
+//SequelResult sequel_attach(string const &dbName)
+//{
+//    if(dbMap.count(dbName) == 0){
+//        cout << "[react-native-sequel]: DB " << dbName << " not open" << endl;
+//        return SequelResult{
+//            SequelResultError,
+//            dbName + " is not open",
+//            jsi::Value::undefined()
+//        };
+//    }
+
+// TODO: What does "Attach" do? is it really necessary?
+//https://github.com/andpor/react-native-sqlite-storage/blob/master/platforms/ios/SQLite.m#L362
+
+//    NSString* sql = [NSString stringWithFormat:@"ATTACH DATABASE '%@' AS %@", dbPathToAttach, dbAlias];
+//
+//            if(sqlite3_exec(db, [sql UTF8String], NULL, NULL, NULL) == SQLITE_OK) {
+//              pluginResult = [SQLiteResult resultWithStatus:SQLiteStatus_OK messageAsString:@"Database attached successfully."];
+//            } else {
+//              pluginResult = [SQLiteResult resultWithStatus:SQLiteStatus_ERROR messageAsString:@"Unable to attach DB"];
+//            }
+
+//}
 
 SequelResult sequel_remove(string const &dbName)
 {

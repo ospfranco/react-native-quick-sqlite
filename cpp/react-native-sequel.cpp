@@ -25,7 +25,7 @@ void installSequel(jsi::Runtime &rt)
     /**
             OPEN DB INSTANCE
      */
-    auto openDb = jsi::Function::createFromHostFunction(
+    auto open = jsi::Function::createFromHostFunction(
         rt,
         jsi::PropNameID::forAscii(rt, "sequel_open"),
         1,
@@ -48,12 +48,33 @@ void installSequel(jsi::Runtime &rt)
             return move(result.value);
         });
 
-    rt.global().setProperty(rt, "sequel_open", move(openDb));
+//    auto attach = jsi::Function::createFromHostFunction(
+//        rt,
+//        jsi::PropNameID::forAscii(rt, "sequel_attach"),
+//        1,
+//        [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+//            if (!args[0].isString())
+//            {
+//                jsi::detail::throwJSError(rt, "dbName must be a string");
+//                return {};
+//            }
+//
+//            string dbName = args[0].asString(rt).utf8(rt);
+//            SequelResult result = sequel_attach(dbName);
+//
+//            if (result.type == SequelResultError)
+//            {
+//                jsi::detail::throwJSError(rt, result.message.c_str());
+//                return {};
+//            }
+//
+//            return move(result.value);
+//        });
 
     /**
             CLOSE DB INSTANCE
      */
-    auto closeDb = jsi::Function::createFromHostFunction(
+    auto close = jsi::Function::createFromHostFunction(
         rt,
         jsi::PropNameID::forAscii(rt, "sequel_close"),
         1,
@@ -77,12 +98,10 @@ void installSequel(jsi::Runtime &rt)
             return move(result.value);
         });
 
-    rt.global().setProperty(rt, "sequel_close", move(closeDb));
-
     /**
             DELETE DB INSTANCE
      */
-    auto deleteDb = jsi::Function::createFromHostFunction(
+    auto remove = jsi::Function::createFromHostFunction(
         rt,
         jsi::PropNameID::forAscii(rt, "sequel_delete"),
         1,
@@ -106,7 +125,6 @@ void installSequel(jsi::Runtime &rt)
             return jsi::Value::undefined();
         });
 
-    rt.global().setProperty(rt, "sequel_delete", move(deleteDb));
 
     /**
             EXECUTE SQL
@@ -128,8 +146,6 @@ void installSequel(jsi::Runtime &rt)
 
             return move(result.value);
         });
-
-    rt.global().setProperty(rt, "sequel_execSQL", move(execSQL));
 
     /**
             ASYNC EXECUTE SQL
@@ -164,7 +180,19 @@ void installSequel(jsi::Runtime &rt)
             return promise;
         });
 
-    rt.global().setProperty(rt, "sequel_asyncExecSQL", move(asyncExecSQL));
+
+    jsi::Object module = jsi::Object(rt);
+
+    // Open/Close
+    module.setProperty(rt, "open", move(open));
+    module.setProperty(rt, "close", move(close));
+//    module.setProperty(rt, "attach", move(attach));
+    module.setProperty(rt, "delete", move(remove));
+
+    module.setProperty(rt, "execSQL", move(execSQL));
+    module.setProperty(rt, "asyncExecSQL", move(asyncExecSQL));
+
+    rt.global().setProperty(rt, "sqlite", module);
 }
 
 void cleanUpSequel()
