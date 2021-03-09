@@ -65,3 +65,5 @@ export async function asyncExecSQL(dbName: string, sql: string): Promise<RNSeque
     return { error }
   }
 }
+
+// TODO add batch method? I'm sure it is necessary for some cases, but can be done later

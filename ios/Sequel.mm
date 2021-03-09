@@ -19,9 +19,9 @@
 
 #import <memory>
 
-@interface RCTBridge (RCTTurboModule)
-- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
-@end
+// @interface RCTBridge (RCTTurboModule)
+// - (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
+// @end
 
 @implementation Sequel
 
@@ -43,7 +43,8 @@ RCT_EXPORT_MODULE()
     return;
   }
 
-  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, cxxBridge.jsCallInvoker);
+  // installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, cxxBridge.jsCallInvoker);
+  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime);
 }
 
 - (void)invalidate {

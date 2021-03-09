@@ -18,7 +18,8 @@
 using namespace std;
 using namespace facebook;
 
-void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInvoker)
+// void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInvoker)
+void installSequel(jsi::Runtime &rt)
 {
 
     /**
@@ -38,11 +39,11 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
             string dbName = args[0].asString(rt).utf8(rt);
             SequelResult result = sequel_open(dbName);
 
-            if(result.type == SequelResultError) {
+            if (result.type == SequelResultError)
+            {
                 jsi::detail::throwJSError(rt, result.message.c_str());
                 return {};
             }
-
 
             return move(result.value);
         });
@@ -67,7 +68,8 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
 
             SequelResult result = sequel_close(dbName);
 
-            if(result.type == SequelResultError) {
+            if (result.type == SequelResultError)
+            {
                 jsi::detail::throwJSError(rt, result.message.c_str());
                 return {};
             }
@@ -76,7 +78,7 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
         });
 
     rt.global().setProperty(rt, "sequel_close", move(closeDb));
-        
+
     /**
             DELETE DB INSTANCE
      */
@@ -95,7 +97,8 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
 
             SequelResult result = sequel_remove(dbName);
 
-            if(result.type == SequelResultError) {
+            if (result.type == SequelResultError)
+            {
                 jsi::detail::throwJSError(rt, result.message.c_str());
                 return {};
             }
@@ -117,7 +120,8 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
             const string query = args[1].asString(rt).utf8(rt);
             SequelResult result = sequel_execute(rt, dbName, query);
 
-            if(result.type == SequelResultError) {
+            if (result.type == SequelResultError)
+            {
                 jsi::detail::throwJSError(rt, result.message.c_str());
                 return {};
             }
@@ -131,39 +135,34 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInv
             ASYNC EXECUTE SQL
      */
     auto asyncExecSQL = jsi::Function::createFromHostFunction(
-      rt,
-      jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
-      2,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-        const string dbName = args[0].asString(rt).utf8(rt);
-        const string query = args[1].asString(rt).utf8(rt);
+        rt,
+        jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
+        2,
+        [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+            const string dbName = args[0].asString(rt).utf8(rt);
+            const string query = args[1].asString(rt).utf8(rt);
 
-        jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(
-          rt,
-          jsi::Function::createFromHostFunction(
-            rt,
-            jsi::PropNameID::forAscii(rt, "executor"),
-            2,
-            [dbName, query](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
-                thread t1([&rt, &dbName, &query, resolve{ std::make_shared<jsi::Value>(rt, args[0]) }] {
-                    SequelResult result = sequel_execute(rt, dbName, query);
+            jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(rt, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "executor"), 2, [dbName, query](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
+                                                                                                        thread t1([&rt, &dbName, &query, resolve{std::make_shared<jsi::Value>(rt, args[0])}] {
+                                                                                                            SequelResult result = sequel_execute(rt, dbName, query);
 
-                    if(result.type == SequelResultError) {
-                        jsi::detail::throwJSError(rt, result.message.c_str());
-                    } else {
-                        resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
-                    }
-                });
+                                                                                                            if (result.type == SequelResultError)
+                                                                                                            {
+                                                                                                                jsi::detail::throwJSError(rt, result.message.c_str());
+                                                                                                            }
+                                                                                                            else
+                                                                                                            {
+                                                                                                                resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
+                                                                                                            }
+                                                                                                        });
 
-                t1.detach();
+                                                                                                        t1.detach();
 
+                                                                                                        return {};
+                                                                                                    }));
 
-                return {};
-            })
-        );
-
-        return promise;
-    });
+            return promise;
+        });
 
     rt.global().setProperty(rt, "sequel_asyncExecSQL", move(asyncExecSQL));
 }
