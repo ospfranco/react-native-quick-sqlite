@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "react": "16.13.1",
-    "react-native": "0.63.4"
+    "react-native": "0.63.4",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "file:../../typeorm/build/package"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",

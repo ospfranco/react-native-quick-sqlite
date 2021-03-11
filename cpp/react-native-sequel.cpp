@@ -21,6 +21,7 @@ using namespace facebook;
 // void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInvoker)
 void installSequel(jsi::Runtime &rt)
 {
+    cout << "MARKER installing sqlite bindings" << endl;
 
     /**
             OPEN DB INSTANCE
@@ -189,10 +190,10 @@ void installSequel(jsi::Runtime &rt)
 //    module.setProperty(rt, "attach", move(attach));
     module.setProperty(rt, "delete", move(remove));
 
-    module.setProperty(rt, "execSQL", move(execSQL));
-    module.setProperty(rt, "asyncExecSQL", move(asyncExecSQL));
+    module.setProperty(rt, "executeSql", move(execSQL));
+    module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
 
-    rt.global().setProperty(rt, "sqlite", module);
+    rt.global().setProperty(rt, "sqlite", move(module));
 }
 
 void cleanUpSequel()

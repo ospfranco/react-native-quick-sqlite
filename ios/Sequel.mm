@@ -14,7 +14,6 @@
 #import <jsi/jsi.h>
 
 #import <React/RCTUtils.h>
-#import "react-native-sequel.h"
 #import <ReactCommon/CallInvoker.h>
 
 #import <memory>
