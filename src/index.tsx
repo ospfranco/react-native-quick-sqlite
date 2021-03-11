@@ -30,7 +30,6 @@ export const openDatabase = (options: IConnectionOptions, sc: (db: IDBConnection
 
     const connection: IDBConnection = {
       executeSql: (sql: string, args: any[], sc: any, fc: any) => {
-        console.warn('MARKER, tying to execute query', sql, args)
         try {
           let rows = sqlite.executeSql(options.name, sql)
           sc({rows})

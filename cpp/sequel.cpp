@@ -174,9 +174,11 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
 
     if (sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL) != SQLITE_OK)
     {
+        const char *message = sqlite3_errmsg(db);
+
         return {
             SequelResultError,
-            "Invalid SQL Query",
+            "[react-native-sql] Sql Execution error:" + string(message),
             jsi::Value::undefined()
         };
     }

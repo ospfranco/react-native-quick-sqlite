@@ -7,6 +7,7 @@ export const createDb = async () => {
     database: 'test',
     location: 'default',
     logging: ['error', 'query', 'schema'],
+    synchronize: true,
     entities: [
       User
     ]
@@ -18,7 +19,6 @@ export const createDb = async () => {
   const userRepository = getRepository(User)
   await userRepository.save(user1)
 
-  console.warn(`user has been saved`)
 
   const users = await userRepository.find();
   console.warn(`users`, users)
