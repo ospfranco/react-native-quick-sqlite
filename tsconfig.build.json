@@ -1,7 +1,5 @@
 
 {
   "extends": "./tsconfig",
-  "exclude": ["example"],
-  "emitDecoratorMetadata": true,
-  "experimentalDecorators": true,
+  "exclude": ["example"]
 }

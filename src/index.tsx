@@ -1,3 +1,5 @@
+// IMPORTAAAAANTTTTT JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE DEBUGGER
+
 // export { createConnection } from 'typeorm/browser'
 
 // LOW LEVEL API, talk directly to JSI bindings
@@ -9,8 +11,6 @@ interface ISQLite {
 
 // Make it globally available
 declare var sqlite: ISQLite
-
-console.warn('global sequel', sqlite)
 
 // API FOR TYPEORM
 interface IConnectionOptions {
