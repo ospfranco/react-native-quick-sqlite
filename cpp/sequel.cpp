@@ -174,7 +174,11 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
 
     if (sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL) != SQLITE_OK)
     {
-        cout << "INVALID SQL QUERY" << endl;
+        return {
+            SequelResultError,
+            "Invalid SQL Query",
+            jsi::Value::undefined()
+        };
     }
 
     bool isConsuming = true;

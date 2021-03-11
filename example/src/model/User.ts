@@ -2,9 +2,9 @@ import {Entity, Column, PrimaryGeneratedColumn } from "typeorm/browser"
 
 @Entity('user')
 export class User {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-  @Column()
+  @Column("text")
   name!: string;
 }

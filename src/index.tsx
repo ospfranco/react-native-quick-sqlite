@@ -5,6 +5,7 @@
 // LOW LEVEL API, talk directly to JSI bindings
 interface ISQLite {
   open: (dbName: string) => any,
+  close: (dbName: string) => any,
   executeSql: (dbName: string, query: string) => any
   backgroundExecuteSql: (dbName: string, query: string) => any
 }
@@ -20,23 +21,35 @@ interface IConnectionOptions {
 
 interface IDBConnection {
   executeSql: (sql: string, args: any[], sc: (res: any) => void, fc: (msg: string) => void) => void
+  close: (sc: (res: any) => void, fc: (msg: string) => void) => void
 }
 
 export const openDatabase = (options: IConnectionOptions, sc: (db: IDBConnection) => void, fc: (msg: string) => void) => {
   try {
-    sqlite.open(options.name)
-    const connection: IDBConnection = {
+    sqlite.open(options.name);
 
+    const connection: IDBConnection = {
       executeSql: (sql: string, args: any[], sc: any, fc: any) => {
+        console.warn('MARKER, tying to execute query', sql, args)
         try {
-          let res = sqlite.executeSql(options.name, sql)
-          sc(res)
+          let rows = sqlite.executeSql(options.name, sql)
+          sc({rows})
         } catch(e) {
           fc(e)
         }
+      },
+      close: (ok: any, fail: any) => {
+        try {
+          sqlite.close(options.name)
+          ok()
+        } catch(e) {
+          fail(e)
+        }
       }
-    }
-    sc(connection)
+    };
+
+    sc(connection);
+
   } catch(e) {
     fc(e)
   }
