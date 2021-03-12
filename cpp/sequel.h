@@ -11,6 +11,7 @@
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
 #include "SequelResult.h"
+#include <vector>
 
 using namespace std;
 using namespace facebook;
@@ -23,4 +24,4 @@ SequelResult sequel_remove(string const &dbName);
 
 //SequelResult sequel_attach(string const &dbName);
 
-SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query);
+SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query, const vector<string> &params);

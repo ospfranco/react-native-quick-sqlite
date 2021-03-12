@@ -6,8 +6,8 @@
 interface ISQLite {
   open: (dbName: string) => any,
   close: (dbName: string) => any,
-  executeSql: (dbName: string, query: string) => any
-  backgroundExecuteSql: (dbName: string, query: string) => any
+  executeSql: (dbName: string, query: string, params: any[]) => any
+  backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any
 }
 
 // Make it globally available
@@ -20,21 +20,21 @@ interface IConnectionOptions {
 }
 
 interface IDBConnection {
-  executeSql: (sql: string, args: any[], sc: (res: any) => void, fc: (msg: string) => void) => void
-  close: (sc: (res: any) => void, fc: (msg: string) => void) => void
+  executeSql: (sql: string, args: any[], ok: (res: any) => void, fail: (msg: string) => void) => void
+  close: (ok: (res: any) => void, fail: (msg: string) => void) => void
 }
 
-export const openDatabase = (options: IConnectionOptions, sc: (db: IDBConnection) => void, fc: (msg: string) => void) => {
+export const openDatabase = (options: IConnectionOptions, ok: (db: IDBConnection) => void, fail: (msg: string) => void) => {
   try {
     sqlite.open(options.name);
 
     const connection: IDBConnection = {
-      executeSql: (sql: string, args: any[], sc: any, fc: any) => {
+      executeSql: (sql: string, params: any[], ok: any, fail: any) => {
         try {
-          let rows = sqlite.executeSql(options.name, sql)
-          sc({rows})
+          let rows = sqlite.executeSql(options.name, sql, params)
+          ok({rows})
         } catch(e) {
-          fc(e)
+          fail(e)
         }
       },
       close: (ok: any, fail: any) => {
@@ -47,10 +47,10 @@ export const openDatabase = (options: IConnectionOptions, sc: (db: IDBConnection
       }
     };
 
-    sc(connection);
+    ok(connection);
 
   } catch(e) {
-    fc(e)
+    fail(e)
   }
 }
 

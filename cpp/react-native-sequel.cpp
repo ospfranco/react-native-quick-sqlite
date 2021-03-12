@@ -11,18 +11,25 @@
 #include "react-native-sequel.h"
 #include "sequel.h"
 #include "SequelResult.h"
-
+#include <vector>
 #include <iostream>
 #include <thread>
 
 using namespace std;
 using namespace facebook;
 
+const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params) {
+    int jsiParamsLength = params.length(rt);
+    vector<std::string> res;
+    for(int ii = 0; ii < jsiParamsLength; ii++) {
+        res.push_back(params.getValueAtIndex(rt, ii).asString(rt).utf8(rt));
+    }
+    return res;
+}
+
 // void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> callInvoker)
 void installSequel(jsi::Runtime &rt)
 {
-    cout << "MARKER installing sqlite bindings" << endl;
-
     /**
             OPEN DB INSTANCE
      */
@@ -133,11 +140,14 @@ void installSequel(jsi::Runtime &rt)
     auto execSQL = jsi::Function::createFromHostFunction(
         rt,
         jsi::PropNameID::forAscii(rt, "sequel_execSQL"),
-        2,
+        3,
         [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
             const string dbName = args[0].asString(rt).utf8(rt);
             const string query = args[1].asString(rt).utf8(rt);
-            SequelResult result = sequel_execute(rt, dbName, query);
+            jsi::Array jsiParams = args[2].asObject(rt).asArray(rt);
+            const vector<string> params = mapParams(rt, jsiParams);
+
+            SequelResult result = sequel_execute(rt, dbName, query, params);
 
             if (result.type == SequelResultError)
             {
@@ -151,36 +161,43 @@ void installSequel(jsi::Runtime &rt)
     /**
             ASYNC EXECUTE SQL
      */
-    auto asyncExecSQL = jsi::Function::createFromHostFunction(
-        rt,
-        jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
-        2,
-        [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-            const string dbName = args[0].asString(rt).utf8(rt);
-            const string query = args[1].asString(rt).utf8(rt);
-
-            jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(rt, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "executor"), 2, [dbName, query](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
-                                                                                                        thread t1([&rt, &dbName, &query, resolve{std::make_shared<jsi::Value>(rt, args[0])}] {
-                                                                                                            SequelResult result = sequel_execute(rt, dbName, query);
-
-                                                                                                            if (result.type == SequelResultError)
-                                                                                                            {
-                                                                                                                jsi::detail::throwJSError(rt, result.message.c_str());
-                                                                                                            }
-                                                                                                            else
-                                                                                                            {
-                                                                                                                resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
-                                                                                                            }
-                                                                                                        });
-
-                                                                                                        t1.detach();
-
-                                                                                                        return {};
-                                                                                                    }));
-
-            return promise;
-        });
-
+//    auto asyncExecSQL = jsi::Function::createFromHostFunction(
+//        rt,
+//        jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
+//        3,
+//        [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+//            const string dbName = args[0].asString(rt).utf8(rt);
+//            const string query = args[1].asString(rt).utf8(rt);
+//            jsi::Array jsiParams = args[2].asObject(rt).asArray(rt);
+//            int jsiParamsLength = jsiParams.length(rt);
+//            vector<std::string> params;
+//            for(int ii = 0; ii < jsiParamsLength; ii++) {
+//                params.push_back(jsiParams.getValueAtIndex(rt, ii).asString(rt).utf8(rt));
+//            }
+//
+//            jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(rt, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "executor"), 2, [dbName, query, params](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
+//                                                                                                        thread t1([&rt, &dbName, &query, &params, resolve{std::make_shared<jsi::Value>(rt, args[0])}] {
+//
+//                                                                                                            SequelResult result = sequel_execute(rt, dbName, query, params);
+//
+//                                                                                                            if (result.type == SequelResultError)
+//                                                                                                            {
+//                                                                                                                jsi::detail::throwJSError(rt, result.message.c_str());
+//                                                                                                            }
+//                                                                                                            else
+//                                                                                                            {
+//                                                                                                                resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
+//                                                                                                            }
+//                                                                                                        });
+//
+//                                                                                                        t1.detach();
+//
+//                                                                                                        return {};
+//                                                                                                    }));
+//
+//            return promise;
+//        });
+//
 
     jsi::Object module = jsi::Object(rt);
 
@@ -191,7 +208,7 @@ void installSequel(jsi::Runtime &rt)
     module.setProperty(rt, "delete", move(remove));
 
     module.setProperty(rt, "executeSql", move(execSQL));
-    module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
+//    module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
 
     rt.global().setProperty(rt, "sqlite", move(module));
 }

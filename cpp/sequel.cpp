@@ -16,7 +16,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <map>
-#include <vector>
 
 using namespace std;
 using namespace facebook;
@@ -155,7 +154,7 @@ SequelResult sequel_remove(string const &dbName)
     };
 }
 
-SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query)
+SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query, const vector<string> &params)
 {
     vector<jsi::Object> results;
 
@@ -171,8 +170,10 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
 
     // this time we will first compile the SQL
     sqlite3_stmt *statement;
+    // Not only returns the status but moves the compiled statement into &statement
+    int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
 
-    if (sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL) != SQLITE_OK)
+    if (statementStatus != SQLITE_OK)
     {
         const char *message = sqlite3_errmsg(db);
 
@@ -181,13 +182,15 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
             "[react-native-sql] Sql Execution error:" + string(message),
             jsi::Value::undefined()
         };
+    } else {
+        
     }
 
     bool isConsuming = true;
+    bool isFailed = false;
+
     int result, i, count, column_type;
     string column_name;
-
-
 
     while (isConsuming)
     {
@@ -248,12 +251,21 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
             break;
 
         default:
-            cout << "react-native-sequel: Error executing query" << endl;
+            isFailed = true;
             isConsuming = false;
         }
     }
 
     sqlite3_finalize(statement);
+
+    if(isFailed) {
+        const char *message = sqlite3_errmsg(db);
+        return {
+            SequelResultError,
+            "[react-native-sequel] Sql execution error" + string(message),
+            jsi::Value::undefined()
+        };
+    }
 
     auto res = jsi::Array(rt, results.size());
     for(int i = 0; i < results.size(); i++) {
