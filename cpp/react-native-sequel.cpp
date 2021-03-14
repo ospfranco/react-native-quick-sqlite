@@ -144,10 +144,8 @@ void installSequel(jsi::Runtime &rt)
         [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
             const string dbName = args[0].asString(rt).utf8(rt);
             const string query = args[1].asString(rt).utf8(rt);
-            jsi::Array jsiParams = args[2].asObject(rt).asArray(rt);
-            const vector<string> params = mapParams(rt, jsiParams);
 
-            SequelResult result = sequel_execute(rt, dbName, query, params);
+            SequelResult result = sequel_execute(rt, dbName, query, args[2]);
 
             if (result.type == SequelResultError)
             {

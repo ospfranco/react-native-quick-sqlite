@@ -154,7 +154,44 @@ SequelResult sequel_remove(string const &dbName)
     };
 }
 
-SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query, const vector<string> &params)
+void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, const jsi::Value &params) {
+    if(params.isNull() || params.isUndefined()) {
+        return;
+    }
+
+    jsi::Array values = params.asObject(rt).asArray(rt);
+
+    for(int ii = 0; ii < values.length(rt); ii++) {
+
+        jsi::Value value = values.getValueAtIndex(rt, ii);
+        if(value.isNull()) {
+            sqlite3_bind_null(statement, ii + 1);
+        } else if(value.isNumber()){
+            double doubleVal = value.asNumber();
+            int intVal = (int) doubleVal;
+            long long longVal = (long) doubleVal;
+            if(intVal == doubleVal) {
+                sqlite3_bind_int(statement, ii + 1, intVal);
+            } else if (longVal == doubleVal) {
+                sqlite3_bind_int64(statement, ii + 1, longVal);
+            } else {
+                sqlite3_bind_double(statement, ii + 1, doubleVal);
+            }
+        } else if(value.isString()) {
+            string strVal = value.asString(rt).utf8(rt);
+            const char* cString = strVal.c_str();
+
+            int len = 0;
+            while (*cString) len += (*cString++ & 0xc0) != 0x80;
+
+            sqlite3_bind_text(statement, ii + 1, strVal.c_str(), len, SQLITE_TRANSIENT);
+        }
+    }
+
+    cout << "final prepared statement: " << sqlite3_expanded_sql(statement) << endl;
+}
+
+SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const &query, const jsi::Value &params)
 {
     vector<jsi::Object> results;
 
@@ -173,8 +210,10 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
     // Not only returns the status but moves the compiled statement into &statement
     int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
 
-    if (statementStatus != SQLITE_OK)
+    if (statementStatus == SQLITE_OK)
     {
+        bindStatement(statement, rt, params);
+    } else {
         const char *message = sqlite3_errmsg(db);
 
         return {
@@ -182,8 +221,6 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
             "[react-native-sql] Sql Execution error:" + string(message),
             jsi::Value::undefined()
         };
-    } else {
-        
     }
 
     bool isConsuming = true;

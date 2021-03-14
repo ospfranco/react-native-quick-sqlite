@@ -7,4 +7,10 @@ export class User {
 
   @Column("text")
   name!: string;
+
+  @Column("int")
+  age!: number;
+
+  @Column("float")
+  networth!: number;
 }

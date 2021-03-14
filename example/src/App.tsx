@@ -20,11 +20,11 @@ export default function App() {
         renderItem={(info: any) => {
           return (
             <View>
-              <Text>{info.item.ID} - {info.item.NAME}</Text>
+              <Text>{info.item.name} - {info.item.age}</Text>
             </View>
           )
         }}
-        keyExtractor={(item: any) => item.ID}
+        keyExtractor={(item: any) => item.id}
       />
 
     </View>
