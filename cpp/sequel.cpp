@@ -304,9 +304,24 @@ SequelResult sequel_execute(jsi::Runtime &rt,string const &dbName, string const 
         };
     }
 
-    auto res = jsi::Array(rt, results.size());
+
+
+    // Move everything into a JSI object
+
+    jsi::Object res = jsi::Object(rt);
+
+    auto rows = jsi::Array(rt, results.size());
     for(int i = 0; i < results.size(); i++) {
-      res.setValueAtIndex(rt, i, move(results[i]));
+      rows.setValueAtIndex(rt, i, move(results[i]));
+    }
+
+    res.setProperty(rt, "rows", move(rows));
+
+    int changedRowCount = sqlite3_total_changes(db);
+    // row id has nothing to do with the actual uuid/id of the object, but internal row count
+    long long latestInsertRowId = sqlite3_last_insert_rowid(db);
+    if(changedRowCount > 0 && latestInsertRowId != 0) {
+        res.setProperty(rt, "insertId", jsi::Value((int)latestInsertRowId));
     }
 
     return {

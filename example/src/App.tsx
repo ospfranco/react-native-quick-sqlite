@@ -1,5 +1,5 @@
-import * as React from 'react';
 import 'reflect-metadata'
+import * as React from 'react';
 import { StyleSheet, View, Text, FlatList } from 'react-native';
 import { createDb } from './Database';
 import type { User } from './model/User';

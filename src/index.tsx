@@ -6,7 +6,10 @@
 interface ISQLite {
   open: (dbName: string) => any,
   close: (dbName: string) => any,
-  executeSql: (dbName: string, query: string, params: any[] | undefined) => any
+  executeSql: (dbName: string, query: string, params: any[] | undefined) => {
+    rows: any[],
+    insertId?: number
+  }
   backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any
 }
 
@@ -31,8 +34,8 @@ export const openDatabase = (options: IConnectionOptions, ok: (db: IDBConnection
     const connection: IDBConnection = {
       executeSql: (sql: string, params: any[] | undefined, ok: any, fail: any) => {
         try {
-          let rows = sqlite.executeSql(options.name, sql, params)
-          ok({rows})
+          let response = sqlite.executeSql(options.name, sql, params)
+          ok(response)
         } catch(e) {
           fail(e)
         }
