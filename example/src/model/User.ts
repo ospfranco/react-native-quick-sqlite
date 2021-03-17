@@ -15,7 +15,7 @@ export class User {
   @Column("float")
   networth!: number;
 
-  @OneToOne(() => Book)
+  @OneToOne(type => Book)
   @JoinColumn()
   favoriteBook!: Book
 }

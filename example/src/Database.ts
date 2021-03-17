@@ -33,7 +33,9 @@ export const createDb = async () => {
   // await userRepository.save(user1)
 
 
-  const users = await userRepository.find();
+  const users = await userRepository.find({
+    relations: ['favoriteBook']
+  });
   
   // const firstUser = users[0];
 
