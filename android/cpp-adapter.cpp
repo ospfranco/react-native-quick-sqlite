@@ -1,8 +1,14 @@
 #include <jni.h>
-#include "example.h"
+#include "react-native-sequel.h"
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_reactnativesequel_SequelModule_nativeMultiply(JNIEnv *env, jclass type, jint a, jint b) {
-    return example::multiply(a, b);
+Java_com_reactnativesequel_SequelModule_initialize(JNIEnv *env, jclass clazz, jlong jsiPtr) {
+    installSequel(*reinterpret_cast<facebook::jsi::Runtime*>(jsiPtr));
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_reactnativesequel_SequelModule_destruct(JNIEnv* env, jclass clazz) {
+  cleanUpSequel();
 }

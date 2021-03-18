@@ -16,6 +16,7 @@
     "react-native-sequel.podspec",
     "!lib/typescript/example",
     "!android/build",
+    "!android/.cxx",
     "!ios/build",
     "!**/__tests__",
     "!**/__fixtures__",

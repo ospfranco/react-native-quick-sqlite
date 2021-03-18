@@ -1,15 +1,26 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 set (CMAKE_VERBOSE_MAKEFILE ON)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 
-add_library(cpp
-            SHARED
-            ../cpp/example.cpp
-            cpp-adapter.cpp
-)
+find_package(sqlite3 REQUIRED CONFIG)
 
-# Specifies a path to native header files.
 include_directories(
             ../cpp
+            ../node_modules/react-native/React
+            ../node_modules/react-native/React/Base
+            ../node_modules/react-native/ReactCommon/jsi
 )
+
+add_library(sequel
+  SHARED
+  ../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
+  ../cpp/sequel.cpp
+  ../cpp/sequel.h
+  ../cpp/SequelResult.h
+  ../cpp/react-native-sequel.cpp
+  ../cpp/react-native-sequel.h
+  cpp-adapter.cpp
+)
+
+target_link_libraries(sequel sqlite3::sqlite3)
