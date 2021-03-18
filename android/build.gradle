@@ -140,6 +140,5 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  // noinspection GradleDynamicVersion
-  implementation 'com.android.ndk.thirdparty:sqlite3:+'
+  implementation files('src/main/libs/sqlite_android.aar')
 }
