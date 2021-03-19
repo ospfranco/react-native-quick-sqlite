@@ -2,8 +2,8 @@
 #include "react-native-sequel.h"
 
 extern "C"
-JNIEXPORT jint JNICALL
-Java_com_reactnativesequel_SequelModule_initialize(JNIEnv *env, jclass clazz, jlong jsiPtr) {
+JNIEXPORT void JNICALL
+Java_com_reactnativesequel_SequelModule_initialize(JNIEnv* env, jclass clazz, jlong jsiPtr) {
     installSequel(*reinterpret_cast<facebook::jsi::Runtime*>(jsiPtr));
 }
 
