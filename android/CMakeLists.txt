@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 set (CMAKE_VERBOSE_MAKEFILE ON)
-set (CMAKE_CXX_STANDARD 14)
-
-find_package(sqlite3 REQUIRED CONFIG)
+set (CMAKE_CXX_STANDARD 11)
 
 include_directories(
             ../cpp
@@ -20,7 +18,9 @@ add_library(sequel
   ../cpp/SequelResult.h
   ../cpp/react-native-sequel.cpp
   ../cpp/react-native-sequel.h
+  ../cpp/sqlite3.h
+  ../cpp/sqlite3.c
   cpp-adapter.cpp
 )
 
-target_link_libraries(sequel sqlite3::sqlite3)
+target_link_libraries(sequel)

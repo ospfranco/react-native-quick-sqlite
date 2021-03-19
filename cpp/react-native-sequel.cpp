@@ -160,37 +160,37 @@ void installSequel(jsi::Runtime &rt)
   /**
             ASYNC EXECUTE SQL
      */
-  auto asyncExecSQL = jsi::Function::createFromHostFunction(
-      rt,
-      jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
-      3,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-        const string dbName = args[0].asString(rt).utf8(rt);
-        const string query = args[1].asString(rt).utf8(rt);
-        const jsi::Value &params = args[2];
+  // auto asyncExecSQL = jsi::Function::createFromHostFunction(
+  //     rt,
+  //     jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
+  //     3,
+  //     [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+  //       const string dbName = args[0].asString(rt).utf8(rt);
+  //       const string query = args[1].asString(rt).utf8(rt);
+  //       const jsi::Value &params = args[2];
 
-        jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(rt, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "executor"), 2, [dbName, query, &params](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
-                                                                                                  // Spawn c++ thread
-                                                                                                  thread t1([&rt, &dbName, &query, &params, resolve{make_shared<jsi::Value>(rt, args[0])}] {
-                                                                                                    SequelResult result = sequel_execute(rt, dbName, query, params);
+  //       jsi::Value promise = rt.global().getPropertyAsFunction(rt, "Promise").callAsConstructor(rt, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "executor"), 2, [dbName, query, &params](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t) -> jsi::Value {
+  //                                                                                                 // Spawn c++ thread
+  //                                                                                                 thread t1([&rt, &dbName, &query, &params, resolve{make_shared<jsi::Value>(rt, args[0])}] {
+  //                                                                                                   SequelResult result = sequel_execute(rt, dbName, query, params);
 
-                                                                                                    if (result.type == SequelResultError)
-                                                                                                    {
-                                                                                                      jsi::detail::throwJSError(rt, result.message.c_str());
-                                                                                                    }
-                                                                                                    else
-                                                                                                    {
-                                                                                                      resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
-                                                                                                    }
-                                                                                                  });
+  //                                                                                                   if (result.type == SequelResultError)
+  //                                                                                                   {
+  //                                                                                                     jsi::detail::throwJSError(rt, result.message.c_str());
+  //                                                                                                   }
+  //                                                                                                   else
+  //                                                                                                   {
+  //                                                                                                     resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
+  //                                                                                                   }
+  //                                                                                                 });
 
-                                                                                                  t1.detach();
+  //                                                                                                 t1.detach();
 
-                                                                                                  return {};
-                                                                                                }));
+  //                                                                                                 return {};
+  //                                                                                               }));
 
-        return promise;
-      });
+  //       return promise;
+  //     });
 
 // Create final object that will be injected into the global object
   jsi::Object module = jsi::Object(rt);
@@ -202,7 +202,7 @@ void installSequel(jsi::Runtime &rt)
   module.setProperty(rt, "delete", move(remove));
 
   module.setProperty(rt, "executeSql", move(execSQL));
-  module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
+  // module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
 
   rt.global().setProperty(rt, "sqlite", move(module));
 }
