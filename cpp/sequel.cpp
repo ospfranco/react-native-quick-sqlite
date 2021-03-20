@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <map>
+#include "logs.h"
 
 using namespace std;
 using namespace facebook;
@@ -30,8 +31,11 @@ inline bool file_exists (const string &path) {
 string get_db_path(string const &dbName)
 {
     // TODO: This probably doesn't work on ANDROID
+    LOGW(">>>>>>>>>>>>>>>MARKER1");
     char *home = getenv("HOME");
+    LOGW(">>>>>>>>>>>>>>>MARKER2");
     char const *subdir = "/Documents/";
+    LOGW(">>>>>>>>>>>>>>>MARKER3");
 
     stringstream ss;
     ss << home << subdir << dbName;
@@ -45,9 +49,11 @@ string get_db_path(string const &dbName)
  */
 SequelResult sequel_open(string const &dbName)
 {
-//    cout << "[react-native-sequel]: opening DB" << endl;
+    LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<OPENING DEEEEBEEEEEEEE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
     string dbPath = get_db_path(dbName);
+    LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<DEEEBEEE PATH>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    // LOGW(dbPath);
     int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
     sqlite3 *db;

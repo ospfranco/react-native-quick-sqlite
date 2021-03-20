@@ -28,6 +28,7 @@ interface IDBConnection {
 }
 
 export const openDatabase = (options: IConnectionOptions, ok: (db: IDBConnection) => void, fail: (msg: string) => void) => {
+  // console.warn('MARKER OPENING DATABASE', options)
   try {
     sqlite.open(options.name);
 

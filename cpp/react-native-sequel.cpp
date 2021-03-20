@@ -10,6 +10,7 @@
 
 #include "react-native-sequel.h"
 #include "sequel.h"
+#include "logs.h"
 #include "SequelResult.h"
 #include <vector>
 #include <iostream>
@@ -47,6 +48,8 @@ void installSequel(jsi::Runtime &rt)
         }
 
         string dbName = args[0].asString(rt).utf8(rt);
+
+        LOGW(">>>>>>>>>>>>>>>>> BEFORE CALLING ACTUAL IMPLEMENTATION <<<<<<<<<<<<<<<<<<");
         SequelResult result = sequel_open(dbName);
 
         if (result.type == SequelResultError)
@@ -157,6 +160,17 @@ void installSequel(jsi::Runtime &rt)
         return move(result.value);
       });
 
+
+    auto ping = jsi::Function::createFromHostFunction(
+      rt,
+      jsi::PropNameID::forAscii(rt, "sequel_ping"),
+      3,
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+
+        LOGW(">>>>>>>>>>>>>>>>> THE ANSWER TO LIFE, THE UNIVERSE AND EVERYTHING <<<<<<<<<<<<<<<<<<");
+        return jsi::Value(42);
+    });
+
   /**
             ASYNC EXECUTE SQL
      */
@@ -203,6 +217,7 @@ void installSequel(jsi::Runtime &rt)
 
   module.setProperty(rt, "executeSql", move(execSQL));
   // module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
+    module.setProperty(rt, "ping", move(ping));
 
   rt.global().setProperty(rt, "sqlite", move(module));
 }

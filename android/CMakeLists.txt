@@ -23,4 +23,4 @@ add_library(sequel
   cpp-adapter.cpp
 )
 
-target_link_libraries(sequel)
+target_link_libraries(sequel android log)

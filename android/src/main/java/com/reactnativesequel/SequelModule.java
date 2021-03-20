@@ -29,6 +29,9 @@ class SequelModule extends ReactContextBaseJavaModule {
   public void initialize() {
     super.initialize();
 
+    // LEFT HERE:
+    // Convert the second arg into a std::string in the cpp-adapter file
+    // https://stackoverflow.com/questions/41820039/jstringjni-to-stdstringc-with-utf8-characters
     SequelModule.initialize(
       this.getReactApplicationContext().getJavaScriptContextHolder().get(),
       this.getReactApplicationContext().getFilesDir().getAbsolutePath()

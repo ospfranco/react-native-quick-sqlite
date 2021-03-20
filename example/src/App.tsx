@@ -9,13 +9,15 @@ export default function App() {
 
   React.useEffect(() => {
     createDb().then((users) => {
-      setUsers(users)
+      console.warn('users', users)
+      // setUsers(users)
     })
   }, [])
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <Text>Blah</Text>
+      {/* <FlatList
         data={users}
         renderItem={(info: ListRenderItemInfo<User>) => {
           return (
@@ -30,7 +32,7 @@ export default function App() {
           )
         }}
         keyExtractor={(item: any) => item.id}
-      />
+      /> */}
 
     </View>
   );
