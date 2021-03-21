@@ -9,10 +9,10 @@
  */
 
 #import <React/RCTBridgeModule.h>
-#import "react-native-sequel.h"
+#import "react-native-quick-sqlite.h"
 
 @interface Sequel : NSObject <RCTBridgeModule>
 
-@property (nonatomic, assign) BOOL setBridgeOnMainQueue;
+@property(nonatomic, assign) BOOL setBridgeOnMainQueue;
 
 @end

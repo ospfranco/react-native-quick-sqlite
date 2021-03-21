@@ -1,4 +1,4 @@
-package com.reactnativesequel;
+package com.reactnativequicksqlite;
 
 import androidx.annotation.NonNull;
 

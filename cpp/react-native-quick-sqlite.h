@@ -1,5 +1,5 @@
 /*
- * react-native-sequel.h
+ * react-native-quick-sqlite.h
  *
  * Created by Oscar Franco on 2021/03/07
  * Copyright (c) 2021 Oscar Franco

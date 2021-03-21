@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "react-native-sequel": ["./src/index"]
+      "react-native-quick-sqlite": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

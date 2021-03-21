@@ -49,9 +49,9 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-To edit the Objective-C files, open `example/ios/SequelExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-sequel`.
+To edit the Objective-C files, open `example/ios/SequelExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-quick-sqlite`.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativesequel` under `Android`.
+To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativequicksqlite` under `Android`.
 
 ### Commit message convention
 

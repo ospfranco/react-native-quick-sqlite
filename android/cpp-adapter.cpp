@@ -1,8 +1,8 @@
 #include <jni.h>
-#include "react-native-sequel.h"
+#include "react-native-quick-sqlite.h"
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_reactnativesequel_SequelModule_initialize(JNIEnv *env, jclass clazz, jlong jsiPtr, jstring docPath)
+Java_com_reactnativequicksqlite_SequelModule_initialize(JNIEnv *env, jclass clazz, jlong jsiPtr, jstring docPath)
 {
   jboolean isCopy;
   const char *docPathString = (env)->GetStringUTFChars(docPath, &isCopy);
@@ -11,7 +11,7 @@ Java_com_reactnativesequel_SequelModule_initialize(JNIEnv *env, jclass clazz, jl
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_reactnativesequel_SequelModule_destruct(JNIEnv *env, jclass clazz)
+Java_com_reactnativequicksqlite_SequelModule_destruct(JNIEnv *env, jclass clazz)
 {
   cleanUpSequel();
 }

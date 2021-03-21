@@ -75,7 +75,7 @@ SequelResult sequel_close(string const &dbName)
 
   if (dbMap.count(dbName) == 0)
   {
-    cout << "[react-native-sequel]: DB " << dbName << " not open" << endl;
+    cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
     return SequelResult{
         SequelResultError,
         dbName + " is not open",
@@ -97,7 +97,7 @@ SequelResult sequel_close(string const &dbName)
 //SequelResult sequel_attach(string const &dbName)
 //{
 //    if(dbMap.count(dbName) == 0){
-//        cout << "[react-native-sequel]: DB " << dbName << " not open" << endl;
+//        cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
 //        return SequelResult{
 //            SequelResultError,
 //            dbName + " is not open",
@@ -120,7 +120,7 @@ SequelResult sequel_close(string const &dbName)
 
 SequelResult sequel_remove(string const &dbName, const char *docPath)
 {
-  //    cout << "[react-native-sequel] Deleting DB" << endl;
+  //    cout << "[react-native-quick-sqlite] Deleting DB" << endl;
 
   if (dbMap.count(dbName) == 1)
   {
@@ -135,14 +135,14 @@ SequelResult sequel_remove(string const &dbName, const char *docPath)
 
   if (!file_exists(dbPath))
   {
-    //        cout << "[react-native-sequel] File not found" << endl;
+    //        cout << "[react-native-quick-sqlite] File not found" << endl;
     return SequelResult{
         SequelResultError,
         "Db file not found"};
   }
 
   remove(dbPath.c_str());
-  //    cout << "[react-native-sequel] DB at " << dbName << "has been deleted." << endl;
+  //    cout << "[react-native-quick-sqlite] DB at " << dbName << "has been deleted." << endl;
 
   return SequelResult{
       SequelResultOk,
@@ -209,7 +209,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const
 
   if (dbMap.count(dbName) == 0)
   {
-    cout << "[react-native-sequel]: " << dbName << " database is not open" << endl;
+    cout << "[react-native-quick-sqlite]: " << dbName << " database is not open" << endl;
     return SequelResult{
         SequelResultError,
         "Database " + dbName + " is not open"};
@@ -311,7 +311,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const
     const char *message = sqlite3_errmsg(db);
     return {
         SequelResultError,
-        "[react-native-sequel] Sql execution error" + string(message),
+        "[react-native-quick-sqlite] Sql execution error" + string(message),
         jsi::Value::undefined()};
   }
 

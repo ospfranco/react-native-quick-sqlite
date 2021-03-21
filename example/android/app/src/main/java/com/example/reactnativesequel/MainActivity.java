@@ -1,4 +1,4 @@
-package com.example.reactnativesequel;
+package com.example.reactnativequicksqlite;
 
 import com.facebook.react.ReactActivity;
 

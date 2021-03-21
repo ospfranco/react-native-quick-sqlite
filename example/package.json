@@ -1,6 +1,6 @@
 {
-  "name": "react-native-sequel-example",
-  "description": "Example app for react-native-sequel",
+  "name": "react-native-quick-sqlite-example",
+  "description": "Example app for react-native-quick-sqlite",
   "version": "0.0.1",
   "private": true,
   "scripts": {

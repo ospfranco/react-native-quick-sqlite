@@ -137,7 +137,7 @@ android {
     //   pickFirst 'lib/armeabi-v7a/libjsc.so'
     // }
     defaultConfig {
-        applicationId "com.example.reactnativesequel"
+        applicationId "com.example.reactnativequicksqlite"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -203,7 +203,7 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation project(':reactnativesequel')
+    implementation project(':reactnativequicksqlite')
 }
 
 // Run this once to be able to run the application with BUCK

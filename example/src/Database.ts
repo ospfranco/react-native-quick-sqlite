@@ -3,8 +3,6 @@ import { Book } from './model/Book';
 import { User } from './model/User';
 
 export const createDb = async () => {
-  // console.warn(`sqlite module`, sqlite)
-  console.warn(`Opening db connection`);
   await createConnection({
     type: 'react-native',
     database: 'test',
@@ -14,11 +12,8 @@ export const createDb = async () => {
     entities: [User, Book],
   });
 
-  // sqlite.open('test')
-
-  // console.warn(`after db connection opened`);
-
-  // console.warn(`OPENED CONNECTION`)
+  const bookRepository = getRepository(Book);
+  const userRepository = getRepository(User);
 
   // const user1 = new User();
   // user1.name = 'Perico de los palotes';
@@ -31,11 +26,6 @@ export const createDb = async () => {
 
   // user1.favoriteBook = book1;
 
-  const bookRepository = getRepository(Book);
-  const userRepository = getRepository(User);
-
-  // console.warn(`OPENED REPOSITORY`)
-
   // await bookRepository.save(book1);
   // await userRepository.save(user1);
 
@@ -43,12 +33,5 @@ export const createDb = async () => {
     relations: ['favoriteBook'],
   });
 
-  // console.warn(`users`, users);
-
-  // // const firstUser = users[0];
-
-  // // userRepository.remove(firstUser);
-
   return users;
-  // return []
 };

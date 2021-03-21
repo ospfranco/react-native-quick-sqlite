@@ -16,8 +16,8 @@ add_library(sequel
   ../cpp/sequel.cpp
   ../cpp/sequel.h
   ../cpp/SequelResult.h
-  ../cpp/react-native-sequel.cpp
-  ../cpp/react-native-sequel.h
+  ../cpp/react-native-quick-sqlite.cpp
+  ../cpp/react-native-quick-sqlite.h
   ../cpp/sqlite3.h
   ../cpp/sqlite3.c
   cpp-adapter.cpp

@@ -1,5 +1,5 @@
 {
-  "name": "react-native-sequel",
+  "name": "react-native-quick-sqlite",
   "version": "0.1.0",
   "description": "the last database you will ever need",
   "main": "lib/commonjs/index",
@@ -13,7 +13,7 @@
     "android",
     "ios",
     "cpp",
-    "react-native-sequel.podspec",
+    "react-native-quick-sqlite.podspec",
     "!lib/typescript/example",
     "!android/build",
     "!android/.cxx",
@@ -37,13 +37,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/ospfranco/react-native-sequel",
+  "repository": "https://github.com/ospfranco/react-native-quick-sqlite",
   "author": "Oscar Franco <ospfranco@protonmail.com> (https://github.com/ospfranco)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ospfranco/react-native-sequel/issues"
+    "url": "https://github.com/ospfranco/react-native-quick-sqlite/issues"
   },
-  "homepage": "https://github.com/ospfranco/react-native-sequel#readme",
+  "homepage": "https://github.com/ospfranco/react-native-quick-sqlite#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

@@ -277,7 +277,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.reactnativesequel;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.reactnativequicksqlite;
 				PRODUCT_NAME = SequelExample;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -300,7 +300,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.reactnativesequel;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.reactnativequicksqlite;
 				PRODUCT_NAME = SequelExample;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

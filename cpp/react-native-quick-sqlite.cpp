@@ -1,5 +1,5 @@
 /*
- * react-native-sequel.cpp
+ * react-native-quick-sqlite.cpp
  *
  * Created by Oscar Franco on 2021/03/07
  * Copyright (c) 2021 Oscar Franco
@@ -8,7 +8,7 @@
  * https://www.mongodb.com/licensing/server-side-public-license
  */
 
-#include "react-native-sequel.h"
+#include "react-native-quick-sqlite.h"
 #include "sequel.h"
 #include "logs.h"
 #include "SequelResult.h"

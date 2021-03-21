@@ -1,4 +1,4 @@
-package com.example.reactnativesequel;
+package com.example.reactnativequicksqlite;
 
 import android.app.Application;
 import android.content.Context;
@@ -10,7 +10,7 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import com.reactnativesequel.SequelPackage;
+import com.reactnativequicksqlite.SequelPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 
