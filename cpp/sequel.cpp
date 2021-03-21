@@ -31,15 +31,7 @@ inline bool file_exists(const string &path)
 
 string get_db_path(string const &dbName, const char *docPath)
 {
-  // docPath is passed on android
-  // if (strlen(docPath) == 0) {
-
-  // }
-  // LOGW(">>>>>>>>>>>>>>>MARKER1");
-  // char *home = getenv("HOME");
-  // LOGW(">>>>>>>>>>>>>>>MARKER2");
   char const *subdir = "/";
-  // LOGW(">>>>>>>>>>>>>>>MARKER3");
 
   stringstream ss;
   ss << docPath << subdir << dbName;
@@ -53,23 +45,16 @@ string get_db_path(string const &dbName, const char *docPath)
  */
 SequelResult sequel_open(string const &dbName, const char *docPath)
 {
-  LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<OPENING DEEEEBEEEEEEEE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
   string dbPath = get_db_path(dbName, docPath);
-  // LOGW(dbPath);
   int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-  LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<DEEEBEEE MARKER1>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
   sqlite3 *db;
-  LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<DEEEBEEE MARKER2>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
   int exit = 0;
   exit = sqlite3_open_v2(dbPath.c_str(), &db, sqlOpenFlags, nullptr);
-  LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<DEEEBEEE MARKER3>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
   if (exit != SQLITE_OK)
   {
-    LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<DEEEBEEE MARKER ERRORRR!!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    LOGW("%s", sqlite3_errmsg(db));
     return SequelResult{
         SequelResultError,
         sqlite3_errmsg(db),
@@ -80,7 +65,6 @@ SequelResult sequel_open(string const &dbName, const char *docPath)
     dbMap[dbName] = db;
   }
 
-  LOGW("<<<<<<<<<<<<<<<<<<<<<<<<<DEEEBEEE MARKER OK!!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
   return SequelResult{
       SequelResultOk,
       "",

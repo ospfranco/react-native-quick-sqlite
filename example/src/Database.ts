@@ -16,34 +16,34 @@ export const createDb = async () => {
 
   // sqlite.open('test')
 
-  console.warn(`after db connection opened`);
+  // console.warn(`after db connection opened`);
 
   // console.warn(`OPENED CONNECTION`)
 
-  const user1 = new User();
-  user1.name = 'Perico de los palotes';
-  user1.age = 30;
-  user1.networth = 30000.23;
+  // const user1 = new User();
+  // user1.name = 'Perico de los palotes';
+  // user1.age = 30;
+  // user1.networth = 30000.23;
 
-  const book1 = new Book();
-  book1.title = 'Lord of the rings';
-  book1.user = user1;
+  // const book1 = new Book();
+  // book1.title = 'Lord of the rings';
+  // book1.user = user1;
 
-  user1.favoriteBook = book1;
+  // user1.favoriteBook = book1;
 
   const bookRepository = getRepository(Book);
   const userRepository = getRepository(User);
 
   // console.warn(`OPENED REPOSITORY`)
 
-  await bookRepository.save(book1);
-  await userRepository.save(user1);
+  // await bookRepository.save(book1);
+  // await userRepository.save(user1);
 
   const users = await userRepository.find({
     relations: ['favoriteBook'],
   });
 
-  console.warn(`users`, users);
+  // console.warn(`users`, users);
 
   // // const firstUser = users[0];
 
