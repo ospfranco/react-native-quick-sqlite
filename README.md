@@ -8,13 +8,13 @@ This package is meant to be a drop-in replacement for [react-native-sqlite-stora
 
 However, unlike previous implementations quick-sqlite uses [JSI bindings](https://formidable.com/blog/2019/jsi-jsc-part-2/), JSI removes almost all the overhead of intercommunication between JavaScript code and the Native platform (using C++). This new bindings have an oversized impact on I/O tasks such as retrieving large amounts of data from disk, on my own testing I was able to retrieve **10k simple objects in between 120ms and 150ms on an iPhone X**. As a matter of fact the JSI structures are so deeply integrated that this package won't work without them
 
-It has also been **implemented from the ground up on C++**, which deals away with a lot of abstractions from the underlying OS, providing a single codebase that even though has quirks ensures feature parity between the implementations and makes it straightforward to add code.
+It has also been **implemented from the ground up on C++**, which deals away with a lot of abstractions from the underlying OS, providing a single codebase that even though has quirks ensures feature parity between the implementations and makes it straightforward to add more functionality if necessary.
 
 ## Before you start
 
 ### JSI bindings are not avaiable when connected to the chrome debugger
 
-This is a limitation with JSI and the JavaScript engines implementing it, for now I don't have a clear answer what's the alternative, because current JSI documentation and support is a bit lacking, the consensus seems to be to provide a pure JavaScript API to run when connected to a debugger (which I don't have time to implement, so PRs are welcome). Also as a tidbit of information, it seems like RN will stop supporting chrome debugging in the future.
+This is a limitation with JSI and the JavaScript engines implementing it, for now I don't have a solution at hand , because current state of JSI documentation (it doesn't exist) and support is a bit lacking, the consensus seems to be to provide a pure JavaScript API to run when connected to a debugger (which I don't have time to implement, so PRs are welcome). Also as a tidbit of information, it seems like RN will stop supporting chrome debugging in the future.
 
 ### TODOs
 
@@ -26,9 +26,9 @@ Again, I've kinda run out of time, to implement the exact same API as [sqlite-st
 
 ### Using TypeORM
 
-The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a ReactNative Driver that hardcodes sqlite-storage. In the `example` project on the `patch` folder you can a find a patch for TypeORM, it basically just replaces all the `react-native-sqlite-storage` strings in TypeORM with `react-native-quick-sqlite`, and does a tiny change for the way it accesses the resulting rows from the SQL execution.
+The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a ReactNative Driver that hardcodes sqlite-storage. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch), it basically just replaces all the `react-native-sqlite-storage` strings in TypeORM with `react-native-quick-sqlite`, and does a tiny change for the way it accesses the resulting rows from the SQL execution.
 
-However, if you want to directly access the low level methods check the section below.
+If you want to directly access the low level methods check the section below.
 
 ## Installation and API
 
@@ -69,7 +69,9 @@ PLEASE PLEASE DO CONTRIBUTE TO THE PROJECT, I DO NOT INTEND TO DEDICATE ALL OF M
 
 ## Shameless Plugin
 
-I'm available for consulting work! if your company is in desperate need of increasing the speed of your react-native app and needs help with JSI bindings and/or latest technologies, feel free to [contact me](https://twitter.com/ospfranco), I'm available for freelance work.
+I'm available for consulting work!
+
+If you or your company is in desperate need of increasing the speed of your react-native app, needs help with JSI bindings and/or in need of consulting in the latest technologies, feel free to [contact me](https://twitter.com/ospfranco), I'm available for freelance work.
 
 ## License
 
