@@ -1,28 +1,76 @@
 # react-native-quick-sqlite
 
-First a story. You start developing your mobile app, you go for your usual state management framework (redux/mobx/recoil/etc). Everything works great, but, as months go by, 80% of your code is just moving stuff from the server into your app (request stuff, normalize it, untangle it, put it somewhere). You keep re-inventing the wheel over and over again. Then you also start getting some complaints, the app has become too slow. As you start reaching thousands of objects your simple persistance to strings on disk starts breaking down, everything from app start to rendering large lists is super slow.
+The **fastest** SQLite implementation for react-native.
 
-You then realize you need to use some big boy database tools, yet your options are somewhat limited. You could go with something like [realmDB](https://realm.io) or [firebase](https://firebase.google.com/docs/firestore) or [AWS Amplify](https://aws.amazon.com/amplify/) which sounds good, until you realize you are no longer in control of your backend and your database. You could go with [WatermelonDB](https://github.com/Nozbe/WatermelonDB) which is slightly better, but even though it claims to be lazy, its API effectively blocks your UI from rendering.
+## Motivation
 
-**react-native-quick-sqlite** aims to solve all of the issues once and for all.
+This package is meant to be a drop-in replacement for [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and other libraries inspired by it (ex. [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2)).
 
-1. **It is the FASTEST**, not only because it's lazy (like 🍉), not only because it is written in C++, not only because it uses SQLite, but also because it uses react-native JSI bindings which removes almost all the overhead of javascript <-> C++ communication. It has both a sync and async API.
-2. **It is RELATIONAL**, don't mess with noSQL, it will bite you in the ass sooner or later, applications nowadays are more complex than ever, you need to join, query and sort complex sets of data.
-3. **It SYNCS**, via a simple sync mechanism (like 🍉), do not waste time/code mutating/storing/transmiting state, most importantly, it let's you in control of your application, no cloud vendor lock, do it via REST, or graphQL or sockets, use PostgreSQL, use mySQL, whatever you want.
-4. **It sits on the right level of abstraction**, if you really need to optimize queries you can hand write performance-tuned SQL, otherwise you can build simple queries with (or even re-use your server queries) with typeORM.
+However, unlike previous implementations quick-sqlite uses [JSI bindings](https://formidable.com/blog/2019/jsi-jsc-part-2/), JSI removes almost all the overhead of intercommunication between JavaScript code and the Native platform (using C++). This new bindings have an oversized impact on I/O tasks such as retrieving large amounts of data from disk, on my own testing I was able to retrieve **10k simple objects in between 120ms and 150ms on an iPhone X**. As a matter of fact the JSI structures are so deeply integrated that this package won't work without them
 
-## Installation
+It has also been **implemented from the ground up on C++**, which deals away with a lot of abstractions from the underlying OS, providing a single codebase that even though has quirks ensures feature parity between the implementations and makes it straightforward to add code.
 
-```sh
+## Before you start
+
+### JSI bindings are not avaiable when connected to the chrome debugger
+
+This is a limitation with JSI and the JavaScript engines implementing it, for now I don't have a clear answer what's the alternative, because current JSI documentation and support is a bit lacking, the consensus seems to be to provide a pure JavaScript API to run when connected to a debugger (which I don't have time to implement, so PRs are welcome). Also as a tidbit of information, it seems like RN will stop supporting chrome debugging in the future.
+
+### TODOs
+
+There are some minor TODOs in the project, for example, right now everything is saved to the root directory of the app on all platforms, no way to configure this. Another big todo is when parsing the SQLite rows the strings are parsed as ASCII strings instead of UTF-8, which will explode if you are using other languages. I have however ran out of time to fix this issues myself (and I'm a c++ noob), so please do submit a PR to fix this issues if you need them. Should be easy to do.
+
+### The API is NOT 100% the same
+
+Again, I've kinda run out of time, to implement the exact same API as [sqlite-storage](https://github.com/andpor/react-native-sqlite-storage). Namely, sqlite-storage returns an `item` function that takes an index number and returns an object, I simply return an array, because creating deeply nested structures from the C++ code is time consuming. However...
+
+### Using TypeORM
+
+The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a ReactNative Driver that hardcodes sqlite-storage, in the `example` project on the `patch` folder you can a find a patch for TypeORM, it basically just replaces all the `react-native-sqlite-storage` in TypeORM with `react-native-quick-sqlite`, and does a tiny change for the way it accesses the resulting rows from the SQL execution.
+
+If you want to directly access the methods provided by it.
+
+## Installation and API
+
+Install it with
+
+```bash
 yarn add react-native-quick-sqlite
 ```
 
+If using TypeORM, follow the instructions on the TypeORM, the apply the patch file from the example project.
+
+If not using TypeORM, the package exposes the following API:
+
+```typescript
+interface ISQLite {
+  open: (dbName: string) => any;
+  close: (dbName: string) => any;
+  executeSql: (
+    dbName: string,
+    query: string,
+    params: any[] | undefined
+  ) => {
+    rows: any[];
+    insertId?: number;
+  };
+  // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any; // currently disabled, android was giving me some troubles
+}
+
+// It is globally available
+declare var sqlite: ISQLite;
+```
+
+The JSI bindings expose this `sqlite` object in the global context, so you can directly call it from anywhere in the javascript context.
+
 ## Contributing
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+PLEASE PLEASE DO CONTRIBUTE TO THE PROJECT, I DO NOT INTEND TO DEDICATE ALL OF MY TIME TO IT.
+
+## Shameless Plugin
+
+I'm available for consulting work! if your company is in desperate need of increasing the speed of your react-native app and needs help with JSI bindings and/or latest technologies, feel free to [contact me](https://twitter.com/ospfranco), I'm available for freelance work.
 
 ## License
 
-react-native-quick-sqlite is dual licensed, this open source version is SSPL, it is the license created by mongoDB, similar to AGPLv3, the TL:DR: is, you can use it in your project without a cost, however you cannot offer it as a service without fully open sourcing it, basically you cannot monetize this project as a service to third parties.
-
-The other possibility is to buy a license from me for you to use this project with a more permissive MIT license, reach out if you want to discuss. I can also add features, provide consulting service and/or support for a fee.
+react-native-quick-sqlite is licensed under SSPL.
