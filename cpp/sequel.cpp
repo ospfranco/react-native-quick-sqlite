@@ -16,7 +16,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <map>
-#include "logs.h"
 
 using namespace std;
 using namespace facebook;
@@ -73,7 +72,6 @@ SequelResult sequel_open(string const &dbName, const char *docPath)
 
 SequelResult sequel_close(string const &dbName)
 {
-  //    cout << "[react-native-sequel] Closing DB" << endl;
 
   if (dbMap.count(dbName) == 0)
   {
