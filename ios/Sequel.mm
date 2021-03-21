@@ -43,7 +43,8 @@ RCT_EXPORT_MODULE()
   }
 
   // installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, cxxBridge.jsCallInvoker);
-  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+  char *home = getenv("HOME");
+  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, home);
 }
 
 - (void)invalidate {

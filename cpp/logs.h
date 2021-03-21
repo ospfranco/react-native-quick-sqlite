@@ -11,6 +11,7 @@
 #       else
             // LOGS NO ANDROID
 #           include <stdio.h>
+#           define LOG_TAG "react-native-sequel"
 #           define LOGV(...) printf("  ");printf(__VA_ARGS__); printf("\t -  <%s> \n", LOG_TAG);
 #           define LOGD(...) printf("  ");printf(__VA_ARGS__); printf("\t -  <%s> \n", LOG_TAG);
 #           define LOGI(...) printf("  ");printf(__VA_ARGS__); printf("\t -  <%s> \n", LOG_TAG);
