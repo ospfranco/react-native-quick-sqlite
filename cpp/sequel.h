@@ -16,11 +16,11 @@
 using namespace std;
 using namespace facebook;
 
-SequelResult sequel_open(string const &dbName);
+SequelResult sequel_open(string const &dbName, const char *docPath);
 
 SequelResult sequel_close(string const &dbName);
 
-SequelResult sequel_remove(string const &dbName);
+SequelResult sequel_remove(string const &dbName, const char *docPath);
 
 //SequelResult sequel_attach(string const &dbName);
 

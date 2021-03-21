@@ -31,8 +31,12 @@ const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 }
 
 // void installSequel(jsi::Runtime &rt, shared_ptr<react::CallInvoker> callInvoker)
-void installSequel(jsi::Runtime &rt)
+void installSequel(jsi::Runtime &rt, const char *docPath)
 {
+
+  // string docPath2;
+  // docPath2.assign(docPath);
+
   /**
             OPEN DB INSTANCE
      */
@@ -40,7 +44,7 @@ void installSequel(jsi::Runtime &rt)
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_open"),
       1,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [docPath](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
         if (!args[0].isString())
         {
           jsi::detail::throwJSError(rt, "dbName must be a string");
@@ -49,8 +53,7 @@ void installSequel(jsi::Runtime &rt)
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        LOGW(">>>>>>>>>>>>>>>>> BEFORE CALLING ACTUAL IMPLEMENTATION <<<<<<<<<<<<<<<<<<");
-        SequelResult result = sequel_open(dbName);
+        SequelResult result = sequel_open(dbName, docPath);
 
         if (result.type == SequelResultError)
         {
@@ -118,7 +121,7 @@ void installSequel(jsi::Runtime &rt)
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_delete"),
       1,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [docPath](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
         if (!args[0].isString())
         {
           jsi::detail::throwJSError(rt, "dbName must be a string");
@@ -127,7 +130,7 @@ void installSequel(jsi::Runtime &rt)
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SequelResult result = sequel_remove(dbName);
+        SequelResult result = sequel_remove(dbName, docPath);
 
         if (result.type == SequelResultError)
         {
@@ -160,16 +163,14 @@ void installSequel(jsi::Runtime &rt)
         return move(result.value);
       });
 
-
-    auto ping = jsi::Function::createFromHostFunction(
+  auto ping = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_ping"),
       3,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-
         LOGW(">>>>>>>>>>>>>>>>> THE ANSWER TO LIFE, THE UNIVERSE AND EVERYTHING <<<<<<<<<<<<<<<<<<");
         return jsi::Value(42);
-    });
+      });
 
   /**
             ASYNC EXECUTE SQL
@@ -206,7 +207,7 @@ void installSequel(jsi::Runtime &rt)
   //       return promise;
   //     });
 
-// Create final object that will be injected into the global object
+  // Create final object that will be injected into the global object
   jsi::Object module = jsi::Object(rt);
 
   // Open/Close
@@ -217,7 +218,7 @@ void installSequel(jsi::Runtime &rt)
 
   module.setProperty(rt, "executeSql", move(execSQL));
   // module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
-    module.setProperty(rt, "ping", move(ping));
+  module.setProperty(rt, "ping", move(ping));
 
   rt.global().setProperty(rt, "sqlite", move(module));
 }
