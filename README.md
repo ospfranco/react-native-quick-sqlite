@@ -22,13 +22,13 @@ There are some minor TODOs in the project, for example, right now everything is 
 
 ### The API is NOT 100% the same
 
-Again, I've kinda run out of time, to implement the exact same API as [sqlite-storage](https://github.com/andpor/react-native-sqlite-storage). Namely, sqlite-storage returns an `item` function that takes an index number and returns an object, I simply return an array, because creating deeply nested structures from the C++ code is time consuming. However...
+Again, I've kinda run out of time, to implement the exact same API as [sqlite-storage](https://github.com/andpor/react-native-sqlite-storage). Namely, sqlite-storage returns an `item` function on the query result, it takes an index number and returns an object, I simply return an array, because creating deeply nested structures from the C++ code is time consuming. However...
 
 ### Using TypeORM
 
-The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a ReactNative Driver that hardcodes sqlite-storage, in the `example` project on the `patch` folder you can a find a patch for TypeORM, it basically just replaces all the `react-native-sqlite-storage` in TypeORM with `react-native-quick-sqlite`, and does a tiny change for the way it accesses the resulting rows from the SQL execution.
+The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a ReactNative Driver that hardcodes sqlite-storage. In the `example` project on the `patch` folder you can a find a patch for TypeORM, it basically just replaces all the `react-native-sqlite-storage` strings in TypeORM with `react-native-quick-sqlite`, and does a tiny change for the way it accesses the resulting rows from the SQL execution.
 
-If you want to directly access the methods provided by it.
+However, if you want to directly access the low level methods check the section below.
 
 ## Installation and API
 
