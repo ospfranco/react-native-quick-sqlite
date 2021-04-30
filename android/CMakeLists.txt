@@ -5,14 +5,14 @@ set (CMAKE_CXX_STANDARD 11)
 
 include_directories(
             ../cpp
-            ../node_modules/react-native/React
-            ../node_modules/react-native/React/Base
-            ../node_modules/react-native/ReactCommon/jsi
+            ../../../node_modules/react-native/React
+            ../../../node_modules/react-native/React/Base
+            ../../../node_modules/react-native/ReactCommon/jsi
 )
 
 add_library(sequel
   SHARED
-  ../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
+  ../../../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
   ../cpp/sequel.cpp
   ../cpp/sequel.h
   ../cpp/SequelResult.h
