@@ -2,37 +2,34 @@
 
 The **fastest** SQLite implementation for react-native.
 
-## Motivation
+![Frame 2](https://user-images.githubusercontent.com/1634213/127499575-aed1d0e2-8a93-42ab-917e-badaab8916f6.png)
 
 This package is meant to be a (more or less) drop-in replacement for [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and other libraries inspired by it (ex. [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2)).
 
-Unlike previous implementations `quick-sqlite` uses [JSI bindings](https://formidable.com/blog/2019/jsi-jsc-part-2/), JSI removes almost all the overhead of intercommunication between JavaScript code and the native platform (using C++). This new bindings have an oversized impact on I/O tasks such as retrieving large amounts of data from disk, on my own testing I was able to retrieve **10k simple objects in between 120ms and 150ms on an iPhone X**.
+Unlike previous implementations `quick-sqlite` uses [JSI bindings](https://formidable.com/blog/2019/jsi-jsc-part-2/), JSI removes almost all the overhead of intercommunication between JavaScript code and the native platform (using a single C++ codebase).
 
-It has also been **implemented from the ground up on C++**, which deals away with a lot of abstractions from the underlying OS, providing a single codebase, which ensures feature parity between the implementations.
-
-## Before you start
+## GOTCHAS
 
 ### JSI bindings are not avaiable when connected to the chrome debugger
 
-This is a limitation with JSI and the JavaScript engines implementing it, RN 0.64 completely dropped support for connecting to the chrome/firefox/safari debugger, from now on you should use [Flipper](https://github.com/facebook/flipper), it is actually quite nice, since there is no "debug" mode to turn on and you always run in the same engine as your application (JSC or Hermes).
+This is a limitation with JSI and the JavaScript engines implementing it, RN 0.64 completely dropped support for connecting to the chrome/firefox/safari debugger, from now on you should use [Flipper](https://github.com/facebook/flipper).
 
 ### TODOs
 
-There are some minor TODOs in the project
-- **Everything is saved on the application's home folder**. I got lazy and ignore any passed path parameter, if you need this feel free to open a PR. 
-- **When parsing the SQLite rows the strings are parsed as ASCII strings instead of UTF-8**, which will explode if you are using other languages. 
+- [ ] **Everything is saved on the application's home folder**. I got lazy and ignore any passed path parameter, if you need this feel free to open a PR. 
+- [ ] **When parsing the SQLite rows the strings are parsed as ASCII strings instead of UTF-8**, which will explode if you are using other languages. 
 
-I have however ran out of time to fix this issues myself (and I'm a c++ noob), so please do submit a PR to fix this issues if you need them. Should be easy to do.
+I have however ran out of time to fix this issues myself (and I'm a c++ noob), so please do submit a PR to fix this issues if you need them.
 
-### The API is NOT 100% the same
+### The API is NOT 100% the same as sqlite-storage
 
-Again, I've kinda run out of time, to implement the exact same API as [sqlite-storage](https://github.com/andpor/react-native-sqlite-storage). Namely, sqlite-storage returns an `item` function on the query result, it takes an index number and returns an object, I simply return an array, because creating deeply nested structures from the C++ code is somewhat cumbersome.
+Namely, sqlite-storage returns an `item` function on the query result, it takes an index number and returns an object, I simply return an array, because creating deeply nested structures from C++ is somewhat cumbersome.
 
-### Using TypeORM
+# You should use TypeORM
 
 The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a ReactNative Driver that hardcodes sqlite-storage. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch), it basically just replaces all the `react-native-sqlite-storage` strings in TypeORM with `react-native-quick-sqlite`, and does a tiny change for the way it accesses the resulting rows from the SQL execution.
 
-If you want to directly access the low level methods check the section below.
+However you can also directly call sqlite
 
 ## Installation and API
 
@@ -58,25 +55,16 @@ interface ISQLite {
     rows: any[];
     insertId?: number;
   };
-  // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any; // currently disabled, android was giving me some troubles
 }
 
-// It is globally available
-declare var sqlite: ISQLite;
+// It is globally available in a variable called `sqlite`
+sqlite.open({...options})
 ```
 
 The JSI bindings expose this `sqlite` object in the global context, so you can directly call it from anywhere in the javascript context. The methods `throw` when an execution error happens, so `try ... catch` them.
 
-## Contributing
-
-PLEASE PLEASE DO CONTRIBUTE TO THE PROJECT, I DO NOT INTEND TO DEDICATE ALL OF MY TIME TO IT.
-
-## Shameless Plugin
-
-I'm available for consulting work!
-
-If you or your company is in desperate need of increasing the speed of your react-native app, needs help with JSI bindings and/or in need of consulting in the latest technologies, feel free to [contact me](https://twitter.com/ospfranco), I'm available for freelance work.
-
 ## License
 
-react-native-quick-sqlite is licensed under SSPL.
+react-native-quick-sqlite is licensed under MIT.
+
+Follow me on [twitter](https://twitter.com/ospfranco)!
