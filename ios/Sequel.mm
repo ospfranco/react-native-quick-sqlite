@@ -4,7 +4,7 @@
  * Created by Oscar Franco on 2021/03/07
  * Copyright (c) 2021 Oscar Franco
  *
- * This code is licensed under the SSPL license
+ * This code is licensed under the MIT license
  * https://www.mongodb.com/licensing/server-side-public-license
  */
 
@@ -17,10 +17,6 @@
 #import <ReactCommon/CallInvoker.h>
 
 #import <memory>
-
-// @interface RCTBridge (RCTTurboModule)
-// - (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
-// @end
 
 @implementation Sequel
 
@@ -42,9 +38,10 @@ RCT_EXPORT_MODULE()
     return;
   }
 
-  // installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, cxxBridge.jsCallInvoker);
-  char *home = getenv("HOME");
-  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, home);
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
+  NSString *documentPath = [paths objectAtIndex:0];
+  const char *docPath = [documentPath UTF8String];
+  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, docPath);
 }
 
 - (void)invalidate {

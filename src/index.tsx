@@ -1,8 +1,6 @@
-// IMPORTAAAAANTTTTT JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE DEBUGGER
-
-// export { createConnection } from 'typeorm/browser'
-
-// LOW LEVEL API, talk directly to JSI bindings
+// IMPORTANT!!!!!!!!!!!
+// JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE DEBUGGER
+// This is a low level api
 interface ISQLite {
   open: (dbName: string) => any;
   close: (dbName: string) => any;
@@ -53,7 +51,7 @@ export const openDatabase = (
       ) => {
         try {
           let response = sqlite.executeSql(options.name, sql, params);
-          console.warn(`sqlite response`, response);
+          // console.warn(`sqlite response`, response);
           ok(response);
         } catch (e) {
           fail(e);

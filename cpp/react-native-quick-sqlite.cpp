@@ -4,7 +4,7 @@
  * Created by Oscar Franco on 2021/03/07
  * Copyright (c) 2021 Oscar Franco
  *
- * This code is licensed under the SSPL license
+ * This code is licensed under the MIT license
  * https://www.mongodb.com/licensing/server-side-public-license
  */
 
@@ -30,21 +30,19 @@ const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
   return res;
 }
 
-// void installSequel(jsi::Runtime &rt, shared_ptr<react::CallInvoker> callInvoker)
+string docPathStr;
+
 void installSequel(jsi::Runtime &rt, const char *docPath)
 {
 
-  // string docPath2;
-  // docPath2.assign(docPath);
-
-  /**
-            OPEN DB INSTANCE
-     */
+  docPathStr = std::string(docPath);
+  
+  // Open/create db
   auto open = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_open"),
       1,
-      [docPath](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
         if (!args[0].isString())
         {
           jsi::detail::throwJSError(rt, "dbName must be a string");
@@ -53,7 +51,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SequelResult result = sequel_open(dbName, docPath);
+        SequelResult result = sequel_open(dbName, docPathStr.c_str());
 
         if (result.type == SequelResultError)
         {
@@ -121,7 +119,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_delete"),
       1,
-      [docPath](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
         if (!args[0].isString())
         {
           jsi::detail::throwJSError(rt, "dbName must be a string");
@@ -130,7 +128,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SequelResult result = sequel_remove(dbName, docPath);
+        SequelResult result = sequel_remove(dbName, docPathStr.c_str());
 
         if (result.type == SequelResultError)
         {
