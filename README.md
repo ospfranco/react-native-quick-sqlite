@@ -4,14 +4,13 @@
 
 ![Frame 2](https://user-images.githubusercontent.com/1634213/127499575-aed1d0e2-8a93-42ab-917e-badaab8916f6.png)
 
-<pre align="center">
-  <a href="https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch">Copy typeORM patch-package from example dir</a>
-  npm i react-native-quick-sqlite typeorm
-  npx pod-install
-  <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a>
-</pre>
-
 <div align="center">
+  <pre align="center">
+    <a href="https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch">Copy typeORM patch-package from example dir</a>
+    npm i react-native-quick-sqlite typeorm
+    npx pod-install
+    <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a>
+  </pre>
   <a align="center" href="https://github.com/ospfranco?tab=followers">
     <img src="https://img.shields.io/github/followers/ospfranco?label=Follow%20%40ospfranco&style=social" />
   </a>
