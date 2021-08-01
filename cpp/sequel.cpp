@@ -9,7 +9,6 @@
 
 #include "sequel.h"
 #include <iostream>
-#include <sstream>
 #include <sqlite3.h>
 #include <ctime>
 #include <unistd.h>
@@ -27,23 +26,13 @@ inline bool file_exists(const string &path)
   return (stat(path.c_str(), &buffer) == 0);
 }
 
-string get_db_path(string const &dbName, const char *docPath)
+string get_db_path(string const dbName, string const docPath)
 {
-  char const *subdir = "/";
-
-  stringstream ss;
-  ss << docPath << subdir << dbName;
-  string dbPath = ss.str();
-
-  return dbPath;
+  return docPath + "/" + dbName;
 }
 
-/*
- * Opens/creates the database
- */
-SequelResult sequel_open(string const &dbName, const char *docPath)
+SequelResult sequel_open(string const dbName, string const docPath)
 {
-
   string dbPath = get_db_path(dbName, docPath);
   int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
@@ -69,7 +58,7 @@ SequelResult sequel_open(string const &dbName, const char *docPath)
       jsi::Value::undefined()};
 }
 
-SequelResult sequel_close(string const &dbName)
+SequelResult sequel_close(string const dbName)
 {
 
   if (dbMap.count(dbName) == 0)
@@ -117,10 +106,8 @@ SequelResult sequel_close(string const &dbName)
 
 //}
 
-SequelResult sequel_remove(string const &dbName, const char *docPath)
+SequelResult sequel_remove(string const dbName, string const docPath)
 {
-  //    cout << "[react-native-quick-sqlite] Deleting DB" << endl;
-
   if (dbMap.count(dbName) == 1)
   {
     SequelResult closeResult = sequel_close(dbName);
@@ -134,14 +121,12 @@ SequelResult sequel_remove(string const &dbName, const char *docPath)
 
   if (!file_exists(dbPath))
   {
-    //        cout << "[react-native-quick-sqlite] File not found" << endl;
     return SequelResult{
         SequelResultError,
-        "Db file not found"};
+        "[react-native-quick-sqlite]: Database file not found" + dbPath};
   }
 
   remove(dbPath.c_str());
-  //    cout << "[react-native-quick-sqlite] DB at " << dbName << "has been deleted." << endl;
 
   return SequelResult{
       SequelResultOk,
@@ -149,7 +134,7 @@ SequelResult sequel_remove(string const &dbName, const char *docPath)
       jsi::Value::undefined()};
 }
 
-void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, const jsi::Value &params)
+void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &params)
 {
   if (params.isNull() || params.isUndefined())
   {
@@ -198,15 +183,14 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, const jsi::Value &
   }
 }
 
-SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query, const jsi::Value &params)
+SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params)
 {
   // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
   {
-    cout << "[react-native-quick-sqlite]: " << dbName << " database is not open" << endl;
     return SequelResult{
         SequelResultError,
-        "Database " + dbName + " is not open"};
+        "[react-native-quick-sqlite]: Database " + dbName + " is not open"};
   }
 
   sqlite3 *db = dbMap[dbName];

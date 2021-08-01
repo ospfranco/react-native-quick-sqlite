@@ -42,7 +42,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_open"),
       1,
-      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
         if (!args[0].isString())
         {
@@ -52,7 +52,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SequelResult result = sequel_open(dbName, docPathStr.c_str());
+        SequelResult result = sequel_open(dbName, docPathStr);
 
         if (result.type == SequelResultError)
         {
@@ -117,7 +117,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_delete"),
       1,
-      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
         if (!args[0].isString())
         {
@@ -127,7 +127,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SequelResult result = sequel_remove(dbName, docPathStr.c_str());
+        SequelResult result = sequel_remove(dbName, docPathStr);
 
         if (result.type == SequelResultError)
         {
@@ -203,7 +203,6 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
   module.setProperty(rt, "executeSql", move(execSQL));
   // module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
-  module.setProperty(rt, "ping", move(ping));
 
   rt.global().setProperty(rt, "sqlite", move(module));
 }

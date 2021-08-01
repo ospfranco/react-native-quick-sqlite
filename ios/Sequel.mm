@@ -41,9 +41,8 @@ RCT_EXPORT_MODULE()
   // Get iOS app's document directory (to safely store database .sqlite3 file)
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
   NSString *documentPath = [paths objectAtIndex:0];
-  const char *docPath = [documentPath UTF8String];
 
-  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, docPath);
+  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, [documentPath UTF8String]);
 }
 
 - (void)invalidate {
