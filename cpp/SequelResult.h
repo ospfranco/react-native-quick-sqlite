@@ -5,7 +5,6 @@
  * Copyright (c) 2021 Oscar Franco
  *
  * This code is licensed under the MIT license
- * https://www.mongodb.com/licensing/server-side-public-license
  */
 
 #pragma once
@@ -17,13 +16,15 @@
 using namespace std;
 using namespace facebook;
 
-enum ResultType {
-    SequelResultOk,
-    SequelResultError
+enum ResultType
+{
+  SequelResultOk,
+  SequelResultError
 };
 
-struct SequelResult {
-    ResultType type;
-    string message;
-    jsi::Value value;
+struct SequelResult
+{
+  ResultType type;
+  string message;
+  jsi::Value value;
 };

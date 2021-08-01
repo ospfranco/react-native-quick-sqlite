@@ -5,7 +5,6 @@
  * Copyright (c) 2021 Oscar Franco
  *
  * This code is licensed under the MIT license
- * https://www.mongodb.com/licensing/server-side-public-license
  */
 
 #include <jsi/jsilib.h>

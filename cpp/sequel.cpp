@@ -5,7 +5,6 @@
  * Copyright (c) 2021 Oscar Franco
  *
  * This code is licensed under the MIT license
- * https://www.mongodb.com/licensing/server-side-public-license
  */
 
 #include "sequel.h"
@@ -197,16 +196,11 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, const jsi::Value &
       sqlite3_bind_text(statement, ii + 1, strVal.c_str(), len, SQLITE_TRANSIENT);
     }
   }
-
-  cout << "final prepared statement: " << sqlite3_expanded_sql(statement) << endl;
 }
 
 SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const &query, const jsi::Value &params)
 {
-  vector<jsi::Object> results;
-
-  sqlite3 *db = dbMap[dbName];
-
+  // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
   {
     cout << "[react-native-quick-sqlite]: " << dbName << " database is not open" << endl;
@@ -215,12 +209,17 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const
         "Database " + dbName + " is not open"};
   }
 
-  // this time we will first compile the SQL
+  sqlite3 *db = dbMap[dbName];
+
+  vector<jsi::Object> results;
+
+  // SQLite statements need to be compiled before executed
   sqlite3_stmt *statement;
-  // Not only returns the status but moves the compiled statement into &statement
+
+  // Compile and move result into statement memory spot
   int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
 
-  if (statementStatus == SQLITE_OK)
+  if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
   {
     bindStatement(statement, rt, params);
   }
@@ -230,7 +229,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const
 
     return {
         SequelResultError,
-        "[react-native-sql] Sql Execution error:" + string(message),
+        "[react-native-quick-sqlite] SQL execution error: " + string(message),
         jsi::Value::undefined()};
   }
 
@@ -311,12 +310,11 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const
     const char *message = sqlite3_errmsg(db);
     return {
         SequelResultError,
-        "[react-native-quick-sqlite] Sql execution error" + string(message),
+        "[react-native-quick-sqlite] SQL execution error: " + string(message),
         jsi::Value::undefined()};
   }
 
   // Move everything into a JSI object
-
   jsi::Object res = jsi::Object(rt);
 
   auto rows = jsi::Array(rt, results.size());
@@ -328,6 +326,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const &dbName, string const
   res.setProperty(rt, "rows", move(rows));
 
   int changedRowCount = sqlite3_total_changes(db);
+
   // row id has nothing to do with the actual uuid/id of the object, but internal row count
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);
   if (changedRowCount > 0 && latestInsertRowId != 0)

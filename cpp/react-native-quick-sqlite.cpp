@@ -5,7 +5,6 @@
  * Copyright (c) 2021 Oscar Franco
  *
  * This code is licensed under the MIT license
- * https://www.mongodb.com/licensing/server-side-public-license
  */
 
 #include "react-native-quick-sqlite.h"
@@ -35,14 +34,16 @@ string docPathStr;
 void installSequel(jsi::Runtime &rt, const char *docPath)
 {
 
+  // Transfer from pointer to variable to prevent de-allocation once calling function has finished
   docPathStr = std::string(docPath);
-  
+
   // Open/create db
   auto open = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_open"),
       1,
-      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      {
         if (!args[0].isString())
         {
           jsi::detail::throwJSError(rt, "dbName must be a string");
@@ -85,14 +86,13 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
   //            return move(result.value);
   //        });
 
-  /**
-            CLOSE DB INSTANCE
-     */
+  // Close db
   auto close = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_close"),
       1,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      {
         if (!args[0].isString())
         {
           jsi::detail::throwJSError(rt, "dbName must be a string");
@@ -112,14 +112,13 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         return move(result.value);
       });
 
-  /**
-            DELETE DB INSTANCE
-     */
+  // Delete db
   auto remove = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_delete"),
       1,
-      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [docPathStr](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      {
         if (!args[0].isString())
         {
           jsi::detail::throwJSError(rt, "dbName must be a string");
@@ -139,14 +138,13 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         return jsi::Value::undefined();
       });
 
-  /**
-            EXECUTE SQL
-     */
+  // Execute SQL query
   auto execSQL = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_execSQL"),
       3,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      {
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
         const jsi::Value &params = args[2];
@@ -161,18 +159,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         return move(result.value);
       });
 
-  auto ping = jsi::Function::createFromHostFunction(
-      rt,
-      jsi::PropNameID::forAscii(rt, "sequel_ping"),
-      3,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-        LOGW(">>>>>>>>>>>>>>>>> THE ANSWER TO LIFE, THE UNIVERSE AND EVERYTHING <<<<<<<<<<<<<<<<<<");
-        return jsi::Value(42);
-      });
-
-  /**
-            ASYNC EXECUTE SQL
-     */
+  // Async Execute SQL
   // auto asyncExecSQL = jsi::Function::createFromHostFunction(
   //     rt,
   //     jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),

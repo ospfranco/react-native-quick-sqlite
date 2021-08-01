@@ -5,7 +5,6 @@
  * Copyright (c) 2021 Oscar Franco
  *
  * This code is licensed under the MIT license
- * https://www.mongodb.com/licensing/server-side-public-license
  */
 
 #import "Sequel.h"
@@ -20,7 +19,7 @@
 
 @implementation Sequel
 
-@synthesize bridge=_bridge;
+@synthesize bridge = _bridge;
 @synthesize methodQueue = _methodQueue;
 
 RCT_EXPORT_MODULE()
@@ -34,13 +33,16 @@ RCT_EXPORT_MODULE()
   _setBridgeOnMainQueue = RCTIsMainQueue();
 
   RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+
   if (!cxxBridge.runtime) {
     return;
   }
 
+  // Get iOS app's document directory (to safely store database .sqlite3 file)
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
   NSString *documentPath = [paths objectAtIndex:0];
   const char *docPath = [documentPath UTF8String];
+
   installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, docPath);
 }
 
