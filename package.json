@@ -39,7 +39,7 @@
   ],
   "repository": "https://github.com/ospfranco/react-native-quick-sqlite",
   "author": "Oscar Franco <ospfranco@protonmail.com> (https://github.com/ospfranco)",
-  "license": "SSPL",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/ospfranco/react-native-quick-sqlite/issues"
   },
