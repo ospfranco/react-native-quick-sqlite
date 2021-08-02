@@ -12,7 +12,7 @@ interface ISQLite {
     rows: any[];
     insertId?: number;
   };
-  backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
+  // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
 
 // Make it globally available
@@ -50,8 +50,8 @@ export const openDatabase = (
         fail: any
       ) => {
         try {
+          console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           let response = sqlite.executeSql(options.name, sql, params);
-          // console.warn(`sqlite response`, response);
           ok(response);
         } catch (e) {
           fail(e);

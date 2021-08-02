@@ -12,13 +12,16 @@ export const createDb = async () => {
     entities: [User, Book],
   });
 
-  const bookRepository = getRepository(Book);
+  // const bookRepository = getRepository(Book);
   const userRepository = getRepository(User);
 
-  // const user1 = new User();
-  // user1.name = 'Perico de los palotes';
-  // user1.age = 30;
-  // user1.networth = 30000.23;
+  const user1 = new User();
+  user1.name = 'John Seedman';
+  user1.age = 30;
+  user1.networth = 30000.23;
+  user1.metadata = { 
+    nickname: "<p>We deliver that something because <em>some interesting text!</em></p>\n<p>Always remember...  </p>\n<p><strong>some text here.</strong></p>\n"
+  }
 
   // const book1 = new Book();
   // book1.title = 'Lord of the rings';
@@ -27,11 +30,12 @@ export const createDb = async () => {
   // user1.favoriteBook = book1;
 
   // await bookRepository.save(book1);
-  // await userRepository.save(user1);
+  await userRepository.save(user1);
 
-  const users = await userRepository.find({
-    relations: ['favoriteBook'],
-  });
+  const users = await userRepository.find();
+  // const users = await userRepository.find({
+  //   relations: ['favoriteBook'],
+  // });
 
   return users;
 };

@@ -38,10 +38,11 @@ export default function App() {
               <Text>{info.item.name}</Text>
               <Text style={{ fontWeight: 'bold', marginTop: 10 }}>Age</Text>
               <Text>{info.item.age}</Text>
-              <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
+              <Text>{info.item.metadata.nickname}</Text>
+              {/* <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
                 Favorite Book
               </Text>
-              <Text>{info.item.favoriteBook.title}</Text>
+              <Text>{info.item.favoriteBook.title}</Text> */}
             </View>
           );
         }}

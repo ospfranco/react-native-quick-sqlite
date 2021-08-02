@@ -1,4 +1,4 @@
-import { Book } from './Book'
+// import { Book } from './Book'
 import {Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm/browser"
 
 @Entity('user')
@@ -15,7 +15,10 @@ export class User {
   @Column("float")
   networth!: number;
 
-  @OneToOne(type => Book)
-  @JoinColumn()
-  favoriteBook!: Book
+  // @OneToOne(type => Book)
+  // @JoinColumn()
+  // favoriteBook!: Book;
+
+  @Column("simple-json")
+  metadata: { nickname: string };
 }
