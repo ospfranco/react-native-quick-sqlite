@@ -258,9 +258,8 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
 
         case SQLITE_TEXT:
         {
-          // TODO: not all the stored text is ASCII, replace this for UTF 8
           const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
-          entry.setProperty(rt, column_name.c_str(), jsi::String::createFromAscii(rt, column_value));
+          entry.setProperty(rt, column_name.c_str(), jsi::String::createFromUtf8(rt, column_value));
           break;
         }
 
