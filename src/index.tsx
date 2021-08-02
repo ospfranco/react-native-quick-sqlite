@@ -50,7 +50,7 @@ export const openDatabase = (
         fail: any
       ) => {
         try {
-          console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
+          // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           let response = sqlite.executeSql(options.name, sql, params);
           ok(response);
         } catch (e) {

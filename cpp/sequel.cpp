@@ -63,7 +63,7 @@ SequelResult sequel_close(string const dbName)
 
   if (dbMap.count(dbName) == 0)
   {
-    cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
+    // cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
     return SequelResult{
         SequelResultError,
         dbName + " is not open",
