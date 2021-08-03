@@ -174,11 +174,7 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &
       string strVal = value.asString(rt).utf8(rt);
       const char *cString = strVal.c_str();
 
-      int len = 0;
-      while (*cString)
-        len += (*cString++ & 0xc0) != 0x80;
-
-      sqlite3_bind_text(statement, ii + 1, strVal.c_str(), len, SQLITE_TRANSIENT);
+      sqlite3_bind_text(statement, ii + 1, cString, strlen(cString), SQLITE_TRANSIENT);
     }
   }
 }
