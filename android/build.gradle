@@ -37,6 +37,7 @@ android {
     externalNativeBuild {
         cmake {
             cppFlags "-O2 -frtti -fexceptions -Wall -Wno-unused-variable -fstack-protector-all"
+            arguments "-DDEV_CMAKE=true"
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
         }
     }
