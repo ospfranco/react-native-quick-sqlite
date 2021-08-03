@@ -16,11 +16,11 @@ export const createDb = async () => {
   const userRepository = getRepository(User);
 
   const user1 = new User();
-  user1.name = 'John Seedman';
+  user1.name = 'John Seedman 🤯';
   user1.age = 30;
   user1.networth = 30000.23;
-  user1.metadata = { 
-    nickname: "<p>We deliver that something because <em>some interesting text!</em></p>\n<p>Always remember...  </p>\n<p><strong>some text here.</strong></p>\n"
+  user1.metadata = {
+    nickname: "<p>We deliver that something because <em>some interesting text!</em></p>\n<p>Always remember...  </p>\n<p><strong>some 🧟‍♀️ 🧚 🍉 text here.</strong></p>\n"
   }
 
   // const book1 = new Book();
