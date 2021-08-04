@@ -293,17 +293,41 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
   }
 
   // Move everything into a JSI object
-  jsi::Object res = jsi::Object(rt);
-
-  auto rows = jsi::Array(rt, results.size());
+  auto array = jsi::Array(rt, results.size());
   for (int i = 0; i < results.size(); i++)
   {
-    rows.setValueAtIndex(rt, i, move(results[i]));
+    array.setValueAtIndex(rt, i, move(results[i]));
   }
 
+  jsi::Object rows = jsi::Object(rt);
+  rows.setProperty(rt, "length", jsi::Value((int)results.size()));
+  rows.setProperty(rt, "_array", move(array));
+
+//    For any future endaevors, I tried to create the accesor function directly on via JSI
+//      But this is too complex for my punny brain, so this function is created on the index.ts file
+//  // Create accessor function
+//  auto itemAccesser = jsi::Function::createFromHostFunction(
+//                          rt,
+//                          jsi::PropNameID::forAscii(rt, "item"),
+//                          1,
+//                          [&array](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+//                          {
+//      if(args[0].isNumber()) {
+//          double rowNumber = args[0].asNumber();
+//          cout << "trying to access value at" << rowNumber << endl;
+//          return array.getValueAtIndex(rt, (int)rowNumber);
+//      }
+//
+//      return {};
+//  });
+    
+//  rows.setProperty(rt, "item", move(itemAccesser));
+
+  jsi::Object res = jsi::Object(rt);
   res.setProperty(rt, "rows", move(rows));
 
   int changedRowCount = sqlite3_total_changes(db);
+    res.setProperty(rt, "rowsAffected", jsi::Value(changedRowCount));
 
   // row id has nothing to do with the actual uuid/id of the object, but internal row count
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);

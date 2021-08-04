@@ -1,10 +1,11 @@
-import { createConnection, getRepository } from 'typeorm/browser';
+import { createConnection, getRepository } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
 
 export const createDb = async () => {
   await createConnection({
     type: 'react-native',
+    // driver: require('react-native-quick-sqlite'),
     database: 'test',
     location: 'default',
     logging: ['error', 'query', 'schema'],
@@ -20,8 +21,9 @@ export const createDb = async () => {
   user1.age = 30;
   user1.networth = 30000.23;
   user1.metadata = {
-    nickname: "<p>We deliver that something because <em>some interesting text!</em></p>\n<p>Always remember...  </p>\n<p><strong>some 🧟‍♀️ 🧚 🍉 text here.</strong></p>\n"
-  }
+    nickname:
+      '<p>We deliver that something because <em>some interesting text!</em></p>\n<p>Always remember...  </p>\n<p><strong>some 🧟‍♀️ 🧚 🍉 text here.</strong></p>\n',
+  };
 
   // const book1 = new Book();
   // book1.title = 'Lord of the rings';

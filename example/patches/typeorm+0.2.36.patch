@@ -1,0 +1,64 @@
+diff --git a/node_modules/typeorm/browser/driver/react-native/ReactNativeDriver.js b/node_modules/typeorm/browser/driver/react-native/ReactNativeDriver.js
+index c2e7890..f97b734 100644
+--- a/node_modules/typeorm/browser/driver/react-native/ReactNativeDriver.js
++++ b/node_modules/typeorm/browser/driver/react-native/ReactNativeDriver.js
+@@ -77,10 +77,10 @@ var ReactNativeDriver = /** @class */ (function (_super) {
+      */
+     ReactNativeDriver.prototype.loadDependencies = function () {
+         try {
+-            this.sqlite = require("react-native-sqlite-storage");
++            this.sqlite = require("react-native-quick-sqlite");
+         }
+         catch (e) {
+-            throw new DriverPackageNotInstalledError("React-Native", "react-native-sqlite-storage");
++            throw new DriverPackageNotInstalledError("React-Native", "react-native-quick-sqlite");
+         }
+     };
+     return ReactNativeDriver;
+diff --git a/node_modules/typeorm/browser/platform/PlatformTools.js b/node_modules/typeorm/browser/platform/PlatformTools.js
+index 069299f..332b50a 100644
+--- a/node_modules/typeorm/browser/platform/PlatformTools.js
++++ b/node_modules/typeorm/browser/platform/PlatformTools.js
+@@ -95,8 +95,8 @@ var PlatformTools = /** @class */ (function () {
+                 /**
+                  * react-native-sqlite
+                  */
+-                case "react-native-sqlite-storage":
+-                    return require("react-native-sqlite-storage");
++                case "react-native-quick-sqlite":
++                    return require("react-native-quick-sqlite");
+             }
+         }
+         catch (err) {
+diff --git a/node_modules/typeorm/driver/react-native/ReactNativeDriver.js b/node_modules/typeorm/driver/react-native/ReactNativeDriver.js
+index ffbee2e..4f1e9e3 100644
+--- a/node_modules/typeorm/driver/react-native/ReactNativeDriver.js
++++ b/node_modules/typeorm/driver/react-native/ReactNativeDriver.js
+@@ -80,10 +80,10 @@ var ReactNativeDriver = /** @class */ (function (_super) {
+      */
+     ReactNativeDriver.prototype.loadDependencies = function () {
+         try {
+-            this.sqlite = require("react-native-sqlite-storage");
++            this.sqlite = require("react-native-quick-sqlite");
+         }
+         catch (e) {
+-            throw new DriverPackageNotInstalledError_1.DriverPackageNotInstalledError("React-Native", "react-native-sqlite-storage");
++            throw new DriverPackageNotInstalledError_1.DriverPackageNotInstalledError("React-Native", "react-native-quick-sqlite");
+         }
+     };
+     return ReactNativeDriver;
+diff --git a/node_modules/typeorm/platform/PlatformTools.js b/node_modules/typeorm/platform/PlatformTools.js
+index 9bf6898..49626fd 100644
+--- a/node_modules/typeorm/platform/PlatformTools.js
++++ b/node_modules/typeorm/platform/PlatformTools.js
+@@ -102,8 +102,8 @@ var PlatformTools = /** @class */ (function () {
+                 /**
+                  * react-native-sqlite
+                  */
+-                case "react-native-sqlite-storage":
+-                    return require("react-native-sqlite-storage");
++                case "react-native-quick-sqlite":
++                    return require("react-native-quick-sqlite");
+             }
+         }
+         catch (err) {

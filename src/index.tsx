@@ -9,8 +9,13 @@ interface ISQLite {
     query: string,
     params: any[] | undefined
   ) => {
-    rows: any[];
+    rows: {
+      _array: any[];
+      length: number;
+      item: (idx: number) => any;
+    };
     insertId?: number;
+    rowsAffected: number;
   };
   // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
@@ -52,6 +57,9 @@ export const openDatabase = (
         try {
           // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           let response = sqlite.executeSql(options.name, sql, params);
+          // enhance object to allow the sqlite-storage typeorm driver to work
+          response.rows.item = (idx: number) => response.rows._array[idx];
+
           ok(response);
         } catch (e) {
           fail(e);
