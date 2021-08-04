@@ -29,7 +29,6 @@ Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-nati
 - **JSI bindings are not available when connected to the web browser debugger**, from now on you should use [Flipper](https://github.com/facebook/flipper).
 - Your app will now include C++ files, this means you will need to install the NDK on your machine for android.
 - [ ] TODO: **Everything is saved on the application's home folder**. I got lazy and ignore any passed path parameter, if you need this feel free to open a PR.
-- [ ] TODO: **The API is NOT 100% the same as sqlite-storage**, sqlite-storage returns an `item` function on the query result, it takes an index number and returns an object, I simply return an array, because creating deeply nested structures from C++ is somewhat cumbersome.
 
 # Use TypeORM
 
