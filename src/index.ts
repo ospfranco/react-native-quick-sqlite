@@ -2,7 +2,7 @@
 // JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE DEBUGGER
 // This is a low level api
 interface ISQLite {
-  open: (dbName: string) => any;
+  open: (dbName: string, location?: string) => any;
   close: (dbName: string) => any;
   executeSql: (
     dbName: string,
@@ -45,7 +45,7 @@ export const openDatabase = (
   fail: (msg: string) => void
 ) => {
   try {
-    sqlite.open(options.name);
+    sqlite.open(options.name, options.location);
 
     const connection: IDBConnection = {
       executeSql: (

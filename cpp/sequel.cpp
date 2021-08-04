@@ -8,6 +8,7 @@
  */
 
 #include "sequel.h"
+#include <sstream>
 #include <iostream>
 #include <sqlite3.h>
 #include <ctime>
@@ -20,6 +21,54 @@ using namespace facebook;
 
 map<string, sqlite3 *> dbMap = map<string, sqlite3 *>();
 
+inline bool folder_exists(std::string foldername)
+{
+  struct stat st;
+  stat(foldername.c_str(), &st);
+  return st.st_mode & S_IFDIR;
+}
+
+/**
+     * Portable wrapper for mkdir. Internally used by mkdir()
+     * @param[in] path the full path of the directory to create.
+     * @return zero on success, otherwise -1.
+     */
+int _mkdir(const char *path)
+{
+#if _POSIX_C_SOURCE
+  return mkdir(path);
+#else
+  return mkdir(path, 0755); // not sure if this works on mac
+#endif
+}
+
+/**
+     * Recursive, portable wrapper for mkdir.
+     * @param[in] path the full path of the directory to create.
+     * @return zero on success, otherwise -1.
+     */
+int mkdir(const char *path)
+{
+    cout << "mkdir: " << path << " end mkdir" << endl;
+  string current_level = "/";
+  string level;
+  stringstream ss(path);
+  // First line is empty because it starts with /User
+  getline(ss, level, '/');
+  // split path using slash as a separator
+  while (getline(ss, level, '/'))
+  {
+    current_level += level; // append folder to the current level
+    // create current level
+    if (!folder_exists(current_level) && _mkdir(current_level.c_str()) != 0)
+      return -1;
+
+    current_level += "/"; // don't forget to append a slash
+  }
+
+  return 0;
+}
+
 inline bool file_exists(const string &path)
 {
   struct stat buffer;
@@ -28,12 +77,14 @@ inline bool file_exists(const string &path)
 
 string get_db_path(string const dbName, string const docPath)
 {
+  mkdir(docPath.c_str());
   return docPath + "/" + dbName;
 }
 
 SequelResult sequel_open(string const dbName, string const docPath)
 {
   string dbPath = get_db_path(dbName, docPath);
+
   int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
   sqlite3 *db;
@@ -303,31 +354,31 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
   rows.setProperty(rt, "length", jsi::Value((int)results.size()));
   rows.setProperty(rt, "_array", move(array));
 
-//    For any future endaevors, I tried to create the accesor function directly on via JSI
-//      But this is too complex for my punny brain, so this function is created on the index.ts file
-//  // Create accessor function
-//  auto itemAccesser = jsi::Function::createFromHostFunction(
-//                          rt,
-//                          jsi::PropNameID::forAscii(rt, "item"),
-//                          1,
-//                          [&array](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
-//                          {
-//      if(args[0].isNumber()) {
-//          double rowNumber = args[0].asNumber();
-//          cout << "trying to access value at" << rowNumber << endl;
-//          return array.getValueAtIndex(rt, (int)rowNumber);
-//      }
-//
-//      return {};
-//  });
-    
-//  rows.setProperty(rt, "item", move(itemAccesser));
+  //    For any future endaevors, I tried to create the accesor function directly on via JSI
+  //      But this is too complex for my punny brain, so this function is created on the index.ts file
+  //  // Create accessor function
+  //  auto itemAccesser = jsi::Function::createFromHostFunction(
+  //                          rt,
+  //                          jsi::PropNameID::forAscii(rt, "item"),
+  //                          1,
+  //                          [&array](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+  //                          {
+  //      if(args[0].isNumber()) {
+  //          double rowNumber = args[0].asNumber();
+  //          cout << "trying to access value at" << rowNumber << endl;
+  //          return array.getValueAtIndex(rt, (int)rowNumber);
+  //      }
+  //
+  //      return {};
+  //  });
+
+  //  rows.setProperty(rt, "item", move(itemAccesser));
 
   jsi::Object res = jsi::Object(rt);
   res.setProperty(rt, "rows", move(rows));
 
   int changedRowCount = sqlite3_total_changes(db);
-    res.setProperty(rt, "rowsAffected", jsi::Value(changedRowCount));
+  res.setProperty(rt, "rowsAffected", jsi::Value(changedRowCount));
 
   // row id has nothing to do with the actual uuid/id of the object, but internal row count
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);

@@ -22,13 +22,12 @@
 
 Quick SQLite uses [JSI bindings](https://formidable.com/blog/2019/jsi-jsc-part-2/), removes all the overhead of intercommunication between JavaScript code and C++ code, making CRUDing entities from SQLite super fast!
 
-Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2) for paving the way, this library should offer a similar API.
+Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2) for paving the way, this library offers the exact same API.
 
 ## GOTCHAS
 
-- **JSI bindings are not available when connected to the web browser debugger**, from now on you should use [Flipper](https://github.com/facebook/flipper).
-- Your app will now include C++ files, this means you will need to install the NDK on your machine for android.
-- [ ] TODO: **Everything is saved on the application's home folder**. I got lazy and ignore any passed path parameter, if you need this feel free to open a PR.
+- **JSI bindings are not available when connected to the web browser debugger**, from now on you should use [Flipper](https://github.com/facebook/flipper)
+- Your app will now include C++ files, this means you will need to install the NDK on your machine for android. (unless you know how to generate an AAR, feel free to open a PR)
 
 # Use TypeORM
 
@@ -55,7 +54,7 @@ interface ISQLite {
 }
 
 // It is globally available in a variable called `sqlite`
-sqlite.open({...options})
+sqlite.open({ ...options });
 ```
 
 `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript. The methods `throw` when an execution error happens, so `try ... catch` them.
