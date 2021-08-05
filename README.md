@@ -28,6 +28,7 @@ Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-nati
 
 - **JSI bindings are not available when connected to the web browser debugger**, from now on you should use [Flipper](https://github.com/facebook/flipper)
 - Your app will now include C++ files, this means you will need to install the NDK on your machine for android. (unless you know how to generate an AAR, feel free to open a PR)
+- If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
 
 # Use TypeORM
 
