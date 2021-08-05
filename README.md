@@ -31,7 +31,7 @@ Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-nati
 
 # Use TypeORM
 
-The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch), it basically just replaces all the `react-native-sqlite-storage` strings in TypeORM with `react-native-quick-sqlite`, and does a tiny change for the way it accesses the resulting rows from the SQL execution.
+The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch), it basically just replaces all the `react-native-sqlite-storage` strings in TypeORM with `react-native-quick-sqlite`.
 
 Follow the instructions to make TypeORM work with rn (enable decorators, configure babel, etc), then apply the patch via patch-package and you should be good to go.
 
@@ -41,8 +41,8 @@ If you are particularly masochistic you can hand write SQL and query the databas
 
 ```typescript
 interface ISQLite {
-  open: (dbName: string) => any;
-  close: (dbName: string) => any;
+  open: (dbName: string, location?: string) => any;
+  close: (dbName: string, location?: string) => any;
   executeSql: (
     dbName: string,
     query: string,
