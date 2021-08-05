@@ -21,11 +21,10 @@ using namespace facebook;
 
 map<string, sqlite3 *> dbMap = map<string, sqlite3 *>();
 
-inline bool folder_exists(std::string foldername)
+bool folder_exists(const std::string &foldername)
 {
-  struct stat st;
-  stat(foldername.c_str(), &st);
-  return st.st_mode & S_IFDIR;
+  struct stat buffer;
+  return (stat(foldername.c_str(), &buffer) == 0);
 }
 
 /**
@@ -49,7 +48,6 @@ int _mkdir(const char *path)
      */
 int mkdir(const char *path)
 {
-    cout << "mkdir: " << path << " end mkdir" << endl;
   string current_level = "/";
   string level;
   stringstream ss(path);
