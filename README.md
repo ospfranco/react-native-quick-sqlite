@@ -20,7 +20,8 @@
   </a>
 </div>
 <br />
-Quick SQLite uses [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2/), removes all the overhead of intercommunication between JavaScript code and C++ code, making CRUDing entities from SQLite super fast!
+
+Quick SQLite uses [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2), removes all the overhead of intercommunication between JavaScript code and C++ code, making CRUDing entities from SQLite super fast!
 
 Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2), this library also provides a WebSQL interface.
 
