@@ -19,15 +19,16 @@
     <img src="https://img.shields.io/twitter/follow/ospfranco?label=Follow%20%40ospfranco&style=social" />
   </a>
 </div>
+<br />
 
-Quick SQLite uses [JSI bindings](https://formidable.com/blog/2019/jsi-jsc-part-2/), removes all the overhead of intercommunication between JavaScript code and C++ code, making CRUDing entities from SQLite super fast!
+Quick SQLite uses [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2), removes all the overhead of intercommunication between JavaScript code and C++ code, making CRUDing entities from SQLite super fast!
 
-Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2) for paving the way, this library offers the exact same API.
+Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2), this library also provides a WebSQL interface.
 
 ## GOTCHAS
 
-- **JSI bindings are not available when connected to the web browser debugger**, from now on you should use [Flipper](https://github.com/facebook/flipper)
-- Your app will now include C++ files, this means you will need to install the NDK on your machine for android. (unless you know how to generate an AAR, feel free to open a PR)
+- **It's not possible to use the browser debugger with JSI**, use [Flipper](https://github.com/facebook/flipper)
+- Your app will now include C++, you will need to install the NDK on your machine for android. (unless you know how to generate an AAR, feel free to open a PR)
 - If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
 
 # Use TypeORM
@@ -36,9 +37,9 @@ The recommended way to use this package is to use [TypeORM](https://github.com/t
 
 Follow the instructions to make TypeORM work with rn (enable decorators, configure babel, etc), then apply the patch via patch-package and you should be good to go.
 
-If you are particularly masochistic you can hand write SQL and query the database directly yourself.
-
 ## Low level API
+
+It is also possible to directly execute SQL against the db:
 
 ```typescript
 interface ISQLite {
@@ -54,11 +55,10 @@ interface ISQLite {
   };
 }
 
-// It is globally available in a variable called `sqlite`
-sqlite.open({ ...options });
+// `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
+// The methods `throw` when an execution error happens, so try/catch them
+sqlite.open('myDatabase', 'databases');
 ```
-
-`sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript. The methods `throw` when an execution error happens, so `try ... catch` them.
 
 ## License
 
