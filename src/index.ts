@@ -20,8 +20,9 @@ interface ISQLite {
   // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
 
-// Make it globally available
-declare var sqlite: ISQLite;
+declare global {
+  var sqlite: ISQLite;
+}
 
 // API FOR TYPEORM
 interface IConnectionOptions {
