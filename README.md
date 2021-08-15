@@ -54,10 +54,21 @@ interface ISQLite {
     insertId?: number;
   };
 }
+```
+
+In your code
+
+```typescript
+// If you want to register the (globalThis) types for the low level API do an empty import
+import 'react-native-quick-sqlite';
 
 // `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
 // The methods `throw` when an execution error happens, so try/catch them
-sqlite.open('myDatabase', 'databases');
+try {
+  sqlite.open('myDatabase', 'databases');
+} catch (e) {
+  console.log(e); // [react-native-quick-sqlite]: Could not open database file: ERR XXX
+}
 ```
 
 ## License
