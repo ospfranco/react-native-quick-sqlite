@@ -1,6 +1,9 @@
 package com.reactnativequicksqlite;
 
+import android.os.Build;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -24,6 +27,7 @@ class SequelModule extends ReactContextBaseJavaModule {
   }
 
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @NonNull
   @Override
   public void initialize() {
@@ -34,7 +38,7 @@ class SequelModule extends ReactContextBaseJavaModule {
     // https://stackoverflow.com/questions/41820039/jstringjni-to-stdstringc-with-utf8-characters
     SequelModule.initialize(
       this.getReactApplicationContext().getJavaScriptContextHolder().get(),
-      this.getReactApplicationContext().getFilesDir().getAbsolutePath()
+      this.getReactApplicationContext().getDataDir().getAbsolutePath()
     );
   }
 

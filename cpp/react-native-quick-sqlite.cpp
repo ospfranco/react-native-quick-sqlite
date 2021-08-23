@@ -62,8 +62,13 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
             jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] database location must be a string");
             return {};
           }
-          
-          tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
+
+          string location_in_app_data = args[1].asString(rt).utf8(rt);
+          if (location_in_app_data == "default") {
+            location_in_app_data = "databases";
+          }
+
+          tempDocPath = tempDocPath + "/" + location_in_app_data;
         }
 
 
