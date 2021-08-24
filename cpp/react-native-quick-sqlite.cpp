@@ -44,7 +44,8 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       1,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
-        if(count == 0) {
+        if (count == 0)
+        {
           jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] database name is required");
           return {};
         }
@@ -57,20 +58,16 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         string dbName = args[0].asString(rt).utf8(rt);
         string tempDocPath = string(docPathStr);
-        if(count > 1) {
-          if(!args[1].isString()) {
+        if (count > 1)
+        {
+          if (!args[1].isString())
+          {
             jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] database location must be a string");
             return {};
           }
 
-          string location_in_app_data = args[1].asString(rt).utf8(rt);
-          if (location_in_app_data == "default") {
-            location_in_app_data = "databases";
-          }
-
-          tempDocPath = tempDocPath + "/" + location_in_app_data;
+          tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
         }
-
 
         SequelResult result = sequel_open(dbName, tempDocPath);
 

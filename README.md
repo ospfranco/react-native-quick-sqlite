@@ -23,13 +23,14 @@
 
 Quick SQLite uses [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2), removes all the overhead of intercommunication between JavaScript code and C++ code, making CRUDing entities from SQLite super fast!
 
-Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2), this library also provides a WebSQL interface.
+You can replace [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2) with this library and gain a major performance boost.
 
 ## GOTCHAS
 
 - **It's not possible to use the browser debugger with JSI**, use [Flipper](https://github.com/facebook/flipper)
 - Your app will now include C++, you will need to install the NDK on your machine for android. (unless you know how to generate an AAR, feel free to open a PR)
 - If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
+- **Breaking change on version 1.1.0 for android**: We moved base folder where we store the databases from the `[APP FOLDER]/files` directory to the `[APP FOLDER]/databases`, which is the convention for android, this way you can explore your DB with flipper, this also means if you created a database with previous version the library will now fail to find it so you will have to move any previous db file.
 
 # Use TypeORM
 

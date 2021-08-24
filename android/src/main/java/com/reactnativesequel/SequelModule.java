@@ -38,7 +38,7 @@ class SequelModule extends ReactContextBaseJavaModule {
     // https://stackoverflow.com/questions/41820039/jstringjni-to-stdstringc-with-utf8-characters
     SequelModule.initialize(
       this.getReactApplicationContext().getJavaScriptContextHolder().get(),
-      this.getReactApplicationContext().getDataDir().getAbsolutePath()
+      this.getReactApplicationContext().getDataDir().getAbsolutePath() + "/databases"
     );
   }
 
