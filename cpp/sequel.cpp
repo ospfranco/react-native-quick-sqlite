@@ -200,6 +200,11 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &
     {
       sqlite3_bind_null(statement, ii + 1);
     }
+    else if (value.isBool())
+    {
+      int intVal = int(value.getBool());
+      sqlite3_bind_int(statement, ii + 1, intVal);
+    }
     else if (value.isNumber())
     {
       double doubleVal = value.asNumber();
