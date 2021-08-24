@@ -7,7 +7,7 @@ export const createDb = async () => {
     type: 'react-native',
     // driver: require('react-native-quick-sqlite'),
     database: 'test',
-    location: 'sample/database',
+    location: '.',
     logging: ['error'],
     synchronize: true,
     entities: [User, Book],
