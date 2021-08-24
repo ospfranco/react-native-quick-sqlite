@@ -22,6 +22,7 @@ public class ReactNativeFlipper {
 
             final DescriptorMapping descriptorMapping = DescriptorMapping.withDefaults();
             client.addPlugin(new InspectorFlipperPlugin(context, descriptorMapping));
+            client.start();
         }
     }
 }
