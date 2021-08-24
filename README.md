@@ -71,6 +71,10 @@ try {
 }
 ```
 
+## JSI Cheatsheet
+
+If you want to learn how to make your own JSI module and also get a reference guide for all things C++/JSI you can buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/l/IeeIvl)
+
 ## License
 
 react-native-quick-sqlite is licensed under MIT.
