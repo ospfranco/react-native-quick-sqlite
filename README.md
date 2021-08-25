@@ -25,6 +25,8 @@ Quick SQLite uses [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2), remove
 
 Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2), this library also provides a WebSQL interface.
 
+If you are using quick-sqlite in your app, please get in touch or open a PR with a modified README (with your company/product logo, would love to showcase you!
+
 ## GOTCHAS
 
 - **It's not possible to use the browser debugger with JSI**, use [Flipper](https://github.com/facebook/flipper), on android Flipper also has an integrated database explorer you can use to debug your sqlite database, [you will have to configure your database path though](https://fbflipper.com/docs/setup/plugins/databases/).
