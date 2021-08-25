@@ -27,11 +27,12 @@ Big ❤️ to [react-native-sqlite-storage](https://github.com/andpor/react-nati
 
 ## GOTCHAS
 
-- **It's not possible to use the browser debugger with JSI**, use [Flipper](https://github.com/facebook/flipper)
+- **It's not possible to use the browser debugger with JSI**, use [Flipper](https://github.com/facebook/flipper), on android Flipper also has an integrated database explorer you can use to debug your sqlite database, [you will have to configure your database path though](https://fbflipper.com/docs/setup/plugins/databases/).
+![130516553-15c18d0f-65ad-44cf-8235-a4d6f41859e2](https://user-images.githubusercontent.com/1634213/130755919-7539d3dd-7d30-4234-9965-bfef2450ab0a.png)
 - Your app will now include C++, you will need to install the NDK on your machine for android. (unless you know how to generate an AAR, feel free to open a PR)
 - If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
 
-# Use TypeORM
+## Use TypeORM
 
 The recommended way to use this package is to use [TypeORM](https://github.com/typeorm/typeorm) with [patch-package](https://github.com/ds300/patch-package). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch), it basically just replaces all the `react-native-sqlite-storage` strings in TypeORM with `react-native-quick-sqlite`.
 
