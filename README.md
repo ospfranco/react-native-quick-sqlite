@@ -30,9 +30,10 @@ If you are using quick-sqlite in your app, please get in touch or open a PR with
 ## GOTCHAS
 
 - **It's not possible to use the browser debugger with JSI**, use [Flipper](https://github.com/facebook/flipper), on android Flipper also has an integrated database explorer you can use to debug your sqlite database, [you will have to configure your database path though](https://fbflipper.com/docs/setup/plugins/databases/).
-![130516553-15c18d0f-65ad-44cf-8235-a4d6f41859e2](https://user-images.githubusercontent.com/1634213/130755919-7539d3dd-7d30-4234-9965-bfef2450ab0a.png)
+  ![130516553-15c18d0f-65ad-44cf-8235-a4d6f41859e2](https://user-images.githubusercontent.com/1634213/130755919-7539d3dd-7d30-4234-9965-bfef2450ab0a.png)
 - Your app will now include C++, you will need to install the NDK on your machine for android. (unless you know how to generate an AAR, feel free to open a PR)
 - If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
+- This library supports SQLite BLOBs which are mapped to JS ArrayBuffers, check out the sample project on how to use it
 
 ## Use TypeORM
 
