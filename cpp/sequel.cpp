@@ -329,6 +329,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
           jsi::Function array_buffer_ctor = rt.global().getPropertyAsFunction(rt, "ArrayBuffer");
           jsi::Object o = array_buffer_ctor.callAsConstructor(rt, blob_size).getObject(rt);
           jsi::ArrayBuffer buf = o.getArrayBuffer(rt);
+          // It's a shame we have to copy here: see https://github.com/facebook/hermes/pull/419 and https://github.com/facebook/hermes/issues/564.
           memcpy(buf.data(rt), blob, blob_size);
           entry.setProperty(rt, column_name.c_str(), o);
           break;
