@@ -21,4 +21,7 @@ export class User {
 
   @Column("simple-json")
   metadata: { nickname: string };
+
+  @Column("blob")
+  avatar: ArrayBuffer;
 }
