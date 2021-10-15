@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import * as React from 'react';
 import {
   StyleSheet,
+  Image,
   View,
   Text,
   FlatList,
@@ -9,6 +10,7 @@ import {
 } from 'react-native';
 import { createDb } from './Database';
 import type { User } from './model/User';
+import { Buffer } from "buffer";
 
 export default function App() {
   let [users, setUsers] = React.useState<User[]>([]);
@@ -34,6 +36,7 @@ export default function App() {
                 backgroundColor: 'white',
               }}
             >
+              <Image style={{width: 64, height: 64}} source={{uri: `data:image/png;base64,${Buffer.from(info.item.avatar).toString("base64")}`}}></Image>
               <Text style={{ fontWeight: 'bold' }}>Name</Text>
               <Text>{info.item.name}</Text>
               <Text style={{ fontWeight: 'bold', marginTop: 10 }}>Age</Text>

@@ -229,6 +229,16 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &
 
       sqlite3_bind_text(statement, ii + 1, strVal.c_str(), strVal.length(), SQLITE_TRANSIENT);
     }
+    else if (value.isObject())
+    {
+      auto obj = value.asObject(rt);
+      if (obj.isArrayBuffer(rt))
+      {
+        auto buf = obj.getArrayBuffer(rt);
+        // The statement is executed before returning control to JSI, so we don't need to copy the data to extend its lifetime.
+        sqlite3_bind_blob(statement, ii + 1, buf.data(rt), buf.size(rt), SQLITE_STATIC);
+      }
+    }
   }
 }
 
@@ -309,6 +319,19 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
         {
           const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
           entry.setProperty(rt, column_name.c_str(), jsi::String::createFromUtf8(rt, column_value));
+          break;
+        }
+
+        case SQLITE_BLOB:
+        {
+          int blob_size = sqlite3_column_bytes(statement, i);
+          const void *blob = sqlite3_column_blob(statement, i);
+          jsi::Function array_buffer_ctor = rt.global().getPropertyAsFunction(rt, "ArrayBuffer");
+          jsi::Object o = array_buffer_ctor.callAsConstructor(rt, blob_size).getObject(rt);
+          jsi::ArrayBuffer buf = o.getArrayBuffer(rt);
+          // It's a shame we have to copy here: see https://github.com/facebook/hermes/pull/419 and https://github.com/facebook/hermes/issues/564.
+          memcpy(buf.data(rt), blob, blob_size);
+          entry.setProperty(rt, column_name.c_str(), o);
           break;
         }
 

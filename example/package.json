@@ -10,6 +10,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
     "react": "16.13.1",
     "react-native": "0.63.4",
     "typeorm": "^0.2.36"
