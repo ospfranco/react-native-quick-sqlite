@@ -15,6 +15,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <map>
+// #ifdef ANDROID
+// #include "logs.h"
+// #endif // ANDROID
 
 using namespace std;
 using namespace facebook;
@@ -262,6 +265,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
   // Compile and move result into statement memory spot
   int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
 
+
   if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
   {
     bindStatement(statement, rt, params);
@@ -269,7 +273,6 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
   else
   {
     const char *message = sqlite3_errmsg(db);
-
     return {
         SequelResultError,
         "[react-native-quick-sqlite] SQL execution error: " + string(message),
@@ -377,6 +380,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
   }
 
   jsi::Object rows = jsi::Object(rt);
+  rows.setProperty(rt, "status", jsi::Value(0));
   rows.setProperty(rt, "length", jsi::Value((int)results.size()));
   rows.setProperty(rt, "_array", move(array));
 
