@@ -35,6 +35,7 @@ If you are using quick-sqlite in your app, please get in touch or open a PR with
 - If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
 - This library supports SQLite BLOBs which are mapped to JS ArrayBuffers, check out the sample project on how to use it
 - Starting with version 2.0.0 the library no longer throws errors when an invalid statement is passed, but rather returns an object with a `status` enum property, where 0 signals a succesful execution and `1` an incorrect execution (this is to keep typeorm from exploding when an incorrect query is executed)
+- This library cannot retrieve integers larger than 53 bits because it's not possible to represent such numbers in JavaScript. [Read here](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991) for more information. 
 
 ## Use TypeORM
 
