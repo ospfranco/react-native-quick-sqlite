@@ -306,7 +306,14 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
 
         case SQLITE_INTEGER:
         {
-          int column_value = sqlite3_column_int(statement, i);
+          /**
+           * It's not possible to send a int64_t in a jsi::Value because JS cannot represent the whole number range. 
+           * Instead, we're sending a double, which can represent all integers up to 53 bits long, which is more 
+           * than what was there before (a 32-bit int). 
+           *
+           * See https://github.com/ospfranco/react-native-quick-sqlite/issues/16 for more context. 
+           */
+          double column_value = sqlite3_column_double(statement, i);
           entry.setProperty(rt, column_name.c_str(), jsi::Value(column_value));
           break;
         }
