@@ -1,6 +1,6 @@
 {
   "name": "react-native-quick-sqlite",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Fast sqlite implementation for react-native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
