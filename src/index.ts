@@ -1,6 +1,18 @@
 // IMPORTANT!!!!!!!!!!!
 // JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE DEBUGGER
 // This is a low level api
+type QueryResult = {
+  rows?: { // if status is undefined or 0 this object will contain the query results
+    _array: any[];
+    length: number;
+    item: (idx: number) => any;
+  };
+  insertId?: number;
+  rowsAffected: number;
+  status?: 0 | 1; // 0 or undefined for correct execution
+  message?: string; // if status === 1, here you will find error description
+}
+
 interface ISQLite {
   open: (dbName: string, location?: string) => any;
   close: (dbName: string) => any;
@@ -8,15 +20,7 @@ interface ISQLite {
     dbName: string,
     query: string,
     params: any[] | undefined
-  ) => {
-    rows: {
-      _array: any[];
-      length: number;
-      item: (idx: number) => any;
-    };
-    insertId?: number;
-    rowsAffected: number;
-  };
+  ) => QueryResult;
   // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
 
@@ -34,7 +38,7 @@ interface IDBConnection {
   executeSql: (
     sql: string,
     args: any[],
-    ok: (res: any) => void,
+    ok: (res: QueryResult) => void,
     fail: (msg: string) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
@@ -58,9 +62,10 @@ export const openDatabase = (
         try {
           // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           let response = sqlite.executeSql(options.name, sql, params);
-          // enhance object to allow the sqlite-storage typeorm driver to work
-          response.rows.item = (idx: number) => response.rows._array[idx];
-
+          if(response.rows) {
+            // enhance object to allow the sqlite-storage typeorm driver to work
+            response.rows.item = (idx: number) => response.rows._array[idx];
+          }
           ok(response);
         } catch (e) {
           fail(e);
