@@ -1,6 +1,11 @@
-// IMPORTANT!!!!!!!!!!!
-// JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE DEBUGGER
-// This is a low level api
+/**
+ * 
+ * IMPORTANT!!!!!!!!!!!
+ * JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE DEBUGGER
+ * This is a low level api
+ * 
+ */
+
 type QueryResult = {
   rows?: { // if status is undefined or 0 this object will contain the query results
     _array: any[];
@@ -11,7 +16,7 @@ type QueryResult = {
   rowsAffected: number;
   status?: 0 | 1; // 0 or undefined for correct execution
   message?: string; // if status === 1, here you will find error description
-}
+};
 
 interface ISQLite {
   open: (dbName: string, location?: string) => any;
@@ -56,16 +61,14 @@ export const openDatabase = (
       executeSql: (
         sql: string,
         params: any[] | undefined,
-        ok: any,
-        fail: any
+        ok: (res: QueryResult) => void,
+        fail: (msg: string) => void
       ) => {
         try {
           // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           let response = sqlite.executeSql(options.name, sql, params);
-          if(response.rows) {
-            // enhance object to allow the sqlite-storage typeorm driver to work
-            response.rows.item = (idx: number) => response.rows._array[idx];
-          }
+          // enhance object to allow the sqlite-storage typeorm driver to work
+          response.rows!.item = (idx: number) => response.rows._array[idx];
           ok(response);
         } catch (e) {
           fail(e);
