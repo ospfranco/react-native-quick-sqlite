@@ -6,17 +6,33 @@
  * 
  */
 
-type QueryResult = {
-  rows?: { // if status is undefined or 0 this object will contain the query results
+/**
+ * Structure of the object returned by SQL Query executions
+ *
+ * @interface QueryResult
+ */
+interface QueryResult {
+  /** if status is undefined or 0 this object will contain the query results */
+  rows?: {
+    /** Raw array with all dataset */
     _array: any[];
+    /** The lengh of the dataset */
     length: number;
+    /** A convenience function to acess the index based the row object 
+     * @param idx the row index
+     * @returns the row structure identified by column names
+    */
     item: (idx: number) => any;
   };
+  /** Represent the auto-generated row id if applicable */
   insertId?: number;
+  /** Number of affected rows if result of a update query */
   rowsAffected: number;
-  status?: 0 | 1; // 0 or undefined for correct execution
-  message?: string; // if status === 1, here you will find error description
-};
+  /** 0 or undefined for correct execution */
+  status?: 0 | 1;
+  /** if status === 1, here you will find error description */
+  message?: string;
+}
 
 interface ISQLite {
   open: (dbName: string, location?: string) => any;
@@ -67,8 +83,10 @@ export const openDatabase = (
         try {
           // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           let response = sqlite.executeSql(options.name, sql, params);
-          // enhance object to allow the sqlite-storage typeorm driver to work
-          response.rows!.item = (idx: number) => response.rows._array[idx];
+          if (response.rows) {
+            // enhance object to allow the sqlite-storage typeorm driver to work
+            response.rows.item = (idx: number) => response.rows._array[idx];
+          }
           ok(response);
         } catch (e) {
           fail(e);
