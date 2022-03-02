@@ -221,6 +221,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
             res.setProperty(rt, "commands", jsi::Value(commands));
             return move(res);
           } catch (...) {
+            sqFile.close();
             sequel_execute_literal_update(dbName, "ROLLBACK");
             jsi::detail::throwJSError(rt, "Unexpected error, transaction was rolledback");
             return {};
