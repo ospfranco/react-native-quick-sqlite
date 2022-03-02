@@ -31,6 +31,14 @@ interface QueryResult {
     item: (idx: number) => any;
   };
 }
+
+interface BulkupdateResult {
+  rowsAffected?: number;
+  commands?: number;
+  message?: string;
+  status?: 0 | 1;
+}
+
 interface ISQLite {
   open: (dbName: string, location?: string) => any;
   close: (dbName: string) => any;
@@ -39,6 +47,7 @@ interface ISQLite {
     query: string,
     params: any[] | undefined
   ) => QueryResult;
+  loadSqlFile: (dbName: string, location: string) => BulkupdateResult;
   // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
 
@@ -58,6 +67,7 @@ interface IDBConnection {
     fail: (msg: string) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
+  loadSqlFile: (location: string, callback: (result: BulkupdateResult) => void ) => void;
 }
 
 export const openDatabase = (
@@ -97,6 +107,12 @@ export const openDatabase = (
           fail(e);
         }
       },
+      loadSqlFile: (location: string, callback: (result: BulkupdateResult) => void) => {
+        const result = sqlite.loadSqlFile(options.name, location);
+        if (callback) {
+          callback(result);
+        }
+      }
     };
 
     ok(connection);

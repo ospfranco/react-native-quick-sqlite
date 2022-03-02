@@ -28,3 +28,10 @@ struct SequelResult
   string message;
   jsi::Value value;
 };
+
+struct SequelLiteralUpdateResult
+{
+  ResultType type;
+  string message;
+  int affectedRows;
+};
