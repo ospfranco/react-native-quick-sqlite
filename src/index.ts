@@ -38,7 +38,7 @@ interface QueryResult {
  * If a single query must be executed many times with different arguments, its preferred
  * to declare it a single time, and use an array of array parameters.
  */
- type SQLBatchParams = [string, Array<any> | Array<Array<any>> | undefined];
+ type SQLBatchParams = [string] | [string, Array<any> | Array<Array<any>>];
 
 /**
  * status: 0 or undefined for correct execution, 1 for error
