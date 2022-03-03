@@ -50,17 +50,16 @@ It is also possible to directly execute SQL against the db:
 ```typescript
 interface ISQLite {
   open: (dbName: string, location?: string) => any;
-  close: (dbName: string, location?: string) => any;
+  close: (dbName: string) => any;
   executeSql: (
     dbName: string,
     query: string,
     params: any[] | undefined
-  ) => {
-    status: 0 | 1; // 0 for correct execution
-    message: string; // if status === 1, here you will find error description
-    rows: any[];
-    insertId?: number;
-  };
+  ) => QueryResult;
+  executeSqlBatch: (
+    dbName: string,
+    commands: SQLBatchParams[]
+  ) => BatchExecutionResult;
 }
 ```
 
@@ -76,6 +75,36 @@ try {
   sqlite.open('myDatabase', 'databases');
 } catch (e) {
   console.log(e); // [react-native-quick-sqlite]: Could not open database file: ERR XXX
+}
+```
+
+Some query examples:
+```typescript
+let result = sqlite.executeSql('myDatabase', 'SELECT somevalue FROM sometable');
+if(!result.status) { // result.status undefined or 0 === sucess
+  for(let i = 0; i<result.rows.length; i++) {
+    const row = result.rows.item(i);
+    console.log(row.somevalue);
+  }
+}
+
+result = sqlite.executeSql('myDatabase', 'UPDATE sometable set somecolumn = ? where somekey = ?', [0, 1]);
+if(!result.status) { // result.status undefined or 0 === sucess
+  console.log(`Update affected ${result.rowsAffected} rows`);
+}
+```
+
+Bulkupdate allows transactional execution of a set of commands
+```typescript
+const commands = [
+  ['CREATE TABLE TEST (id integer)'],
+  ['INSERT INTO TABLE TEST (id) VALUES (?)', [1]]
+  ['INSERT INTO TABLE TEST (id) VALUES (?)', [2]]
+  ['INSERT INTO TABLE TEST (id) VALUES (?)', [[3], [4], [5], [6]]]
+];
+const result = sqlite.executeSqlBatch('myDatabase', commands);
+if(!result.status) { // result.status undefined or 0 === sucess
+  console.log(`Batch affected ${result.rowsAffected} rows`);
 }
 ```
 
