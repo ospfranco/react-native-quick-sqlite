@@ -414,7 +414,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
   jsi::Object res = jsi::Object(rt);
   res.setProperty(rt, "rows", move(rows));
 
-  int changedRowCount = sqlite3_total_changes(db);
+  int changedRowCount = sqlite3_changes(db);
   res.setProperty(rt, "rowsAffected", jsi::Value(changedRowCount));
 
   // row id has nothing to do with the actual uuid/id of the object, but internal row count
