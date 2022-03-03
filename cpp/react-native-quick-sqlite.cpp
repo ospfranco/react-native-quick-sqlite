@@ -185,15 +185,19 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
         if(sizeof(args) < 2) {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][execSQLBatch] - Incorrect parameter count");
-          return {};
+          auto res = jsi::Object(rt);
+          res.setProperty(rt, "status", jsi::Value(1));
+          res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, "[react-native-quick-sqlite][execSQLBatch] - Incorrect parameter count"));
+          return move(res);
         }
         const string dbName = args[0].asString(rt).utf8(rt);
         const jsi::Value &params = args[1];
         if(params.isNull() || params.isUndefined()) 
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][execSQLBatch] - An array of SQL commands or parameters is needed");
-          return {};
+          auto res = jsi::Object(rt);
+          res.setProperty(rt, "status", jsi::Value(1));
+          res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, "[react-native-quick-sqlite][execSQLBatch] - An array of SQL commands or parameters is needed"));
+          return move(res);
         }
         int rowsAffected = 0;
         const jsi::Array &batchParams = params.asObject(rt).asArray(rt);
@@ -205,8 +209,10 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
             const jsi::Array &command = batchParams.getValueAtIndex(rt, i).asObject(rt).asArray(rt);
             if(command.length(rt) == 0) {
               sequel_execute(rt, dbName, "ROLLBACK", jsi::Value::undefined());
-              jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][execSQLBatch] - No SQL Commands found");
-              return {};
+              auto res = jsi::Object(rt);
+              res.setProperty(rt, "status", jsi::Value(1));
+              res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, "[react-native-quick-sqlite][execSQLBatch] - No SQL Commands found on batch index " + i));
+              return move(res);
             }
             const string query = command.getValueAtIndex(rt, 0).asString(rt).utf8(rt);
             const jsi::Value &commandParams = command.length(rt) > 1 ? command.getValueAtIndex(rt, 1) : jsi::Value::undefined();
@@ -252,6 +258,10 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
           sequel_execute(rt, dbName, "COMMIT", jsi::Value::undefined());
         } catch (...) {
           sequel_execute(rt, dbName, "ROLLBACK", jsi::Value::undefined());
+          auto res = jsi::Object(rt);
+          res.setProperty(rt, "status", jsi::Value(1));
+          res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, "[react-native-quick-sqlite][execSQLBatch] - Unexpected error"));
+          return move(res);
         }
         auto res = jsi::Object(rt);
         res.setProperty(rt, "status", jsi::Value(0));
