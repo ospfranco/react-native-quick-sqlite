@@ -38,14 +38,14 @@ interface QueryResult {
  * If a single query must be executed many times with different arguments, its preferred
  * to declare it a single time, and use an array of array parameters.
  */
- type SQLBatchParams = [string, Array<any> | Array<Array<any>> | undefined];
+type SQLBatchParams = [string, Array<any> | Array<Array<any>> | undefined];
 
 /**
  * status: 0 or undefined for correct execution, 1 for error
  * message: if status === 1, here you will find error description
  * rowsAffected: Number of affected rows if status == 0
  */
-interface BatchExecutionResult {
+interface BatchQueryResult {
   status?: 0 | 1;
   rowsAffected?: number;
   message?: string;
@@ -62,7 +62,7 @@ interface ISQLite {
   executeSqlBatch: (
     dbName: string,
     commands: SQLBatchParams[]
-  ) => BatchExecutionResult;
+  ) => BatchQueryResult;
   // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
 
@@ -81,7 +81,10 @@ interface IDBConnection {
     ok: (res: QueryResult) => void,
     fail: (msg: string) => void
   ) => void;
-  executeSqlBatch: (commands: SQLBatchParams[], callback?: (res: BatchExecutionResult) => void) => void;
+  executeSqlBatch: (
+    commands: SQLBatchParams[],
+    callback?: (res: BatchQueryResult) => void
+  ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
 }
 
@@ -114,7 +117,10 @@ export const openDatabase = (
           fail(e);
         }
       },
-      executeSqlBatch: (commands: SQLBatchParams[], callback?: (res: BatchExecutionResult) => void) => {
+      executeSqlBatch: (
+        commands: SQLBatchParams[],
+        callback?: (res: BatchQueryResult) => void
+      ) => {
         const response = sqlite.executeSqlBatch(options.name, commands);
         if (callback) callback(response);
       },
