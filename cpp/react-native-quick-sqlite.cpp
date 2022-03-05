@@ -33,6 +33,13 @@ const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 
 string docPathStr;
 
+jsi::Object createError(jsi::Runtime &rt, string message) {
+  auto res = jsi::Object(rt);
+  res.setProperty(rt, "status", jsi::Value(1));
+  res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, message));
+  return res;
+}
+
 void installSequel(jsi::Runtime &rt, const char *docPath)
 {
 
@@ -47,22 +54,19 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
         if(count == 0) {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] database name is required");
-          return {};
+          return createError(rt, "[react-native-quick-sqlite][open] database name is required");
         }
 
         if (!args[0].isString())
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] database name must be a string");
-          return {};
+          return createError(rt, "[react-native-quick-sqlite][open] database name must be a string");
         }
 
         string dbName = args[0].asString(rt).utf8(rt);
         string tempDocPath = string(docPathStr);
         if(count > 1) {
           if(!args[1].isString()) {
-            jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] database location must be a string");
-            return {};
+            return createError(rt, "[react-native-quick-sqlite][open] database location must be a string");
           }
 
           tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
@@ -73,8 +77,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         if (result.type == SequelResultError)
         {
-          jsi::detail::throwJSError(rt, result.message.c_str());
-          return {};
+          return createError(rt, result.message.c_str());
         }
 
         return move(result.value);
@@ -110,11 +113,15 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       1,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
+        if(count == 0) {
+          return createError(rt, "[react-native-quick-sqlite][close] database name is required");
+        }
+
         if (!args[0].isString())
         {
-          jsi::detail::throwJSError(rt, "dbName must be a string");
-          return {};
+          return createError(rt, "[react-native-quick-sqlite][close] database name must be a string");
         }
+
 
         string dbName = args[0].asString(rt).utf8(rt);
 
@@ -122,8 +129,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         if (result.type == SequelResultError)
         {
-          jsi::detail::throwJSError(rt, result.message.c_str());
-          return {};
+          return createError(rt, result.message.c_str());
         }
 
         return move(result.value);
@@ -136,11 +142,15 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       1,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
+        if(count == 0) {
+          return createError(rt, "[react-native-quick-sqlite][open] database name is required");
+        }
+
         if (!args[0].isString())
         {
-          jsi::detail::throwJSError(rt, "dbName must be a string");
-          return {};
+          return createError(rt, "[react-native-quick-sqlite][open] database name must be a string");
         }
+
 
         string dbName = args[0].asString(rt).utf8(rt);
 
@@ -148,8 +158,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         if (result.type == SequelResultError)
         {
-          jsi::detail::throwJSError(rt, result.message.c_str());
-          return {};
+          return createError(rt, result.message.c_str());
         }
 
         return jsi::Value::undefined();
@@ -169,11 +178,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         if (result.type == SequelResultError)
         {
-          // jsi::detail::throwJSError(rt, result.message.c_str());
-          auto res = jsi::Object(rt);
-          res.setProperty(rt, "status", jsi::Value(1));
-          res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, result.message.c_str()));
-          return move(res);
+          return createError(rt, result.message.c_str());
         }
 
         return move(result.value);
@@ -188,16 +193,16 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
         if(sizeof(args) < 2) {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][execSQLBatch] - Incorrect parameter count");
-          return {};
+          return createError(rt, "[react-native-quick-sqlite][execSQLBatch] - Incorrect parameter count");
         }
+        
         const string dbName = args[0].asString(rt).utf8(rt);
         const jsi::Value &params = args[1];
         if(params.isNull() || params.isUndefined()) 
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][execSQLBatch] - An array of SQL commands or parameters is needed");
-          return {};
+          return createError(rt, "[react-native-quick-sqlite][execSQLBatch] - An array of SQL commands or parameters is needed");
         }
+        
         int rowsAffected = 0;
         const jsi::Array &batchParams = params.asObject(rt).asArray(rt);
         try
@@ -208,8 +213,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
             const jsi::Array &command = batchParams.getValueAtIndex(rt, i).asObject(rt).asArray(rt);
             if(command.length(rt) == 0) {
               sequel_execute(rt, dbName, "ROLLBACK", jsi::Value::undefined());
-              jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][execSQLBatch] - No SQL Commands found");
-              return {};
+              return createError(rt, "[react-native-quick-sqlite][execSQLBatch] - No SQL Commands found on batch index " + std::to_string(i));
             }
             const string query = command.getValueAtIndex(rt, 0).asString(rt).utf8(rt);
             const jsi::Value &commandParams = command.length(rt) > 1 ? command.getValueAtIndex(rt, 1) : jsi::Value::undefined();
@@ -224,10 +228,8 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
                 if (result.type == SequelResultError)
                 {
                   sequel_execute(rt, dbName, "ROLLBACK", jsi::Value::undefined());
-                  auto res = jsi::Object(rt);
-                  res.setProperty(rt, "status", jsi::Value(1));
-                  res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, result.message.c_str()));
-                  return move(res);
+                  return createError(rt, result.message.c_str());
+                  
                 } else {
                   if(result.value.getObject(rt).hasProperty(rt, jsi::PropNameID::forAscii(rt, "rowsAffected")))
                   {
@@ -240,10 +242,8 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
               if (result.type == SequelResultError)
               {
                 sequel_execute(rt, dbName, "ROLLBACK", jsi::Value::undefined());
-                auto res = jsi::Object(rt);
-                res.setProperty(rt, "status", jsi::Value(1));
-                res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, result.message.c_str()));
-                return move(res);
+                
+                return createError(rt, result.message.c_str());
               } else {
                 if(result.value.getObject(rt).hasProperty(rt, jsi::PropNameID::forAscii(rt, "rowsAffected")))
                 {
@@ -255,7 +255,9 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
           sequel_execute(rt, dbName, "COMMIT", jsi::Value::undefined());
         } catch (...) {
           sequel_execute(rt, dbName, "ROLLBACK", jsi::Value::undefined());
+          return createError(rt, "[react-native-quick-sqlite][execSQLBatch] - Unexpected error");
         }
+        
         auto res = jsi::Object(rt);
         res.setProperty(rt, "status", jsi::Value(0));
         res.setProperty(rt, "rowsAffected", jsi::Value(rowsAffected));
@@ -307,11 +309,10 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
           } catch (...) {
             sqFile.close();
             sequel_execute_literal_update(dbName, "ROLLBACK");
-            jsi::detail::throwJSError(rt, "Unexpected error, transaction was rolledback");
-            return {};
+            return createError(rt, "[react-native-quick-sqlite][loadSQLFile] Unexpected error, transaction was rolledback");
           }
         } else {
-          jsi::detail::throwJSError(rt, "Unable to open file");
+          return createError(rt, "[react-native-quick-sqlite][loadSQLFile] Could not open file");
           return {};
         }
       });

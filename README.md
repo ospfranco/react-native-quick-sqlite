@@ -27,12 +27,13 @@ Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor
 
 ## Gotchas
 
-- **It's not possible to use a browser to debug a JSI app**, use [Flipper](https://github.com/facebook/flipper) (on android Flipper also has an integrated SQLite Database explorer).
+- **Javascript cannot represent intergers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
+- **It's not possible to use a browser to debug a JSI app**, use [Flipper](https://github.com/facebook/flipper) (for android Flipper also has SQLite Database explorer).
 - Your app will now include C++, you will need to install the NDK on your machine for android.
 - This library supports SQLite BLOBs which are mapped to JS ArrayBuffers, check out the sample project on how to use it
+- From version 2.0.0 onwards errors are no longer thrown on invalid SQL statements. The response contains a `status` number, `0` signals correct execution, `1` signals an error.
+- From version 3.0.0 onwards no JS errors are thown, every operation returns an object with a `status` field.
 - If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
-- Starting with version 2.0.0 the library no longer throws errors when an invalid statement is passed, but returns a status (0 or 1) field in the response.
-- This library cannot retrieve integers larger than 53 bits because it's not possible to represent such numbers in JavaScript. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
 
 ## Use TypeORM
 
@@ -76,19 +77,19 @@ interface ISQLite {
 In your code
 
 ```typescript
-// If you want to register the (globalThis) types for the low level API do an empty import
 import 'react-native-quick-sqlite';
 
 // `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
-// The methods `throw` when an execution error happens, so try/catch them
-try {
-  sqlite.open('myDatabase', 'databases');
-} catch (e) {
-  console.log(e); // [react-native-quick-sqlite]: Could not open database file: ERR XXX
+// the import on the top of the file only registers typescript types but it is not mandatory
+const dbOpenResult = sqlite.open('myDatabase', 'databases');
+
+// status === 1, operation failed
+if (dbOpenResult.status) {
+  console.error('Database could not be opened');
 }
 ```
 
-Some query examples:
+### Example queries
 
 ```typescript
 let result = sqlite.executeSql('myDatabase', 'SELECT somevalue FROM sometable');
@@ -129,7 +130,7 @@ if (!result.status) {
 
 ## Learn React Native JSI
 
-If you want to learn how to make your own JSI module and also get a reference guide for all things C++/JSI you can buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/l/IeeIvl)
+If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/l/IeeIvl), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance)!
 
 ## License
 
