@@ -429,3 +429,79 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
       "",
       move(res)};
 }
+
+SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, string const &query) 
+{
+  // Check if db connection is opened
+  if (dbMap.count(dbName) == 0)
+  {
+    return {
+        SequelResultError,
+        "[react-native-quick-sqlite] Database not opened: " + dbName,
+        0
+    };
+  }
+
+  sqlite3 *db = dbMap[dbName];
+
+  // SQLite statements need to be compiled before executed
+  sqlite3_stmt *statement;
+
+  // Compile and move result into statement memory spot
+  int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
+
+  if (statementStatus != SQLITE_OK) // statemnet is correct, bind the passed parameters
+  {
+    const char *message = sqlite3_errmsg(db);
+    return {
+        SequelResultError,
+        "[react-native-quick-sqlite] SQL execution error: " + string(message),
+        0
+    };
+  }
+  
+  bool isConsuming = true;
+  bool isFailed = false;
+
+  int result, i, count, column_type;
+  string column_name;
+
+  while (isConsuming)
+  {
+    result = sqlite3_step(statement);
+
+    switch (result)
+    {
+      case SQLITE_ROW:
+        isConsuming = true;
+        break;
+
+      case SQLITE_DONE:
+        isConsuming = false;
+        break;
+
+      default:
+        isFailed = true;
+        isConsuming = false;
+    }
+  }
+
+  sqlite3_finalize(statement);
+
+  if (isFailed)
+  {
+    const char *message = sqlite3_errmsg(db);
+    return {
+        SequelResultError,
+        "[react-native-quick-sqlite] SQL execution error: " + string(message),
+        0
+    };
+  }
+
+  int changedRowCount = sqlite3_changes(db);
+  return {
+      SequelResultOk,
+      "",
+      changedRowCount
+  };
+}

@@ -14,6 +14,8 @@
 #include <vector>
 #include <iostream>
 #include <thread>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace facebook;
@@ -177,6 +179,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         return move(result.value);
       });
 
+  // Execute a batch of SQL queries in a transaction
   // Parameters can be: [[sql: string, arguments: any[] | arguments: any[][] ]]
   auto execSQLBatch = jsi::Function::createFromHostFunction(
       rt,
@@ -258,6 +261,60 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         res.setProperty(rt, "rowsAffected", jsi::Value(rowsAffected));
         return move(res);
       });
+           
+  // Load SQL File from disk
+  auto loadSQLFile = jsi::Function::createFromHostFunction(
+      rt,
+      jsi::PropNameID::forAscii(rt, "sequel_loadSQLFile"),
+      2,
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      {
+        const string dbName = args[0].asString(rt).utf8(rt);
+        const string sqlFileName = args[1].asString(rt).utf8(rt);
+        
+        string line;
+        ifstream sqFile (sqlFileName);
+        if (sqFile.is_open())
+        {
+          try {
+            int affectedRows = 0;
+            int commands = 0;
+            sequel_execute_literal_update(dbName, "BEGIN TRANSACTION");
+            while ( std::getline (sqFile, line, '\n') )
+            {
+              if (!line.empty()) {
+                SequelLiteralUpdateResult result = sequel_execute_literal_update(dbName, line);
+                if( result.type == SequelResultError ) {
+                  sequel_execute_literal_update(dbName, "ROLLBACK");
+                  auto res = jsi::Object(rt);
+                  res.setProperty(rt, "status", jsi::Value(1));
+                  res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, result.message.c_str()));
+                  sqFile.close();
+                  return move(res);
+                } else {
+                  affectedRows += result.affectedRows;
+                  commands++;
+                }
+              }
+            }
+            sqFile.close();
+            sequel_execute_literal_update(dbName, "COMMIT");
+            auto res = jsi::Object(rt);
+            res.setProperty(rt, "status", jsi::Value(0));
+            res.setProperty(rt, "rowsAffected", jsi::Value(affectedRows));
+            res.setProperty(rt, "commands", jsi::Value(commands));
+            return move(res);
+          } catch (...) {
+            sqFile.close();
+            sequel_execute_literal_update(dbName, "ROLLBACK");
+            jsi::detail::throwJSError(rt, "Unexpected error, transaction was rolledback");
+            return {};
+          }
+        } else {
+          jsi::detail::throwJSError(rt, "Unable to open file");
+          return {};
+        }
+      });
 
   // Async Execute SQL
   // auto asyncExecSQL = jsi::Function::createFromHostFunction(
@@ -292,18 +349,18 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
   //       return promise;
   //     });
 
-  // Create final object that will be injected into the global object
+  // Global object
   jsi::Object module = jsi::Object(rt);
 
-  // Open/Close
+
+  // Callable properties
   module.setProperty(rt, "open", move(open));
   module.setProperty(rt, "close", move(close));
   //    module.setProperty(rt, "attach", move(attach));
   module.setProperty(rt, "delete", move(remove));
-
   module.setProperty(rt, "executeSql", move(execSQL));
   module.setProperty(rt, "executeSqlBatch", move(execSQLBatch));
-  
+  module.setProperty(rt, "loadSqlFile", move(loadSQLFile));
   // module.setProperty(rt, "backgroundExecuteSql", move(asyncExecSQL));
 
   rt.global().setProperty(rt, "sqlite", move(module));

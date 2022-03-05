@@ -51,6 +51,17 @@ interface BatchQueryResult {
   message?: string;
 }
 
+/**
+ * Result of loading a file and executing every line as a SQL command
+ * Similar to BatchQueryResult
+ */
+interface FileLoadResult {
+  rowsAffected?: number;
+  commands?: number;
+  message?: string;
+  status?: 0 | 1;
+}
+
 interface ISQLite {
   open: (dbName: string, location?: string) => any;
   close: (dbName: string) => any;
@@ -63,6 +74,7 @@ interface ISQLite {
     dbName: string,
     commands: SQLBatchParams[]
   ) => BatchQueryResult;
+  loadSqlFile: (dbName: string, location: string) => FileLoadResult;
   // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
 
@@ -86,6 +98,10 @@ interface IDBConnection {
     callback?: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
+  loadSqlFile: (
+    location: string,
+    callback: (result: FileLoadResult) => void
+  ) => void;
 }
 
 export const openDatabase = (
@@ -130,6 +146,15 @@ export const openDatabase = (
           ok();
         } catch (e) {
           fail(e);
+        }
+      },
+      loadSqlFile: (
+        location: string,
+        callback: (result: FileLoadResult) => void
+      ) => {
+        const result = sqlite.loadSqlFile(options.name, location);
+        if (callback) {
+          callback(result);
         }
       },
     };
