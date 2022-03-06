@@ -1,4 +1,4 @@
-// import 'reflect-metadata';
+import 'reflect-metadata';
 import * as React from 'react';
 import {
   StyleSheet,
@@ -8,20 +8,24 @@ import {
   FlatList,
   ListRenderItemInfo,
 } from 'react-native';
-import { createDb } from './Database';
-// import type { User } from './model/User';
+// Replace if you want to test the low level API
+// import { lowLevelInit } from './Database';
+import { typeORMInit } from './Database';
+import type { User } from './model/User';
+import { Buffer } from 'buffer';
 
 export default function App() {
-  // let [users, setUsers] = React.useState<User[]>([]);
+  let [users, setUsers] = React.useState<User[]>([]);
 
   React.useEffect(() => {
-    createDb();
+    // lowLevelInit();
+    typeORMInit().then(setUsers);
   }, []);
 
   return (
     <View style={styles.container}>
       <Text>App Started</Text>
-      {/* <FlatList
+      <FlatList
         data={users}
         renderItem={(info: ListRenderItemInfo<User>) => {
           return (
@@ -46,16 +50,16 @@ export default function App() {
               <Text>{info.item.name}</Text>
               <Text style={{ fontWeight: 'bold', marginTop: 10 }}>Age</Text>
               <Text>{info.item.age}</Text>
-              <Text>{info.item.metadata.nickname}</Text> */}
-      {/* <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
+              <Text>{info.item.metadata.nickname}</Text>
+              {/* <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
                 Favorite Book
               </Text>
               <Text>{info.item.favoriteBook.title}</Text> */}
-      {/* </View>
+            </View>
           );
         }}
         keyExtractor={(item: any) => item.id}
-      /> */}
+      />
     </View>
   );
 }

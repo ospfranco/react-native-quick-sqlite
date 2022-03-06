@@ -33,14 +33,7 @@ Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor
 - This library supports SQLite BLOBs which are mapped to JS ArrayBuffers, check out the sample project on how to use it
 - From version 2.0.0 onwards errors are no longer thrown on invalid SQL statements. The response contains a `status` number, `0` signals correct execution, `1` signals an error.
 - From version 3.0.0 onwards no JS errors are thown, every operation returns an object with a `status` field.
-- If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
-- If you are running the latest versions of android studio, the SDKs and NDKs you might face strange errors, you need to have CMake 3.6.0 installed and NDK versions 22 and below (you can install them from android studio SDK manager, just make sure to tick `show package details`)
-
-## Use TypeORM
-
-This package offers a low-level API to raw execute SQL queries. I strongly recommend to use [TypeORM](https://github.com/typeorm/typeorm) (with [patch-package](https://github.com/ds300/patch-package)). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch).
-
-Follow the instructions to make TypeORM work with React Native (enable decorators, configure babel, etc), then apply the patch via patch-package and you should be good to go.
+- On older react-native versions you might face weird NDK/SDK/Cmake errors, the latest version is tested against RN 0.67.3
 
 ## API
 
@@ -62,12 +55,21 @@ interface BatchQueryResult {
 
 interface ISQLite {
   open: (dbName: string, location?: string) => any;
+
   close: (dbName: string) => any;
+
   executeSql: (
     dbName: string,
     query: string,
     params: any[] | undefined
   ) => QueryResult;
+
+  asyncExecuteSql: (
+    dbName: string,
+    query: string,
+    params: any[] | undefined
+  ) => Promise<QueryResult>;
+
   executeSqlBatch: (
     dbName: string,
     commands: SQLBatchParams[]
@@ -75,9 +77,10 @@ interface ISQLite {
 }
 ```
 
-In your code
+# Usage
 
 ```typescript
+// You need to import this once in your app, it installs the binding on android
 import 'react-native-quick-sqlite';
 
 // `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
@@ -128,6 +131,12 @@ if (!result.status) {
   console.log(`Batch affected ${result.rowsAffected} rows`);
 }
 ```
+
+## Use TypeORM
+
+This package offers a low-level API to raw execute SQL queries. I strongly recommend to use [TypeORM](https://github.com/typeorm/typeorm) (with [patch-package](https://github.com/ds300/patch-package)). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch).
+
+Follow the instructions to make TypeORM work with React Native (enable decorators, configure babel, etc), then apply the patch via patch-package and you should be good to go.
 
 ## Learn React Native JSI
 
