@@ -1,45 +1,39 @@
 package com.reactnativequicksqlite;
 
 import androidx.annotation.NonNull;
+import android.util.Log;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
 
 class SequelModule extends ReactContextBaseJavaModule {
-  static {
-    System.loadLibrary("sequel");
-  }
-
+  public static final String NAME = "QuickSQLite";
   private static native void initialize(long jsiPtr, String docDir);
-  private static native void destruct();
 
-  public SequelModule(ReactApplicationContext reactContext) {
-    super(reactContext);
+  public SequelModule(ReactApplicationContext context) {
+    super(context);
   }
 
   @NonNull
   @Override
   public String getName() {
-    return "Sequel";
+    return NAME;
   }
 
-
-  @NonNull
-  @Override
-  public void initialize() {
-    super.initialize();
-
-    // LEFT HERE:
-    // Convert the second arg into a std::string in the cpp-adapter file
-    // https://stackoverflow.com/questions/41820039/jstringjni-to-stdstringc-with-utf8-characters
-    SequelModule.initialize(
-      this.getReactApplicationContext().getJavaScriptContextHolder().get(),
-      this.getReactApplicationContext().getFilesDir().getAbsolutePath()
-    );
-  }
-
-  @Override
-  public void onCatalystInstanceDestroy() {
-    SequelModule.destruct();
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  public boolean install() {
+    try {
+      System.loadLibrary("sequel");
+      
+      ReactApplicationContext context = getReactApplicationContext();
+      initialize(
+        context.getJavaScriptContextHolder().get(),
+        context.getFilesDir().getAbsolutePath()
+      );
+      return true;
+    } catch (Exception exception) {
+      return false;
+    }
   }
 }

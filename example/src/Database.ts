@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import '../..';
 // import { createConnection, getRepository } from 'typeorm';
 // import { Book } from './model/Book';
@@ -5,16 +6,19 @@ import '../..';
 // import { Buffer } from 'buffer';
 
 export const createDb = async () => {
+  // console.warn('opening DB');
+
   sqlite.open('test', 'sample/database');
 
+  // console.warn('DB Opened');
   // sqlite.executeSql('test', 'CREATE TABLE "User" ( name TEXT NOT NULL );', []);
   // sqlite.executeSql('test', 'INSERT INTO "User" (name) VALUES(\'OSCAR\')', []);
-  const res = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
-  console.warn(res);
+  // const res = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
+  // console.warn(res);
 
-  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', []).then((res) => {
-    console.warn('asyncRes', res);
-  });
+  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', []).then((res) => {
+  //   console.warn('asyncRes', res);
+  // });
 
   // await createConnection({
   //   type: 'react-native',

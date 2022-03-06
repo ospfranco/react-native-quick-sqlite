@@ -1,3 +1,10 @@
+import { NativeModules } from 'react-native';
+
+const SequelModule = NativeModules.QuickSQLite;
+
+if (SequelModule && typeof SequelModule.install === 'function') {
+  SequelModule.install();
+}
 /**
  * JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE CHROME DEBUGGER
  * Use flipper to debug your RN apps from now on
@@ -14,6 +21,7 @@
  *
  * @interface QueryResult
  */
+
 interface QueryResult {
   status?: 0 | 1;
   insertId?: number;
