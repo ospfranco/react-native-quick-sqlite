@@ -16,9 +16,9 @@ export const createDb = async () => {
   // const res = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
   // console.warn(res);
 
-  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', []).then((res) => {
-  //   console.warn('asyncRes', res);
-  // });
+  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', []).then((res) => {
+    console.warn('asyncRes', res);
+  });
 
   // await createConnection({
   //   type: 'react-native',
