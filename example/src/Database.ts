@@ -8,11 +8,32 @@ import { Buffer } from 'buffer';
 export const lowLevelInit = async () => {
   sqlite.open('test', 'sample/database');
 
-  sqlite.executeSql('test', 'CREATE TABLE "User" ( name TEXT NOT NULL );', []);
-  sqlite.executeSql('test', 'INSERT INTO "User" (name) VALUES(\'OSCAR\')', []);
+  // const result = sqlite.executeSql(
+  //   'test',
+  //   'CREATE TABLE "User" ( name TEXT NOT NULL );',
+  //   undefined
+  // );
+  // console.warn('tried to create table result', result);
 
-  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', []).then((res) => {
-    console.warn('asyncRes', res);
+  // sqlite.executeSql(
+  //   'test',
+  //   'INSERT INTO "User" (name) VALUES(\'OSCAR\')',
+  //   undefined
+  // );
+
+  // console.warn('INSERTED DATA');
+
+  // sqlite
+  //   .asyncExecuteSql('test', 'SELECT * FROM "User";', [])
+  //   .then((asyncRes) => {
+  //     console.warn('asyncRes', asyncRes);
+  //   })
+  //   .catch((err) => {
+  //     console.warn('async error', err);
+  //   });
+
+  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
+    console.warn('asyncRes', asyncRes);
   });
 };
 

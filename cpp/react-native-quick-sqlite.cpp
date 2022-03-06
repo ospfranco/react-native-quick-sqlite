@@ -348,51 +348,40 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
   auto asyncExecSQL = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
-      3,
+      4,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
+
+        if(count < 4) {
+          LOGW("NOT ENOUGH PARAMS PASSED");
+        }
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
-        std::shared_ptr<jsi::Value> params = std::make_shared<jsi::Value>(args[2].asObject(rt));
+        auto params = std::make_shared<jsi::Value>(args[2].asObject(rt));
+        auto callback = std::make_shared<jsi::Function>(args[3].asObject(rt).asFunction(rt));
 
-        std::shared_ptr<jsi::Object> resolver;
-
-        auto promiseBody = jsi::Function::createFromHostFunction(
-            rt,
-            jsi::PropNameID::forAscii(rt, "executor"),
-            2,
-            [&resolver](
-                jsi::Runtime &rt,
-                const jsi::Value &thisValue,
-                const jsi::Value *args,
-                size_t) -> jsi::Value
-            {
-              resolver = std::make_shared<jsi::Object>(args[0].asObject(rt));
-              return {};
-            });
-
-        auto promise = rt.global()
-                           .getPropertyAsFunction(rt, "Promise")
-                           .callAsConstructor(rt, promiseBody);
-
-        // Spawn c++ thread
         thread t1(
-            [&rt, dbName, query, params, resolver]
+            [&rt, dbName, query, params, callback]
             {
               SequelResult result = sequel_execute(rt, dbName, query, *params);
-
+              LOGW("ROPO FINISHED COMPUTING");
               if (result.type == SequelResultError)
               {
-                resolver->asFunction(rt).call(rt, createError(rt, result.message.c_str()));
+                LOGW("RETURNING ERROR");
+                callback->asFunction(rt).call(rt, createError(rt, result.message.c_str()));
               }
               else
               {
-                resolver->asFunction(rt).call(rt, move(result.value));
-              } });
+                LOGW("RETURNING SUCCESS");
+                callback->call(rt, result.value);
+                LOGW("SUCCESS CALLED");
+              }
+
+            });
 
         t1.detach();
 
-        return move(promise);
+        return {};
       });
 
   // Global object

@@ -81,8 +81,9 @@ interface ISQLite {
   asyncExecuteSql: (
     dbName: string,
     query: string,
-    params: any[] | undefined
-  ) => Promise<QueryResult>;
+    params: any[] | undefined,
+    cb: (res: QueryResult) => void
+  ) => void;
   executeSqlBatch: (
     dbName: string,
     commands: SQLBatchParams[]

@@ -9,8 +9,8 @@ import {
   ListRenderItemInfo,
 } from 'react-native';
 // Replace if you want to test the low level API
-// import { lowLevelInit } from './Database';
-import { typeORMInit } from './Database';
+import { lowLevelInit } from './Database';
+// import { typeORMInit } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
 
@@ -18,13 +18,13 @@ export default function App() {
   let [users, setUsers] = React.useState<User[]>([]);
 
   React.useEffect(() => {
-    // lowLevelInit();
-    typeORMInit().then(setUsers);
+    lowLevelInit();
+    // typeORMInit().then(setUsers);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>App Started</Text>
+      <Text>Quick SQLite tester app</Text>
       <FlatList
         data={users}
         renderItem={(info: ListRenderItemInfo<User>) => {
