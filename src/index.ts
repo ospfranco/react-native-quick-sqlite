@@ -70,6 +70,11 @@ interface ISQLite {
     query: string,
     params: any[] | undefined
   ) => QueryResult;
+  asyncExecuteSql: (
+    dbName: string,
+    query: string,
+    params: any[] | undefined
+  ) => Promise<QueryResult>;
   executeSqlBatch: (
     dbName: string,
     commands: SQLBatchParams[]
@@ -78,7 +83,9 @@ interface ISQLite {
   // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
 }
 
-declare var sqlite: ISQLite;
+declare global {
+  const sqlite: ISQLite;
+}
 
 // API FOR TYPEORM
 interface IConnectionOptions {
