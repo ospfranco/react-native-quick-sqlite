@@ -1,24 +1,24 @@
-import 'react-native-quick-sqlite';
-import { createConnection, getRepository } from 'typeorm';
-import { Book } from './model/Book';
-import { User } from './model/User';
-import { Buffer } from 'buffer';
+import '../..';
+// import { createConnection, getRepository } from 'typeorm';
+// import { Book } from './model/Book';
+// import { User } from './model/User';
+// import { Buffer } from 'buffer';
 
 export const createDb = async () => {
-  const dbOpenResult = sqlite.open('test', 'sample/database');
+  sqlite.open('test', 'sample/database');
 
-  // const syncQueryResult = sqlite.executeSql(
-  //   'test',
-  //   'SELECT * FROM "User";',
-  //   []
-  // );
-  // console.warn('syncQueryResult', syncQueryResult);
+  // sqlite.executeSql('test', 'CREATE TABLE "User" ( name TEXT NOT NULL );', []);
+  // sqlite.executeSql('test', 'INSERT INTO "User" (name) VALUES(\'OSCAR\')', []);
+  const res = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
+  console.warn(res);
 
-  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', []).then((res) => {
-    console.warn('async query result', res);
-  });
+  const asyncRes = await sqlite.asyncExecuteSql(
+    'test',
+    'SELECT * FROM "User";',
+    []
+  );
 
-  console.warn('should log before async log');
+  console.warn('asyncRes', asyncRes);
 
   // await createConnection({
   //   type: 'react-native',

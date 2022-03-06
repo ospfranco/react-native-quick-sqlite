@@ -34,6 +34,7 @@ Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor
 - From version 2.0.0 onwards errors are no longer thrown on invalid SQL statements. The response contains a `status` number, `0` signals correct execution, `1` signals an error.
 - From version 3.0.0 onwards no JS errors are thown, every operation returns an object with a `status` field.
 - If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
+- If you are running the latest versions of android studio, the SDKs and NDKs you might face strange errors, you need to have CMake 3.6.0 installed and NDK versions 22 and below (you can install them from android studio SDK manager, just make sure to tick `show package details`)
 
 ## Use TypeORM
 

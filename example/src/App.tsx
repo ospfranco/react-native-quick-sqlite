@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+// import 'reflect-metadata';
 import * as React from 'react';
 import {
   StyleSheet,
@@ -9,8 +9,7 @@ import {
   ListRenderItemInfo,
 } from 'react-native';
 import { createDb } from './Database';
-import type { User } from './model/User';
-import { Buffer } from 'buffer';
+// import type { User } from './model/User';
 
 export default function App() {
   // let [users, setUsers] = React.useState<User[]>([]);
@@ -21,6 +20,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <Text>App Started</Text>
       {/* <FlatList
         data={users}
         renderItem={(info: ListRenderItemInfo<User>) => {

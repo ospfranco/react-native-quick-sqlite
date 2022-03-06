@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android:logcat": "$ANDROID_HOME/platform-tools/adb logcat",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "postinstall": "patch-package"
@@ -13,8 +14,7 @@
     "buffer": "^6.0.3",
     "react": "16.13.1",
     "react-native": "0.63.4",
-    "typeorm": "^0.2.36",
-    "react-native-quick-sqlite": ".."
+    "typeorm": "^0.2.36"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",

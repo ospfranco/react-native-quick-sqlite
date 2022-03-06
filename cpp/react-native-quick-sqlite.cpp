@@ -355,7 +355,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         const string query = args[1].asString(rt).utf8(rt);
         std::shared_ptr<jsi::Value> params = std::make_shared<jsi::Value>(args[2].asObject(rt));
 
-        std::shared_ptr<jsi::Value> resolver;
+        std::shared_ptr<jsi::Object> resolver;
 
         auto promiseBody = jsi::Function::createFromHostFunction(
             rt,
@@ -367,14 +367,13 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
                 const jsi::Value *args,
                 size_t) -> jsi::Value
             {
-              resolver = std::make_shared<jsi::Value>(args[0].asObject(rt));
+              resolver = std::make_shared<jsi::Object>(args[0].asObject(rt));
               return {};
             });
 
-        auto promiseConstructor = rt.global()
-                                      .getPropertyAsFunction(rt, "Promise");
-
-        auto promise = promiseConstructor.callAsConstructor(rt, promiseBody);
+        auto promise = rt.global()
+                           .getPropertyAsFunction(rt, "Promise")
+                           .callAsConstructor(rt, promiseBody);
 
         // Spawn c++ thread
         thread t1(
@@ -384,11 +383,11 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
               if (result.type == SequelResultError)
               {
-                resolver->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
+                resolver->asFunction(rt).call(rt, createError(rt, result.message.c_str()));
               }
               else
               {
-                resolver->asObject(rt).asFunction(rt).call(rt, move(result.value));
+                resolver->asFunction(rt).call(rt, move(result.value));
               } });
 
         t1.detach();
