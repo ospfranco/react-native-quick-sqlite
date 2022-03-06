@@ -353,9 +353,9 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       {
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
-        const jsi::Value &params = args[2];
+        std::shared_ptr<jsi::Value> params = std::make_shared<jsi::Value>(args[2].asObject(rt));
 
-        std::make_shared<jsi::Value> resolver;
+        std::shared_ptr<jsi::Value> resolver;
 
         auto promiseBody = jsi::Function::createFromHostFunction(
             rt,
@@ -367,7 +367,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
                 const jsi::Value *args,
                 size_t) -> jsi::Value
             {
-              resolverValue = std::make_shared<jsi::Value>(arguments[0].asObject(rt));
+              resolver = std::make_shared<jsi::Value>(args[0].asObject(rt));
               return {};
             });
 
@@ -378,17 +378,17 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         // Spawn c++ thread
         thread t1(
-            [&rt, &dbName, &query, &params, resolve{make_shared<jsi::Value>(rt, args[0])}]
+            [&rt, dbName, query, params, resolver]
             {
-              SequelResult result = sequel_execute(rt, dbName, query, params);
+              SequelResult result = sequel_execute(rt, dbName, query, *params);
 
               if (result.type == SequelResultError)
               {
-                resolve->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
+                resolver->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
               }
               else
               {
-                resolve->asObject(rt).asFunction(rt).call(rt, move(result.value));
+                resolver->asObject(rt).asFunction(rt).call(rt, move(result.value));
               } });
 
         t1.detach();
