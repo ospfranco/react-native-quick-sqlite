@@ -392,7 +392,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
         t1.detach();
 
-        return promise;
+        return move(promise);
       });
 
   // Global object
