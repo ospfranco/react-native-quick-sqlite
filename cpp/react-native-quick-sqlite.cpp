@@ -16,9 +16,109 @@
 #include <thread>
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <thread>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 
 using namespace std;
 using namespace facebook;
+
+class ThreadPool {
+ public:
+  ThreadPool() : done(false) {
+    // This returns the number of threads supported by the system. If the
+    // function can't figure out this information, it returns 0. 0 is not good,
+    // so we create at least 1
+    auto numberOfThreads = std::thread::hardware_concurrency();
+    if (numberOfThreads == 0) {
+      numberOfThreads = 1;
+    }
+
+    for (unsigned i = 0; i < numberOfThreads; ++i) {
+      // The threads will execute the private member `doWork`. Note that we need
+      // to pass a reference to the function (namespaced with the class name) as
+      // the first argument, and the current object as second argument
+      threads.push_back(std::thread(&ThreadPool::doWork, this));
+    }
+  }
+
+  // The destructor joins all the threads so the program can exit gracefully.
+  // This will be executed if there is any exception (e.g. creating the threads)
+  ~ThreadPool() {
+    // So threads know it's time to shut down
+    done = true;
+
+    // Wake up all the threads, so they can finish and be joined
+    workQueueConditionVariable.notify_all();
+    for (auto& thread : threads) {
+      if (thread.joinable()) {
+        thread.join();
+      }
+    }
+  }
+
+  // This function will be called by the server every time there is a request
+  // that needs to be processed by the thread pool
+  void queueWork(std::function<void(void)> task) {
+    // Grab the mutex
+    std::lock_guard<std::mutex> g(workQueueMutex);
+
+    // Push the request to the queue
+    workQueue.push(task);
+
+    // Notify one thread that there are requests to process
+    workQueueConditionVariable.notify_one();
+  }
+
+ private:
+  // This condition variable is used for the threads to wait until there is work
+  // to do
+  std::condition_variable_any workQueueConditionVariable;
+
+  // We store the threads in a vector, so we can later stop them gracefully
+  std::vector<std::thread> threads;
+
+  // Mutex to protect workQueue
+  std::mutex workQueueMutex;
+
+  // Queue of requests waiting to be processed
+  std::queue<std::function<void(void)>> workQueue;
+
+  // This will be set to true when the thread pool is shutting down. This tells
+  // the threads to stop looping and finish
+  bool done;
+
+  // Function used by the threads to grab work from the queue
+  void doWork() {
+    // Loop while the queue is not destructing
+    while (!done) {
+      std::function<void(void)> task;
+
+      // Create a scope, so we don't lock the queue for longer than necessary
+      {
+        std::unique_lock<std::mutex> g(workQueueMutex);
+        workQueueConditionVariable.wait(g, [&]{
+          // Only wake up if there are elements in the queue or the program is
+          // shutting down
+          return !workQueue.empty() || done;
+        });
+
+        // If we are shutting down exit witout trying to process more work
+        if (done) {
+          break;
+        }
+
+        task = workQueue.front();
+        workQueue.pop();
+      }
+
+      task();
+    }
+  }
+};
+
 
 const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 {
@@ -32,6 +132,7 @@ const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 }
 
 string docPathStr;
+ThreadPool *tp = new ThreadPool;
 
 jsi::Object createError(jsi::Runtime &rt, string message)
 {
@@ -359,8 +460,9 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         const string query = args[1].asString(rt).utf8(rt);
         auto params = std::make_shared<jsi::Value>(args[2].asObject(rt));
         auto callback = std::make_shared<jsi::Function>(args[3].asObject(rt).asFunction(rt));
+        
 
-        thread t1(
+        auto task =
             [&rt, dbName, query, params, callback]
             {
               SequelResult result = sequel_execute(rt, dbName, query, *params);
@@ -377,9 +479,9 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
                 LOGW("SUCCESS CALLED");
               }
 
-            });
-
-        t1.detach();
+            };
+        
+        tp->queueWork(task);
 
         return {};
       });
