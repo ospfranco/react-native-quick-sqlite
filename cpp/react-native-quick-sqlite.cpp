@@ -21,6 +21,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <exception>
 
 using namespace std;
 using namespace facebook;
@@ -132,7 +133,6 @@ const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 }
 
 string docPathStr;
-ThreadPool *tp = new ThreadPool;
 
 jsi::Object createError(jsi::Runtime &rt, string message)
 {
@@ -154,6 +154,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
 
   // Transfer from pointer to variable to prevent de-allocation once calling function has finished
   docPathStr = std::string(docPath);
+  auto pool = std::make_shared<ThreadPool>();
 
   // Open/create db
   auto open = jsi::Function::createFromHostFunction(
@@ -450,7 +451,7 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_asyncExecSQL"),
       4,
-      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      [pool](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
 
         if(count < 4) {
@@ -458,30 +459,35 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
         }
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
-        auto params = std::make_shared<jsi::Value>(args[2].asObject(rt));
-        auto callback = std::make_shared<jsi::Function>(args[3].asObject(rt).asFunction(rt));
+        auto params = make_shared<jsi::Value>(args[2].asObject(rt));
+        auto callback = make_shared<jsi::Value>((args[3].asObject(rt)));
         
 
         auto task =
-            [&rt, dbName, query, params, callback]
+            [&rt, dbName, query, params, callback]()
             {
-              SequelResult result = sequel_execute(rt, dbName, query, *params);
-              LOGW("ROPO FINISHED COMPUTING");
-              if (result.type == SequelResultError)
-              {
-                LOGW("RETURNING ERROR");
-                callback->asFunction(rt).call(rt, createError(rt, result.message.c_str()));
-              }
-              else
-              {
-                LOGW("RETURNING SUCCESS");
-                callback->call(rt, result.value);
-                LOGW("SUCCESS CALLED");
+              try {
+                SequelResult result = sequel_execute(rt, dbName, query, *params);
+                LOGW("ROPO FINISHED COMPUTING");
+                if (result.type == SequelResultError)
+                {
+                  LOGW("RETURNING ERROR");
+                  callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
+                }
+                else
+                {
+                  LOGW("RETURNING SUCCESS");
+                  callback->asObject(rt).asFunction(rt).call(rt, result.value);
+                  LOGW("SUCCESS CALLED");
+                }
+
+              } catch(std::exception& exc) {
+                LOGW("Catched exception: %s", exc.what());
               }
 
             };
         
-        tp->queueWork(task);
+        pool->queueWork(task);
 
         return {};
       });
