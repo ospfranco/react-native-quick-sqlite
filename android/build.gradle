@@ -35,13 +35,23 @@ static def findNodeModules(baseDir) {
     }
     basePath = basePath.getParent()
   }
-  throw new GradleException("react-native-quick-base64: Failed to find node_modules/ path!")
+  throw new GradleException("react-native-quick-sqlite: Failed to find node_modules/ path!")
 }
 
 def nodeModules = findNodeModules(projectDir);
 logger.warn("react-native-quick-sqlite: node_modules/ found at: ${nodeModules}");
 
 android {
+  buildFeatures {
+    prefab true
+  }
+  dependencies {
+    implementation 'com.facebook.fbjni:fbjni:0.2.2'
+  }
+  configurations {
+    all*.exclude module: 'fbjni-java-only'
+  }
+  
   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
   buildToolsVersion getExtOrDefault('buildToolsVersion')
   
@@ -55,7 +65,7 @@ android {
         cmake {
             cppFlags "-O2 -frtti -fexceptions -Wall -Wno-unused-variable -fstack-protector-all"
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
-            arguments "-DNODE_MODULES_DIR=${nodeModules}"
+            arguments "-DNODE_MODULES_DIR=${nodeModules} -DANDROID_STL=c++_shared"
         }
     }
     

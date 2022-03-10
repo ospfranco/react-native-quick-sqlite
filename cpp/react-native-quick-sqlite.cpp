@@ -26,18 +26,22 @@
 using namespace std;
 using namespace facebook;
 
-class ThreadPool {
- public:
-  ThreadPool() : done(false) {
+class ThreadPool
+{
+public:
+  ThreadPool() : done(false)
+  {
     // This returns the number of threads supported by the system. If the
     // function can't figure out this information, it returns 0. 0 is not good,
     // so we create at least 1
     auto numberOfThreads = std::thread::hardware_concurrency();
-    if (numberOfThreads == 0) {
+    if (numberOfThreads == 0)
+    {
       numberOfThreads = 1;
     }
 
-    for (unsigned i = 0; i < numberOfThreads; ++i) {
+    for (unsigned i = 0; i < numberOfThreads; ++i)
+    {
       // The threads will execute the private member `doWork`. Note that we need
       // to pass a reference to the function (namespaced with the class name) as
       // the first argument, and the current object as second argument
@@ -47,14 +51,17 @@ class ThreadPool {
 
   // The destructor joins all the threads so the program can exit gracefully.
   // This will be executed if there is any exception (e.g. creating the threads)
-  ~ThreadPool() {
+  ~ThreadPool()
+  {
     // So threads know it's time to shut down
     done = true;
 
     // Wake up all the threads, so they can finish and be joined
     workQueueConditionVariable.notify_all();
-    for (auto& thread : threads) {
-      if (thread.joinable()) {
+    for (auto &thread : threads)
+    {
+      if (thread.joinable())
+      {
         thread.join();
       }
     }
@@ -62,7 +69,8 @@ class ThreadPool {
 
   // This function will be called by the server every time there is a request
   // that needs to be processed by the thread pool
-  void queueWork(std::function<void(void)> task) {
+  void queueWork(std::function<void(void)> task)
+  {
     // Grab the mutex
     std::lock_guard<std::mutex> g(workQueueMutex);
 
@@ -73,7 +81,7 @@ class ThreadPool {
     workQueueConditionVariable.notify_one();
   }
 
- private:
+private:
   // This condition variable is used for the threads to wait until there is work
   // to do
   std::condition_variable_any workQueueConditionVariable;
@@ -92,22 +100,25 @@ class ThreadPool {
   bool done;
 
   // Function used by the threads to grab work from the queue
-  void doWork() {
+  void doWork()
+  {
     // Loop while the queue is not destructing
-    while (!done) {
+    while (!done)
+    {
       std::function<void(void)> task;
 
       // Create a scope, so we don't lock the queue for longer than necessary
       {
         std::unique_lock<std::mutex> g(workQueueMutex);
-        workQueueConditionVariable.wait(g, [&]{
+        workQueueConditionVariable.wait(g, [&]
+                                        {
           // Only wake up if there are elements in the queue or the program is
           // shutting down
-          return !workQueue.empty() || done;
-        });
+          return !workQueue.empty() || done; });
 
         // If we are shutting down exit witout trying to process more work
-        if (done) {
+        if (done)
+        {
           break;
         }
 
@@ -119,7 +130,6 @@ class ThreadPool {
     }
   }
 };
-
 
 const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 {
@@ -133,6 +143,7 @@ const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 }
 
 string docPathStr;
+react::CallInvoker invoker;
 
 jsi::Object createError(jsi::Runtime &rt, string message)
 {
@@ -149,12 +160,13 @@ jsi::Object createOk(jsi::Runtime &rt)
   return res;
 }
 
-void installSequel(jsi::Runtime &rt, const char *docPath)
+void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
 {
 
   // Transfer from pointer to variable to prevent de-allocation once calling function has finished
   docPathStr = std::string(docPath);
   auto pool = std::make_shared<ThreadPool>();
+  invoker = jsCallInvoker;
 
   // Open/create db
   auto open = jsi::Function::createFromHostFunction(
@@ -453,40 +465,40 @@ void installSequel(jsi::Runtime &rt, const char *docPath)
       4,
       [pool](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
-
-        if(count < 4) {
+        if (count < 4)
+        {
           LOGW("NOT ENOUGH PARAMS PASSED");
         }
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
         auto params = make_shared<jsi::Value>(args[2].asObject(rt));
         auto callback = make_shared<jsi::Value>((args[3].asObject(rt)));
-        
 
         auto task =
             [&rt, dbName, query, params, callback]()
+        {
+          try
+          {
+            SequelResult result = sequel_execute(rt, dbName, query, *params);
+            LOGW("ROPO FINISHED COMPUTING");
+            if (result.type == SequelResultError)
             {
-              try {
-                SequelResult result = sequel_execute(rt, dbName, query, *params);
-                LOGW("ROPO FINISHED COMPUTING");
-                if (result.type == SequelResultError)
-                {
-                  LOGW("RETURNING ERROR");
-                  callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
-                }
-                else
-                {
-                  LOGW("RETURNING SUCCESS");
-                  callback->asObject(rt).asFunction(rt).call(rt, result.value);
-                  LOGW("SUCCESS CALLED");
-                }
+              LOGW("RETURNING ERROR");
+              callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
+            }
+            else
+            {
+              LOGW("RETURNING SUCCESS");
+              callback->asObject(rt).asFunction(rt).call(rt, result.value);
+              LOGW("SUCCESS CALLED");
+            }
+          }
+          catch (std::exception &exc)
+          {
+            LOGW("Catched exception: %s", exc.what());
+          }
+        };
 
-              } catch(std::exception& exc) {
-                LOGW("Catched exception: %s", exc.what());
-              }
-
-            };
-        
         pool->queueWork(task);
 
         return {};
