@@ -143,7 +143,7 @@ const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
 }
 
 string docPathStr;
-react::CallInvoker invoker;
+std::shared_ptr<react::CallInvoker> invoker;
 
 jsi::Object createError(jsi::Runtime &rt, string message)
 {

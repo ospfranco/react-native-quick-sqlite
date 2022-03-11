@@ -32,9 +32,9 @@ export const lowLevelInit = async () => {
   //     console.warn('async error', err);
   //   });
 
-  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
-    console.warn('asyncRes', asyncRes);
-  });
+  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
+  //   console.warn('asyncRes', asyncRes);
+  // });
 
   // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
   //   console.warn('asyncRes2', asyncRes);

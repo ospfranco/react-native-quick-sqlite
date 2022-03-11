@@ -9,7 +9,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
 
 class SequelModule extends ReactContextBaseJavaModule {
-  public static final String NAME = "react-native-quick-sqlite";
+  public static final String NAME = "QuickSQLite";
   private static native void initialize(long jsiPtr, CallInvokerHolderImpl jsCallInvokerHolder, String docDir);
 
   public SequelModule(ReactApplicationContext context) {

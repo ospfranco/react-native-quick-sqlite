@@ -1,5 +1,5 @@
 #include <jni.h>
-#include <CallInvokerHolder.h>
+#include <ReactCommon/CallInvokerHolder.h>
 #include <fbjni/fbjni.h>
 #include "react-native-quick-sqlite.h"
 

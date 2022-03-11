@@ -1,9 +1,15 @@
 import { NativeModules } from 'react-native';
 
 const SequelModule = NativeModules.QuickSQLite;
+console.warn('ROPO LOADING');
 
-if (SequelModule && typeof SequelModule.install === 'function') {
-  SequelModule.install();
+if (SequelModule) {
+  console.warn('MODULE DETECTED');
+  if (typeof SequelModule.install === 'function') {
+    console.warn('INSTALLING SQLITE BINDINGS');
+
+    SequelModule.install();
+  }
 }
 /**
  * JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE CHROME DEBUGGER
