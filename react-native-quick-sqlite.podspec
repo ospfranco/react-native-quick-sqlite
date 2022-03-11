@@ -23,5 +23,4 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm}", "cpp/**/*.{h,cpp,c}"
   
   s.dependency "React-Core"
-  # s.library = 'sqlite3'
 end
