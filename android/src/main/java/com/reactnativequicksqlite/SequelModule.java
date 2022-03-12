@@ -9,9 +9,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
-import com.facebook.react.module.annotations.ReactModule;
 
-@ReactModule(name = SequelModule.NAME)
 class SequelModule extends ReactContextBaseJavaModule {
   public static final String NAME = "QuickSQLite";
   
