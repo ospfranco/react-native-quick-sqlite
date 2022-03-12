@@ -7,6 +7,8 @@
 #include <ReactCommon/CallInvokerHolder.h>
 #include <map>
 
+using namespace facebook;
+
 class QuickSQLiteBridge : public facebook::jni::HybridClass<QuickSQLiteBridge>
 {
 
@@ -21,9 +23,7 @@ public:
 
   void installJSIBindings(
       jlong jsContext,
-      facebook::jni::alias_ref<facebook::react::CallInvokerHolder::javaobject> jsCallInvokerHolder,
-      jstring docPath);
-  // void emitJs(jstring name, jstring data);
+      jni::alias_ref<jni::JString> docPath);
 
 private:
   friend HybridBase;

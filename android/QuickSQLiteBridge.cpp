@@ -7,6 +7,7 @@
 #include <utility>
 #include "iostream"
 #include "react-native-quick-sqlite.h"
+#include <typeinfo>
 
 using namespace facebook;
 using namespace facebook::jni;
@@ -54,13 +55,12 @@ TSelf QuickSQLiteBridge::initHybrid(
 
 void QuickSQLiteBridge::installJSIBindings(
     jlong jsContext,
-    jni::alias_ref<facebook::react::CallInvokerHolder::javaobject> jsCallInvokerHolder,
-    jstring docPath)
+    // jni::alias_ref<facebook::react::CallInvokerHolder::javaobject> jsCallInvokerHolder,
+    jni::alias_ref<jni::JString> docPath)
 {
   __android_log_print(ANDROID_LOG_VERBOSE, "😇", "installJSIBindings");
-  // jThis.env
-  auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
-  jboolean isCopy;
-  const char *docPathString = (env)->GetStringUTFChars(docPath, &isCopy);
-  installSequel(*reinterpret_cast<facebook::jsi::Runtime *>(jsContext), jsCallInvoker, docPathString);
+  // auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
+  std::string docPathString = docPath->toStdString();
+  // LOGW("INSTALL SEQUEL BEING CALLED %s", docPathString);
+  installSequel(*reinterpret_cast<facebook::jsi::Runtime *>(jsContext), jsCallInvoker_, docPathString.c_str());
 }

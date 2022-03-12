@@ -13,7 +13,7 @@ import com.facebook.react.module.annotations.ReactModule;
 
 @ReactModule(name = SequelModule.NAME)
 class SequelModule extends ReactContextBaseJavaModule {
-  public static final String NAME = "QuickSQLiteBridge";
+  public static final String NAME = "QuickSQLite";
   
   public SequelModule(ReactApplicationContext context) {
     super(context);
@@ -28,6 +28,7 @@ class SequelModule extends ReactContextBaseJavaModule {
   @ReactMethod(isBlockingSynchronousMethod = true)
   public void install() {
     try {
+      // Log.w(NAME, 'ROPO INSTALL BEING CALLED')
       System.loadLibrary("react-native-quick-sqlite");
       QuickSQLiteBridge.instance.install(getReactApplicationContext());
     } catch (Exception exception) {

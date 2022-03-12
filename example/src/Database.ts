@@ -6,7 +6,7 @@ import { User } from './model/User';
 import { Buffer } from 'buffer';
 
 export const lowLevelInit = async () => {
-  // sqlite.open('test', 'sample/database');
+  sqlite.open('test', 'sample/database');
   // const result = sqlite.executeSql(
   //   'test',
   //   'CREATE TABLE "User" ( name TEXT NOT NULL );',
@@ -30,9 +30,9 @@ export const lowLevelInit = async () => {
   // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
   //   console.warn('asyncRes', asyncRes);
   // });
-  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
-  //   console.warn('asyncRes2', asyncRes);
-  // });
+  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
+    console.warn('asyncRes2', asyncRes);
+  });
 };
 
 export async function typeORMInit() {

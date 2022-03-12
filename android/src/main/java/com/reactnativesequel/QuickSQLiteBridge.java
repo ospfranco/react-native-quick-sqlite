@@ -28,7 +28,6 @@ public class QuickSQLiteBridge {
       
       installJSIBindings(
         jsContext.get(),
-        (CallInvokerHolderImpl)jsCallInvokerHolder,
         context.getFilesDir().getAbsolutePath()
       );
       return true;
@@ -37,7 +36,7 @@ public class QuickSQLiteBridge {
     }
   }
 
-  private native void installJSIBindings(long jsContext, CallInvokerHolderImpl jsCallInvokerHolder, String docPath);
+  private native void installJSIBindings(long jsContext, String docPath);
   private native HybridData initHybrid(long jsContext, CallInvokerHolderImpl jsCallInvokerHolder);
 
 }
