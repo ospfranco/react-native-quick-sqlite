@@ -6,23 +6,19 @@ import { User } from './model/User';
 import { Buffer } from 'buffer';
 
 export const lowLevelInit = async () => {
-  sqlite.open('test', 'sample/database');
-
+  // sqlite.open('test', 'sample/database');
   // const result = sqlite.executeSql(
   //   'test',
   //   'CREATE TABLE "User" ( name TEXT NOT NULL );',
   //   undefined
   // );
   // console.warn('tried to create table result', result);
-
   // sqlite.executeSql(
   //   'test',
   //   'INSERT INTO "User" (name) VALUES(\'OSCAR\')',
   //   undefined
   // );
-
   // console.warn('INSERTED DATA');
-
   // sqlite
   //   .asyncExecuteSql('test', 'SELECT * FROM "User";', [])
   //   .then((asyncRes) => {
@@ -31,11 +27,9 @@ export const lowLevelInit = async () => {
   //   .catch((err) => {
   //     console.warn('async error', err);
   //   });
-
   // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
   //   console.warn('asyncRes', asyncRes);
   // });
-
   // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
   //   console.warn('asyncRes2', asyncRes);
   // });

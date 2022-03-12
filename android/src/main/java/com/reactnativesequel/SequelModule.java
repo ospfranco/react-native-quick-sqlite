@@ -3,15 +3,18 @@ package com.reactnativequicksqlite;
 import androidx.annotation.NonNull;
 import android.util.Log;
 
+import com.facebook.jni.HybridData;
+import com.facebook.jni.annotations.DoNotStrip;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
+import com.facebook.react.module.annotations.ReactModule;
 
+@ReactModule(name = SequelModule.NAME)
 class SequelModule extends ReactContextBaseJavaModule {
-  public static final String NAME = "QuickSQLite";
-  private static native void initialize(long jsiPtr, CallInvokerHolderImpl jsCallInvokerHolder, String docDir);
-
+  public static final String NAME = "QuickSQLiteBridge";
+  
   public SequelModule(ReactApplicationContext context) {
     super(context);
   }
@@ -23,21 +26,12 @@ class SequelModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod(isBlockingSynchronousMethod = true)
-  public boolean install() {
+  public void install() {
     try {
       System.loadLibrary("react-native-quick-sqlite");
-      
-      ReactApplicationContext context = getReactApplicationContext();
-      CallInvokerHolderImpl holder = (CallInvokerHolderImpl)context.getCatalystInstance().getJSCallInvokerHolder();
-
-      initialize(
-        context.getJavaScriptContextHolder().get(),
-        holder,
-        context.getFilesDir().getAbsolutePath()
-      );
-      return true;
+      QuickSQLiteBridge.instance.install(getReactApplicationContext());
     } catch (Exception exception) {
-      return false;
+      Log.e(NAME, "Failed to install JSI Bindings!", exception);
     }
   }
 }

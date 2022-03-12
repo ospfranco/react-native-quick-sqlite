@@ -46,7 +46,7 @@ add_library(
   ../cpp/react-native-quick-sqlite.h
   ../cpp/sqlite3.h
   ../cpp/sqlite3.c
-  cpp-adapter.cpp
+  QuickSQLiteBridge.cpp
 )
 
 # find fbjni package
