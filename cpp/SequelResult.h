@@ -35,3 +35,11 @@ struct SequelLiteralUpdateResult
   string message;
   int affectedRows;
 };
+
+struct SequelBatchOperationResult
+{
+  ResultType type;
+  string message;
+  int affectedRows;
+  int commands;
+};

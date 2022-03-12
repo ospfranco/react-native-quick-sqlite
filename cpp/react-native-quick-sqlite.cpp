@@ -14,10 +14,9 @@
 #include <vector>
 #include <iostream>
 #include <thread>
-#include <iostream>
+#include <chrono> 
 #include <fstream>
 #include <string>
-#include <thread>
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -158,6 +157,54 @@ jsi::Object createOk(jsi::Runtime &rt)
   auto res = jsi::Object(rt);
   res.setProperty(rt, "status", jsi::Value(0));
   return res;
+}
+
+/**
+ * Local function to handle SQL File Import in order to reuse with Sync and Async operations
+ */
+SequelBatchOperationResult importSQLFile(string dbName, string fileLocation) {
+  string line;
+  ifstream sqFile(fileLocation);
+  if (sqFile.is_open())
+  {
+    try
+    {
+      int affectedRows = 0;
+      int commands = 0;
+      sequel_execute_literal_update(dbName, "BEGIN EXCLUSIVE TRANSACTION");
+      while (std::getline(sqFile, line, '\n'))
+      {
+        if (!line.empty())
+        {
+          SequelLiteralUpdateResult result = sequel_execute_literal_update(dbName, line);
+          if (result.type == SequelResultError)
+          {
+            sequel_execute_literal_update(dbName, "ROLLBACK");
+            sqFile.close();
+            return {SequelResultError, result.message, 0, commands};
+          }
+          else
+          {
+            affectedRows += result.affectedRows;
+            commands++;
+          }
+        }
+      }
+      sqFile.close();
+      sequel_execute_literal_update(dbName, "COMMIT");
+      return {SequelResultOk, "", affectedRows,commands};
+    }
+    catch (...)
+    {
+      sqFile.close();
+      sequel_execute_literal_update(dbName, "ROLLBACK");
+      return {SequelResultError, "[react-native-quick-sqlite][loadSQLFile] Unexpected error, transaction was rolledback", 0, 0};
+    }
+  }
+  else
+  {
+    return {SequelResultError, "[react-native-quick-sqlite][loadSQLFile] Could not open file", 0, 0};
+  }
 }
 
 void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
@@ -406,56 +453,62 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
       {
         const string dbName = args[0].asString(rt).utf8(rt);
         const string sqlFileName = args[1].asString(rt).utf8(rt);
+        const auto importResult = importSQLFile(dbName, sqlFileName);
+        if(importResult.type == SequelResultOk)
+        {
+          auto res = jsi::Object(rt);
+          res.setProperty(rt, "status", jsi::Value(0));
+          res.setProperty(rt, "rowsAffected", jsi::Value(importResult.affectedRows));
+          res.setProperty(rt, "commands", jsi::Value(importResult.commands));
+          return move(res);
+        } else {
+          return createError(rt, "[react-native-quick-sqlite][loadSQLFile] Could not open file");
+        }
+      });
 
-        string line;
-        ifstream sqFile(sqlFileName);
-        if (sqFile.is_open())
+  // Load SQL File from disk in another thread
+  auto loadSQLFileAsync = jsi::Function::createFromHostFunction(
+      rt,
+      jsi::PropNameID::forAscii(rt, "sequel_loadSQLFileAsync"),
+      3,
+      [pool](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+      {
+        const string dbName = args[0].asString(rt).utf8(rt);
+        const string sqlFileName = args[1].asString(rt).utf8(rt);
+        auto callback = make_shared<jsi::Value>((args[2].asObject(rt)));
+
+        auto task =
+            [&rt, dbName, sqlFileName, callback]()
         {
           try
           {
-            int affectedRows = 0;
-            int commands = 0;
-            sequel_execute_literal_update(dbName, "BEGIN TRANSACTION");
-            while (std::getline(sqFile, line, '\n'))
-            {
-              if (!line.empty())
+            // Running the import operation in another thread
+            const auto importResult = importSQLFile(dbName, sqlFileName);
+
+            // Executing the callback invoke inside the JavaScript thread in order to safe build JSI objects that depends on jsi::Runtime and must be synchronized.
+            invoker->invokeAsync([&rt, result = move(importResult), callback] {
+              if(result.type == SequelResultOk)
               {
-                SequelLiteralUpdateResult result = sequel_execute_literal_update(dbName, line);
-                if (result.type == SequelResultError)
-                {
-                  sequel_execute_literal_update(dbName, "ROLLBACK");
-                  auto res = jsi::Object(rt);
-                  res.setProperty(rt, "status", jsi::Value(1));
-                  res.setProperty(rt, "message", jsi::String::createFromUtf8(rt, result.message.c_str()));
-                  sqFile.close();
-                  return move(res);
-                }
-                else
-                {
-                  affectedRows += result.affectedRows;
-                  commands++;
-                }
+                auto res = jsi::Object(rt);
+                res.setProperty(rt, "status", jsi::Value(0));
+                res.setProperty(rt, "rowsAffected", jsi::Value(result.affectedRows));
+                res.setProperty(rt, "commands", jsi::Value(result.commands));
+                callback->asObject(rt).asFunction(rt).call(rt, move(res));
+              } else {
+                callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message));
               }
-            }
-            sqFile.close();
-            sequel_execute_literal_update(dbName, "COMMIT");
-            auto res = jsi::Object(rt);
-            res.setProperty(rt, "status", jsi::Value(0));
-            res.setProperty(rt, "rowsAffected", jsi::Value(affectedRows));
-            res.setProperty(rt, "commands", jsi::Value(commands));
-            return move(res);
+            });
           }
-          catch (...)
+          catch (std::exception &exc)
           {
-            sqFile.close();
-            sequel_execute_literal_update(dbName, "ROLLBACK");
-            return createError(rt, "[react-native-quick-sqlite][loadSQLFile] Unexpected error, transaction was rolledback");
+            LOGW("Catched exception: %s", exc.what());
+            invoker->invokeAsync([&rt, err = exc.what(), callback] {
+              callback->asObject(rt).asFunction(rt).call(rt, createError(rt, "Unknow error"));
+            });
           }
-        }
-        else
-        {
-          return createError(rt, "[react-native-quick-sqlite][loadSQLFile] Could not open file");
-        }
+        };
+        pool->queueWork(task);
+        return {};
       });
 
   // Async Execute SQL
@@ -484,12 +537,16 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
             if (result.type == SequelResultError)
             {
               LOGW("RETURNING ERROR");
-              callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
+              invoker->invokeAsync([&rt, callback, &result] {
+                callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str()));
+              });
             }
             else
             {
               LOGW("RETURNING SUCCESS");
-              callback->asObject(rt).asFunction(rt).call(rt, result.value);
+              invoker->invokeAsync([&rt, callback, &result] {
+                callback->asObject(rt).asFunction(rt).call(rt, result.value);
+              });
               LOGW("SUCCESS CALLED");
             }
           }
@@ -515,8 +572,9 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
   module.setProperty(rt, "executeSql", move(execSQL));
   module.setProperty(rt, "executeSqlBatch", move(execSQLBatch));
   module.setProperty(rt, "loadSqlFile", move(loadSQLFile));
+  module.setProperty(rt, "asyncLoadSqlFile", move(loadSQLFileAsync));
   module.setProperty(rt, "asyncExecuteSql", move(asyncExecSQL));
-
+  
   rt.global().setProperty(rt, "sqlite", move(module));
 }
 
