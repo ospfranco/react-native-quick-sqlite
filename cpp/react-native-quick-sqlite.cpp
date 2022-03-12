@@ -472,7 +472,7 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
         auto params = make_shared<jsi::Value>(args[2].asObject(rt));
-        auto callback = make_shared<jsi::Function>((args[3].asObject(rt).asFunction(rt)));
+        auto callback = make_shared<jsi::Value>((args[3].asObject(rt)));
 
         auto task =
             [&rt, dbName, query, params, callback]()
@@ -489,8 +489,8 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
             else
             {
               LOGW("RETURNING SUCCESS");
-              invoker->invokeAsync([&rt, &callback, &result]() {
-                callback->call(rt, result.value);
+              invoker->invokeAsync([&] {
+                callback->asObject(rt).asFunction(rt).call(rt, result.value);
               });
 
               LOGW("SUCCESS CALLED");
