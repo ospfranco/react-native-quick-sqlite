@@ -8,9 +8,11 @@
  */
 
 #import "Sequel.h"
+#import "react-native-quick-sqlite.h"
 
 #import <React/RCTBridge+Private.h>
 #import <jsi/jsi.h>
+#import <ReactCommon/RCTTurboModuleManager.h>
 
 #import <React/RCTUtils.h>
 #import <ReactCommon/CallInvoker.h>
@@ -33,16 +35,17 @@ RCT_EXPORT_MODULE()
   _setBridgeOnMainQueue = RCTIsMainQueue();
 
   RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
-
   if (!cxxBridge.runtime) {
     return;
   }
+  
+  auto callInvoker = bridge.jsCallInvoker;
 
   // Get iOS app's document directory (to safely store database .sqlite3 file)
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
   NSString *documentPath = [paths objectAtIndex:0];
 
-  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, [documentPath UTF8String]);
+  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, callInvoker,[documentPath UTF8String]);
 }
 
 - (void)invalidate {

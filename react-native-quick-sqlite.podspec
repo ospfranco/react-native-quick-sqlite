@@ -22,5 +22,7 @@ Pod::Spec.new do |s|
   s.header_mappings_dir = "cpp"
   s.source_files = "ios/**/*.{h,m,mm}", "cpp/**/*.{h,cpp,c}"
   
+  s.dependency "React-callinvoker"
+  s.dependency "React"
   s.dependency "React-Core"
 end

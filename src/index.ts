@@ -1,13 +1,9 @@
 import { NativeModules } from 'react-native';
 
 const SequelModule = NativeModules.QuickSQLite;
-console.warn('ROPO LOADING');
 
 if (SequelModule) {
-  console.warn('MODULE DETECTED');
   if (typeof SequelModule.install === 'function') {
-    console.warn('INSTALLING SQLITE BINDINGS');
-
     SequelModule.install();
   }
 }
@@ -95,7 +91,11 @@ interface ISQLite {
     commands: SQLBatchParams[]
   ) => BatchQueryResult;
   loadSqlFile: (dbName: string, location: string) => FileLoadResult;
-  // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
+  asyncLoadSqlFile: (
+    dbName: string,
+    location: string,
+    cb: (res: FileLoadResult) => void
+  ) => void;
 }
 
 declare global {
@@ -115,6 +115,11 @@ interface IDBConnection {
     ok: (res: QueryResult) => void,
     fail: (msg: string) => void
   ) => void;
+  asyncExecuteSql: (
+    query: string,
+    params: any[] | undefined,
+    cb: (res: QueryResult) => void
+  ) => void;
   executeSqlBatch: (
     commands: SQLBatchParams[],
     callback?: (res: BatchQueryResult) => void
@@ -123,6 +128,10 @@ interface IDBConnection {
   loadSqlFile: (
     location: string,
     callback: (result: FileLoadResult) => void
+  ) => void;
+  asyncLoadSqlFile: (
+    location: string,
+    callback: (res: FileLoadResult) => void
   ) => void;
 }
 
@@ -155,6 +164,24 @@ export const openDatabase = (
           fail(e);
         }
       },
+      asyncExecuteSql: (
+        sql: string,
+        params: any[] | undefined,
+        cb: (res: QueryResult) => void
+      ) => {
+        try {
+          // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
+          sqlite.asyncExecuteSql(options.name, sql, params, (response) => {
+            // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
+            if (response.rows != null) {
+              response.rows.item = (idx: number) => response.rows._array[idx];
+            }
+            cb(response);
+          });
+        } catch (e) {
+          fail(e);
+        }
+      },
       executeSqlBatch: (
         commands: SQLBatchParams[],
         callback?: (res: BatchQueryResult) => void
@@ -178,6 +205,12 @@ export const openDatabase = (
         if (callback) {
           callback(result);
         }
+      },
+      asyncLoadSqlFile: (
+        location: string,
+        callback: (result: FileLoadResult) => void
+      ) => {
+        sqlite.asyncLoadSqlFile(options.name, location, callback);
       },
     };
 

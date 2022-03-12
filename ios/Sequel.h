@@ -8,7 +8,6 @@
  */
 
 #import <React/RCTBridgeModule.h>
-#import "react-native-quick-sqlite.h"
 
 @interface Sequel : NSObject <RCTBridgeModule>
 
