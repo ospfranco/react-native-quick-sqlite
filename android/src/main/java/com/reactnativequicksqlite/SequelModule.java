@@ -26,13 +26,15 @@ class SequelModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod(isBlockingSynchronousMethod = true)
-  public void install() {
+  public boolean install() {
     try {
       // Log.w(NAME, 'ROPO INSTALL BEING CALLED')
       System.loadLibrary("react-native-quick-sqlite");
       QuickSQLiteBridge.instance.install(getReactApplicationContext());
+      return true;
     } catch (Exception exception) {
       Log.e(NAME, "Failed to install JSI Bindings!", exception);
+      return false;
     }
   }
 }
