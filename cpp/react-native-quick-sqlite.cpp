@@ -14,11 +14,8 @@
 #include "ThreadPool.h"
 #include <vector>
 #include <iostream>
-#include <thread>
-#include <iostream>
 #include <fstream>
 #include <string>
-#include <exception>
 
 using namespace std;
 using namespace facebook;
