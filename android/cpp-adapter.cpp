@@ -22,7 +22,6 @@ private:
                                jni::alias_ref<react::CallInvokerHolder::javaobject> jsCallInvokerHolder,
                                jni::alias_ref<jni::JString> docPath)
   {
-    LOGW("ROPO INSTALLING BINDINGS 2")
     auto jsiRuntime = reinterpret_cast<jsi::Runtime *>(jsiRuntimePtr);
     auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
     std::string docPathString = docPath->toStdString();

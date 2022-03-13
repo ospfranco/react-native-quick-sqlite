@@ -15,9 +15,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <map>
-// #ifdef ANDROID
-// #include "logs.h"
-// #endif // ANDROID
+#include "logs.h"
+
 
 using namespace std;
 using namespace facebook;
