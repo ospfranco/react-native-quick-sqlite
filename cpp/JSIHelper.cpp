@@ -79,7 +79,7 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
   {
 
     jsi::Value value = values.getValueAtIndex(rt, ii);
-    if (value.isNull())
+    if (value.isNull() || value.isUndefined())
     {
       target->push_back(createNullSequelValue());
     }
@@ -119,6 +119,9 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
         auto buf = obj.getArrayBuffer(rt);
         target->push_back(createArrayBufferSequelValue(buf.data(rt), buf.size(rt)));
       }
+    }
+    else {
+      target->push_back(createNullSequelValue());
     }
   }
 }

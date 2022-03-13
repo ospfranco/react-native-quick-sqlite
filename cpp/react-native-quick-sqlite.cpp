@@ -412,28 +412,27 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
         }
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
-        auto params = make_shared<jsi::Value>(args[2].asObject(rt));
+        const jsi::Value &originalParams = args[2];
         auto callback = make_shared<jsi::Value>(args[3].asObject(rt));
 
+        // Converting query parameters inside the javascript caller thread
+        vector<SequelValue> params;
+        jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
+
         auto task =
-            [&rt, dbName, query, params, callback]()
+            [&rt, dbName, query, &params, callback]()
         {
           try
           {
-            invoker->invokeAsync([&rt, callback] {
-              callback->asObject(rt).asFunction(rt).call(rt, jsi::Value(rt, 4));
+            // Inside the new worker thread, we can now call sqlite operations
+            vector<map<string,SequelValue>> results;
+            auto status = sequel_execute3(dbName, query, &params, &results);
+            invoker->invokeAsync([&rt, &results, status_copy = move(status), callback] {
+              // Now, back into the JavaScript thread, we can translate the results
+              // back to a JSI Object to pass on the callback
+              auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, &results);
+              callback->asObject(rt).asFunction(rt).call(rt, move(jsiResult));
             });
-//            SequelResult result = sequel_execute(rt, dbName, query, *params);
-//            if (result.type == SequelResultError)
-//            {
-//              invoker->invokeAsync([&rt, callback, &result]
-//                                   { callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str())); });
-//            }
-//            else
-//            {
-//              invoker->invokeAsync([&rt, callback, &result]
-//                                   { callback->asObject(rt).asFunction(rt).call(rt, result.value); });
-//            }
           }
           catch (std::exception &exc)
           {
