@@ -184,48 +184,6 @@ SequelResult sequel_remove(string const dbName, string const docPath)
       jsi::Value::undefined()};
 }
 
-void bindStatement2(sqlite3_stmt *statement, const vector<any> &params)
-{
-  try
-  {
-    for (int ii = 0; ii < params.size(); ii++)
-    {
-      any item = params[ii];
-      const char *typeName = item.type().name();
-      
-      if (strcmp(typeName, "d") == 0)
-      {
-        double doubleVal = any_cast<double>(item);
-        int intVal = (int)doubleVal;
-        long long longVal = (long)doubleVal;
-        if (intVal == doubleVal)
-        {
-          sqlite3_bind_int(statement, ii + 1, intVal);
-        }
-        else if (longVal == doubleVal)
-        {
-          sqlite3_bind_int64(statement, ii + 1, longVal);
-        }
-        else
-        {
-          sqlite3_bind_double(statement, ii + 1, doubleVal);
-        }
-      }
-      else if(strcmp(typeName, "NSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEE") == 0) {
-        string strVal = any_cast<string>(item);
-        sqlite3_bind_text(statement, ii + 1, strVal.c_str(), strVal.length(), SQLITE_TRANSIENT);
-      } else
-      {
-        LOGW("UNKNOWN TYPE DETECTED %s", typeName);
-      }
-    }
-  }
-  catch (const std::bad_any_cast &e)
-  {
-    std::cout << e.what() << '\n';
-  }
-}
-
 void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &params)
 {
   if (params.isNull() || params.isUndefined())
@@ -285,15 +243,57 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &
   }
 }
 
-vector<vector<SQLiteValueWrapper>> sequel_execute2(const string dbName, const string &query, const vector<any> &params)
+// Using Structs IMPL
+void bindStatementWithValues(sqlite3_stmt *statement, vector<SequelValue> *values)
+{
+  size_t size = values->size();
+  if (size <= 0)
+  {
+    return;
+  }
+
+  for (int ii = 0; ii < size; ii++)
+  {
+    int sqIndex = ii + 1;
+    SequelValue value = values->at(ii);
+    SequelDataType dataType = value.dataType;
+    if (dataType == NULL_VALUE)
+    {
+      sqlite3_bind_null(statement, sqIndex);
+    }
+    else if (dataType == BOOLEAN)
+    {
+      sqlite3_bind_int(statement, sqIndex, value.booleanValue);
+    }
+    else if (dataType == INTEGER)
+    {
+      sqlite3_bind_int(statement, sqIndex, (int) value.doubleOrIntValue);
+    } else if (dataType == DOUBLE)
+    {
+      sqlite3_bind_double(statement, sqIndex, value.doubleOrIntValue);
+    } else if (dataType == INT64)
+    {
+      sqlite3_bind_int64(statement, sqIndex, value.int64Value);
+    } else if (dataType == TEXT)
+    {
+      sqlite3_bind_text(statement, sqIndex, value.textValue.c_str(), value.textValue.length(), SQLITE_TRANSIENT);
+    } else if (dataType == ARRAY_BUFFER)
+    {
+      sqlite3_bind_blob(statement, sqIndex, value.arrayBufferValue.get(), value.arrayBufferSize, SQLITE_STATIC);
+    }
+  }
+}
+
+SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<SequelValue> *params, vector<map<string,SequelValue>> *results)
 {
   // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
   {
-    LOGE("QUICKSQLITE EXEC2 NO DATABASE FOUND");
-    //    return SequelResult{
-    //        SequelResultError,
-    //        "[react-native-quick-sqlite]: Database " + dbName + " is not open"};
+    return SequelOperationStatus{
+        SequelResultError,
+        "[react-native-quick-sqlite]: Database " + dbName + " is not open",
+        0
+    };
   }
 
   sqlite3 *db = dbMap[dbName];
@@ -306,31 +306,34 @@ vector<vector<SQLiteValueWrapper>> sequel_execute2(const string dbName, const st
 
   if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
   {
-    //    bindStatement(statement, rt, params);
-    bindStatement2(statement, params);
+    bindStatementWithValues(statement, params);
   }
   else
   {
     const char *message = sqlite3_errmsg(db);
-    LOGE("QUICKSQLITE EXEC2 FAILED: %s", message);
+    return SequelOperationStatus {
+        SequelResultError,
+        "[react-native-quick-sqlite] SQL execution error: " + string(message),
+        0
+    };
   }
-  
+
   bool isConsuming = true;
   bool isFailed = false;
 
   int result, i, count, column_type;
   string column_name;
-  vector<vector<SQLiteValueWrapper>> rows;
-
+  map<string, SequelValue> row;
+  
   while (isConsuming)
   {
     result = sqlite3_step(statement);
-    vector<SQLiteValueWrapper> row;
 
     switch (result)
     {
     case SQLITE_ROW:
       i = 0;
+      row = map<string, SequelValue>();
       count = sqlite3_column_count(statement);
 
       while (i < count)
@@ -351,64 +354,45 @@ vector<vector<SQLiteValueWrapper>> sequel_execute2(const string dbName, const st
            * See https://github.com/ospfranco/react-native-quick-sqlite/issues/16 for more context.
            */
           double column_value = sqlite3_column_double(statement, i);
-          row.push_back({
-            column_name.c_str(),
-            column_value
-          });
+          row[column_name] = createIntegerSequelValue(column_value);
           break;
         }
 
         case SQLITE_FLOAT:
         {
           double column_value = sqlite3_column_double(statement, i);
-          row.push_back({
-            column_name.c_str(),
-            column_value
-          });
+          row[column_name] = createDoubleSequelValue(column_value);
           break;
         }
 
         case SQLITE_TEXT:
         {
           const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
-          row.push_back({
-            column_name.c_str(),
-            string(column_value)
-          });
-//          entry.setProperty(rt, column_name.c_str(), jsi::String::createFromUtf8(rt, column_value));
+          row[column_name] = createTextSequelValue(string(column_value));
           break;
         }
 
         case SQLITE_BLOB:
         {
-//          int blob_size = sqlite3_column_bytes(statement, i);
-//          const void *blob = sqlite3_column_blob(statement, i);
-//          jsi::Function array_buffer_ctor = rt.global().getPropertyAsFunction(rt, "ArrayBuffer");
-//          jsi::Object o = array_buffer_ctor.callAsConstructor(rt, blob_size).getObject(rt);
-//          jsi::ArrayBuffer buf = o.getArrayBuffer(rt);
-//          // It's a shame we have to copy here: see https://github.com/facebook/hermes/pull/419 and https://github.com/facebook/hermes/issues/564.
-//          memcpy(buf.data(rt), blob, blob_size);
-//          entry.setProperty(rt, column_name.c_str(), o);
-//          break;
+          int blob_size = sqlite3_column_bytes(statement, i);
+          const void *blob = sqlite3_column_blob(statement, i);
+          uint8_t *data;
+          memcpy(data, blob, blob_size);
+          row[column_name] = createArrayBufferSequelValue(data, blob_size);
+          break;
         }
 
         case SQLITE_NULL:
         // Intentionally left blank to switch to default case
         default:
-//          entry.setProperty(rt, column_name.c_str(), jsi::Value(nullptr));
-            row.push_back({
-              column_name.c_str(),
-              nullptr
-            });
+          row[column_name] = createNullSequelValue();
           break;
         }
 
         i++;
       }
-
-      rows.push_back(row);
+      results->push_back(move(row));
       break;
-
     case SQLITE_DONE:
       isConsuming = false;
       break;
@@ -424,65 +408,22 @@ vector<vector<SQLiteValueWrapper>> sequel_execute2(const string dbName, const st
   if (isFailed)
   {
     const char *message = sqlite3_errmsg(db);
-//    return {
-//        SequelResultError,
-//        "[react-native-quick-sqlite] SQL execution error: " + string(message),
-//        jsi::Value::undefined()};
+    return SequelOperationStatus{
+        SequelResultError,
+        "[react-native-quick-sqlite] SQL execution error: " + string(message),
+        0,
+        0
+    };
   }
-  
-  LOGW("STATEMENT RETRIEVED!");
-  
-  return rows;
 
-  // Move everything into a JSI object
-//  auto array = jsi::Array(rt, results.size());
-//  for (int i = 0; i < results.size(); i++)
-//  {
-//    array.setValueAtIndex(rt, i, move(results[i]));
-//  }
-//
-//  jsi::Object rows = jsi::Object(rt);
-//  rows.setProperty(rt, "status", jsi::Value(0));
-//  rows.setProperty(rt, "length", jsi::Value((int)results.size()));
-//  rows.setProperty(rt, "_array", move(array));
-//
-//  //    For any future endaevors, I tried to create the accesor function directly on via JSI
-//  //      But this is too complex for my punny brain, so this function is created on the index.ts file
-//  //  // Create accessor function
-//  //  auto itemAccesser = jsi::Function::createFromHostFunction(
-//  //                          rt,
-//  //                          jsi::PropNameID::forAscii(rt, "item"),
-//  //                          1,
-//  //                          [&array](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
-//  //                          {
-//  //      if(args[0].isNumber()) {
-//  //          double rowNumber = args[0].asNumber();
-//  //          cout << "trying to access value at" << rowNumber << endl;
-//  //          return array.getValueAtIndex(rt, (int)rowNumber);
-//  //      }
-//  //
-//  //      return {};
-//  //  });
-//
-//  //  rows.setProperty(rt, "item", move(itemAccesser));
-//
-//  jsi::Object res = jsi::Object(rt);
-//  res.setProperty(rt, "rows", move(rows));
-//
-//  int changedRowCount = sqlite3_changes(db);
-//  res.setProperty(rt, "rowsAffected", jsi::Value(changedRowCount));
-//
-//  // row id has nothing to do with the actual uuid/id of the object, but internal row count
-//  long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-//  if (changedRowCount > 0 && latestInsertRowId != 0)
-//  {
-//    res.setProperty(rt, "insertId", jsi::Value((int)latestInsertRowId));
-//  }
-//
-//  return {
-//      SequelResultOk,
-//      "",
-//      move(res)};
+  int changedRowCount = sqlite3_changes(db);
+  long long latestInsertRowId = sqlite3_last_insert_rowid(db);
+  return SequelOperationStatus{
+        SequelResultOk,
+        "",
+        changedRowCount,
+        static_cast<double>(latestInsertRowId)
+  };
 }
 
 SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params)

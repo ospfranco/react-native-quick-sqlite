@@ -46,6 +46,10 @@ add_library(
   ../cpp/react-native-quick-sqlite.h
   ../cpp/sqlite3.h
   ../cpp/sqlite3.c
+  ../cpp/JSIHelper.h
+  ../cpp/JSIHelper.cpp
+  ../cpp/ThreadPool.h
+  ../cpp/ThreadPool.cpp
   cpp-adapter.cpp
 )
 

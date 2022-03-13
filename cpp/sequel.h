@@ -10,8 +10,8 @@
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
 #include "SequelResult.h"
+#include "JSIHelper.h"
 #include <vector>
-#include <any>
 
 using namespace std;
 using namespace facebook;
@@ -26,6 +26,6 @@ SequelResult sequel_remove(string const dbName, string const docPath);
 
 SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params);
 
-vector<vector<SQLiteValueWrapper>> sequel_execute2(string const dbName, string const &query, const vector<any> &params);
+SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<SequelValue> *values, vector<map<string,SequelValue>> *result);
 
 SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, string const &query);
