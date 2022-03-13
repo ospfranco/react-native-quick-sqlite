@@ -23,19 +23,6 @@
 using namespace std;
 using namespace facebook;
 
-
-
-const vector<string> mapParams(jsi::Runtime &rt, jsi::Array &params)
-{
-  int jsiParamsLength = params.length(rt);
-  vector<string> res;
-  for (int ii = 0; ii < jsiParamsLength; ii++)
-  {
-    res.push_back(params.getValueAtIndex(rt, ii).asString(rt).utf8(rt));
-  }
-  return res;
-}
-
 string docPathStr;
 std::shared_ptr<react::CallInvoker> invoker;
 
@@ -102,6 +89,8 @@ jsi::Object createOk(jsi::Runtime &rt)
   res.setProperty(rt, "status", jsi::Value(0));
   return res;
 }
+
+
 
 void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
 {
