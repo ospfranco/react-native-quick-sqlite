@@ -420,17 +420,17 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
         jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
 
         auto task =
-            [&rt, dbName, query, &params, callback]()
+            [&rt, dbName, query, params=make_shared<vector<SequelValue>>(params), callback]()
         {
           try
           {
             // Inside the new worker thread, we can now call sqlite operations
             vector<map<string,SequelValue>> results;
-            auto status = sequel_execute3(dbName, query, &params, &results);
-            invoker->invokeAsync([&rt, &results, status_copy = move(status), callback] {
+            auto status = sequel_execute3(dbName, query, params.get(), &results);
+            invoker->invokeAsync([&rt, results=make_shared<vector<map<string,SequelValue>>>(results), status_copy = move(status), callback] {
               // Now, back into the JavaScript thread, we can translate the results
               // back to a JSI Object to pass on the callback
-              auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, &results);
+              auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, results.get());
               callback->asObject(rt).asFunction(rt).call(rt, move(jsiResult));
             });
           }
