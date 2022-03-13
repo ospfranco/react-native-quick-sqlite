@@ -12,6 +12,7 @@
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
 #include <string>
+#include <any>
 
 using namespace std;
 using namespace facebook;
@@ -42,4 +43,10 @@ struct SequelBatchOperationResult
   string message;
   int affectedRows;
   int commands;
+};
+
+struct SQLiteValueWrapper
+{
+  string name;
+  any value;
 };

@@ -9,15 +9,20 @@ export const lowLevelInit = async () => {
   sqlite.open('test', 'sample/database');
   // const result = sqlite.executeSql(
   //   'test',
-  //   'CREATE TABLE "User" ( name TEXT NOT NULL );',
+  //   'CREATE TABLE "User" ( id INT PRIMARY KEY, name TEXT NOT NULL );',
   //   undefined
   // );
   // console.warn('tried to create table result', result);
-  // sqlite.executeSql(
+  // const result = sqlite.executeSql(
   //   'test',
-  //   'INSERT INTO "User" (name) VALUES(\'OSCAR\')',
-  //   undefined
+  //   'INSERT INTO "User" (id, name) VALUES(?, ?)',
+  //   [new Date().getMilliseconds(), `${new Date().getMilliseconds()}`]
   // );
+
+  const result = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
+  console.warn('RESULT ', result);
+
+  // sqlite.executeSql()
   // console.warn('INSERTED DATA');
   // sqlite
   //   .asyncExecuteSql('test', 'SELECT * FROM "User";', [])
@@ -30,9 +35,9 @@ export const lowLevelInit = async () => {
   // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
   //   console.warn('asyncRes', asyncRes);
   // });
-  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
-    console.warn('asyncRes2', asyncRes);
-  });
+  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
+  //   console.warn('asyncRes2', asyncRes);
+  // });
 };
 
 export async function typeORMInit() {

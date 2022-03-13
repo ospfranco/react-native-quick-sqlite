@@ -11,6 +11,7 @@
 #include "sequel.h"
 #include "logs.h"
 #include "SequelResult.h"
+#include "JSIHelper.h"
 #include "ThreadPool.h"
 #include <vector>
 #include <iostream>
@@ -226,15 +227,55 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
       {
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
-        const jsi::Value &params = args[2];
-        SequelResult result = sequel_execute(rt, dbName, query, params);
-
-        if (result.type == SequelResultError)
+        const vector<any> params = jsiArrayToVector(rt, args[2].asObject(rt).asArray(rt));
+        
+//        LOGW("VECTOR CREATED");
+//        std::cout << std::boolalpha;
+        
+//        for(auto i: params) {
+          
+//          LOGW("PARAM: %s", i.type().name());
+//          std::cout << "PARAM: " << i.type().name() << endl;
+//        }
+        
+        auto rows = sequel_execute2(dbName, query, params);
+        
+        auto array = jsi::Array(rt, rows.size());
+        
+        for (int i = 0; i < rows.size(); i++)
         {
-          return createError(rt, result.message.c_str());
+//          LOGW("ITERATE %d", i);
+          auto row = rows[i];
+          
+          auto jsiRow = jsi::Object(rt);
+          
+          for(SQLiteValueWrapper rowInfo: row) {
+            const char* typeName = rowInfo.value.type().name();
+            LOGW("TYPENAME %s", typeName)
+            if(strcmp(typeName, "d") == 0) {
+              jsiRow.setProperty(rt, rowInfo.name.c_str(), jsi::Value(rt, any_cast<double>(rowInfo.value)));
+            } else if(strcmp(typeName, "NSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEE") == 0) {
+//              jsi::String::createFromUtf8(rt, column_value)
+              jsiRow.setProperty(rt, rowInfo.name.c_str(), jsi::String::createFromUtf8(rt, any_cast<string>(rowInfo.value).c_str()));
+            }
+            
+          }
+          array.setValueAtIndex(rt, i, jsiRow);
         }
-
-        return move(result.value);
+        
+        return array;
+        
+        
+//        const jsi::Value &params = args[2];
+//        SequelResult result = sequel_execute(rt, dbName, query, params);
+//
+//        if (result.type == SequelResultError)
+//        {
+//          return createError(rt, result.message.c_str());
+//        }
+//
+//        return move(result.value);
+        return {};
       });
 
   // Execute a batch of SQL queries in a transaction

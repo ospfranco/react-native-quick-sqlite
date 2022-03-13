@@ -17,7 +17,6 @@
 #include <map>
 #include "logs.h"
 
-
 using namespace std;
 using namespace facebook;
 
@@ -30,10 +29,10 @@ bool folder_exists(const std::string &foldername)
 }
 
 /**
-     * Portable wrapper for mkdir. Internally used by mkdir()
-     * @param[in] path the full path of the directory to create.
-     * @return zero on success, otherwise -1.
-     */
+ * Portable wrapper for mkdir. Internally used by mkdir()
+ * @param[in] path the full path of the directory to create.
+ * @return zero on success, otherwise -1.
+ */
 int _mkdir(const char *path)
 {
 #if _POSIX_C_SOURCE
@@ -44,10 +43,10 @@ int _mkdir(const char *path)
 }
 
 /**
-     * Recursive, portable wrapper for mkdir.
-     * @param[in] path the full path of the directory to create.
-     * @return zero on success, otherwise -1.
-     */
+ * Recursive, portable wrapper for mkdir.
+ * @param[in] path the full path of the directory to create.
+ * @return zero on success, otherwise -1.
+ */
 int mkdir(const char *path)
 {
   string current_level = "/";
@@ -133,19 +132,19 @@ SequelResult sequel_close(string const dbName)
       jsi::Value::undefined()};
 }
 
-//SequelResult sequel_attach(string const &dbName)
+// SequelResult sequel_attach(string const &dbName)
 //{
-//    if(dbMap.count(dbName) == 0){
-//        cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
-//        return SequelResult{
-//            SequelResultError,
-//            dbName + " is not open",
-//            jsi::Value::undefined()
-//        };
-//    }
+//     if(dbMap.count(dbName) == 0){
+//         cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
+//         return SequelResult{
+//             SequelResultError,
+//             dbName + " is not open",
+//             jsi::Value::undefined()
+//         };
+//     }
 
 // TODO: What does "Attach" do? is it really necessary?
-//https://github.com/andpor/react-native-sqlite-storage/blob/master/platforms/ios/SQLite.m#L362
+// https://github.com/andpor/react-native-sqlite-storage/blob/master/platforms/ios/SQLite.m#L362
 
 //    NSString* sql = [NSString stringWithFormat:@"ATTACH DATABASE '%@' AS %@", dbPathToAttach, dbAlias];
 //
@@ -183,6 +182,48 @@ SequelResult sequel_remove(string const dbName, string const docPath)
       SequelResultOk,
       "",
       jsi::Value::undefined()};
+}
+
+void bindStatement2(sqlite3_stmt *statement, const vector<any> &params)
+{
+  try
+  {
+    for (int ii = 0; ii < params.size(); ii++)
+    {
+      any item = params[ii];
+      const char *typeName = item.type().name();
+      
+      if (strcmp(typeName, "d") == 0)
+      {
+        double doubleVal = any_cast<double>(item);
+        int intVal = (int)doubleVal;
+        long long longVal = (long)doubleVal;
+        if (intVal == doubleVal)
+        {
+          sqlite3_bind_int(statement, ii + 1, intVal);
+        }
+        else if (longVal == doubleVal)
+        {
+          sqlite3_bind_int64(statement, ii + 1, longVal);
+        }
+        else
+        {
+          sqlite3_bind_double(statement, ii + 1, doubleVal);
+        }
+      }
+      else if(strcmp(typeName, "NSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEE") == 0) {
+        string strVal = any_cast<string>(item);
+        sqlite3_bind_text(statement, ii + 1, strVal.c_str(), strVal.length(), SQLITE_TRANSIENT);
+      } else
+      {
+        LOGW("UNKNOWN TYPE DETECTED %s", typeName);
+      }
+    }
+  }
+  catch (const std::bad_any_cast &e)
+  {
+    std::cout << e.what() << '\n';
+  }
 }
 
 void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &params)
@@ -244,6 +285,206 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &
   }
 }
 
+vector<vector<SQLiteValueWrapper>> sequel_execute2(const string dbName, const string &query, const vector<any> &params)
+{
+  // Check if db connection is opened
+  if (dbMap.count(dbName) == 0)
+  {
+    LOGE("QUICKSQLITE EXEC2 NO DATABASE FOUND");
+    //    return SequelResult{
+    //        SequelResultError,
+    //        "[react-native-quick-sqlite]: Database " + dbName + " is not open"};
+  }
+
+  sqlite3 *db = dbMap[dbName];
+
+  // SQLite statements need to be compiled before executed
+  sqlite3_stmt *statement;
+
+  // Compile and move result into statement memory spot
+  int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
+
+  if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
+  {
+    //    bindStatement(statement, rt, params);
+    bindStatement2(statement, params);
+  }
+  else
+  {
+    const char *message = sqlite3_errmsg(db);
+    LOGE("QUICKSQLITE EXEC2 FAILED: %s", message);
+  }
+  
+  bool isConsuming = true;
+  bool isFailed = false;
+
+  int result, i, count, column_type;
+  string column_name;
+  vector<vector<SQLiteValueWrapper>> rows;
+
+  while (isConsuming)
+  {
+    result = sqlite3_step(statement);
+    vector<SQLiteValueWrapper> row;
+
+    switch (result)
+    {
+    case SQLITE_ROW:
+      i = 0;
+      count = sqlite3_column_count(statement);
+
+      while (i < count)
+      {
+        column_type = sqlite3_column_type(statement, i);
+        column_name = sqlite3_column_name(statement, i);
+
+        switch (column_type)
+        {
+
+        case SQLITE_INTEGER:
+        {
+          /**
+           * It's not possible to send a int64_t in a jsi::Value because JS cannot represent the whole number range.
+           * Instead, we're sending a double, which can represent all integers up to 53 bits long, which is more
+           * than what was there before (a 32-bit int).
+           *
+           * See https://github.com/ospfranco/react-native-quick-sqlite/issues/16 for more context.
+           */
+          double column_value = sqlite3_column_double(statement, i);
+          row.push_back({
+            column_name.c_str(),
+            column_value
+          });
+          break;
+        }
+
+        case SQLITE_FLOAT:
+        {
+          double column_value = sqlite3_column_double(statement, i);
+          row.push_back({
+            column_name.c_str(),
+            column_value
+          });
+          break;
+        }
+
+        case SQLITE_TEXT:
+        {
+          const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
+          row.push_back({
+            column_name.c_str(),
+            string(column_value)
+          });
+//          entry.setProperty(rt, column_name.c_str(), jsi::String::createFromUtf8(rt, column_value));
+          break;
+        }
+
+        case SQLITE_BLOB:
+        {
+//          int blob_size = sqlite3_column_bytes(statement, i);
+//          const void *blob = sqlite3_column_blob(statement, i);
+//          jsi::Function array_buffer_ctor = rt.global().getPropertyAsFunction(rt, "ArrayBuffer");
+//          jsi::Object o = array_buffer_ctor.callAsConstructor(rt, blob_size).getObject(rt);
+//          jsi::ArrayBuffer buf = o.getArrayBuffer(rt);
+//          // It's a shame we have to copy here: see https://github.com/facebook/hermes/pull/419 and https://github.com/facebook/hermes/issues/564.
+//          memcpy(buf.data(rt), blob, blob_size);
+//          entry.setProperty(rt, column_name.c_str(), o);
+//          break;
+        }
+
+        case SQLITE_NULL:
+        // Intentionally left blank to switch to default case
+        default:
+//          entry.setProperty(rt, column_name.c_str(), jsi::Value(nullptr));
+            row.push_back({
+              column_name.c_str(),
+              nullptr
+            });
+          break;
+        }
+
+        i++;
+      }
+
+      rows.push_back(row);
+      break;
+
+    case SQLITE_DONE:
+      isConsuming = false;
+      break;
+
+    default:
+      isFailed = true;
+      isConsuming = false;
+    }
+  }
+
+  sqlite3_finalize(statement);
+
+  if (isFailed)
+  {
+    const char *message = sqlite3_errmsg(db);
+//    return {
+//        SequelResultError,
+//        "[react-native-quick-sqlite] SQL execution error: " + string(message),
+//        jsi::Value::undefined()};
+  }
+  
+  LOGW("STATEMENT RETRIEVED!");
+  
+  return rows;
+
+  // Move everything into a JSI object
+//  auto array = jsi::Array(rt, results.size());
+//  for (int i = 0; i < results.size(); i++)
+//  {
+//    array.setValueAtIndex(rt, i, move(results[i]));
+//  }
+//
+//  jsi::Object rows = jsi::Object(rt);
+//  rows.setProperty(rt, "status", jsi::Value(0));
+//  rows.setProperty(rt, "length", jsi::Value((int)results.size()));
+//  rows.setProperty(rt, "_array", move(array));
+//
+//  //    For any future endaevors, I tried to create the accesor function directly on via JSI
+//  //      But this is too complex for my punny brain, so this function is created on the index.ts file
+//  //  // Create accessor function
+//  //  auto itemAccesser = jsi::Function::createFromHostFunction(
+//  //                          rt,
+//  //                          jsi::PropNameID::forAscii(rt, "item"),
+//  //                          1,
+//  //                          [&array](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
+//  //                          {
+//  //      if(args[0].isNumber()) {
+//  //          double rowNumber = args[0].asNumber();
+//  //          cout << "trying to access value at" << rowNumber << endl;
+//  //          return array.getValueAtIndex(rt, (int)rowNumber);
+//  //      }
+//  //
+//  //      return {};
+//  //  });
+//
+//  //  rows.setProperty(rt, "item", move(itemAccesser));
+//
+//  jsi::Object res = jsi::Object(rt);
+//  res.setProperty(rt, "rows", move(rows));
+//
+//  int changedRowCount = sqlite3_changes(db);
+//  res.setProperty(rt, "rowsAffected", jsi::Value(changedRowCount));
+//
+//  // row id has nothing to do with the actual uuid/id of the object, but internal row count
+//  long long latestInsertRowId = sqlite3_last_insert_rowid(db);
+//  if (changedRowCount > 0 && latestInsertRowId != 0)
+//  {
+//    res.setProperty(rt, "insertId", jsi::Value((int)latestInsertRowId));
+//  }
+//
+//  return {
+//      SequelResultOk,
+//      "",
+//      move(res)};
+}
+
 SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params)
 {
   // Check if db connection is opened
@@ -263,7 +504,6 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
 
   // Compile and move result into statement memory spot
   int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
-
 
   if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
   {
@@ -306,11 +546,11 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
         case SQLITE_INTEGER:
         {
           /**
-           * It's not possible to send a int64_t in a jsi::Value because JS cannot represent the whole number range. 
-           * Instead, we're sending a double, which can represent all integers up to 53 bits long, which is more 
-           * than what was there before (a 32-bit int). 
+           * It's not possible to send a int64_t in a jsi::Value because JS cannot represent the whole number range.
+           * Instead, we're sending a double, which can represent all integers up to 53 bits long, which is more
+           * than what was there before (a 32-bit int).
            *
-           * See https://github.com/ospfranco/react-native-quick-sqlite/issues/16 for more context. 
+           * See https://github.com/ospfranco/react-native-quick-sqlite/issues/16 for more context.
            */
           double column_value = sqlite3_column_double(statement, i);
           entry.setProperty(rt, column_name.c_str(), jsi::Value(column_value));
@@ -429,7 +669,7 @@ SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const 
       move(res)};
 }
 
-SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, string const &query) 
+SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, string const &query)
 {
   // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
@@ -437,8 +677,7 @@ SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, str
     return {
         SequelResultError,
         "[react-native-quick-sqlite] Database not opened: " + dbName,
-        0
-    };
+        0};
   }
 
   sqlite3 *db = dbMap[dbName];
@@ -455,10 +694,9 @@ SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, str
     return {
         SequelResultError,
         "[react-native-quick-sqlite] SQL execution error: " + string(message),
-        0
-    };
+        0};
   }
-  
+
   bool isConsuming = true;
   bool isFailed = false;
 
@@ -471,17 +709,17 @@ SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, str
 
     switch (result)
     {
-      case SQLITE_ROW:
-        isConsuming = true;
-        break;
+    case SQLITE_ROW:
+      isConsuming = true;
+      break;
 
-      case SQLITE_DONE:
-        isConsuming = false;
-        break;
+    case SQLITE_DONE:
+      isConsuming = false;
+      break;
 
-      default:
-        isFailed = true;
-        isConsuming = false;
+    default:
+      isFailed = true;
+      isConsuming = false;
     }
   }
 
@@ -493,14 +731,12 @@ SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, str
     return {
         SequelResultError,
         "[react-native-quick-sqlite] SQL execution error: " + string(message),
-        0
-    };
+        0};
   }
 
   int changedRowCount = sqlite3_changes(db);
   return {
       SequelResultOk,
       "",
-      changedRowCount
-  };
+      changedRowCount};
 }
