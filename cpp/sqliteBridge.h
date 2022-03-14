@@ -9,7 +9,6 @@
 
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
-#include "SequelResult.h"
 #include "JSIHelper.h"
 #include <vector>
 
@@ -22,10 +21,10 @@ SequelResult sequel_close(string const dbName);
 
 SequelResult sequel_remove(string const dbName, string const docPath);
 
-//SequelResult sequel_attach(string const &dbName);
+// SequelResult sequel_attach(string const &dbName);
 
 SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params);
 
-SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<SequelValue> *values, vector<map<string,SequelValue>> *result);
+SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<QuickValue> *values, vector<map<string, QuickValue>> *result);
 
 SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, string const &query);

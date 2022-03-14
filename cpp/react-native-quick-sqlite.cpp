@@ -8,9 +8,8 @@
  */
 
 #include "react-native-quick-sqlite.h"
-#include "sequel.h"
+#include "sqliteBridge.h"
 #include "logs.h"
-#include "SequelResult.h"
 #include "JSIHelper.h"
 #include "ThreadPool.h"
 #include <vector>
@@ -87,8 +86,6 @@ jsi::Object createOk(jsi::Runtime &rt)
   res.setProperty(rt, "status", jsi::Value(0));
   return res;
 }
-
-
 
 void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
 {
@@ -229,11 +226,11 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
         const string query = args[1].asString(rt).utf8(rt);
         const jsi::Value &originalParams = args[2];
         // Converting parameters
-        vector<SequelValue> params;
+        vector<QuickValue> params;
         jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
 
         // Filling the results
-        vector<map<string,SequelValue>> results;
+        vector<map<string, QuickValue>> results;
         auto status = sequel_execute3(dbName, query, &params, &results);
 
         // Converting results into a JSI Response
@@ -416,23 +413,23 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
         auto callback = make_shared<jsi::Value>(args[3].asObject(rt));
 
         // Converting query parameters inside the javascript caller thread
-        vector<SequelValue> params;
+        vector<QuickValue> params;
         jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
 
         auto task =
-            [&rt, dbName, query, params=make_shared<vector<SequelValue>>(params), callback]()
+            [&rt, dbName, query, params = make_shared<vector<QuickValue>>(params), callback]()
         {
           try
           {
             // Inside the new worker thread, we can now call sqlite operations
-            vector<map<string,SequelValue>> results;
+            vector<map<string, QuickValue>> results;
             auto status = sequel_execute3(dbName, query, params.get(), &results);
-            invoker->invokeAsync([&rt, results=make_shared<vector<map<string,SequelValue>>>(results), status_copy = move(status), callback] {
+            invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), status_copy = move(status), callback]
+                                 {
               // Now, back into the JavaScript thread, we can translate the results
               // back to a JSI Object to pass on the callback
               auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, results.get());
-              callback->asObject(rt).asFunction(rt).call(rt, move(jsiResult));
-            });
+              callback->asObject(rt).asFunction(rt).call(rt, move(jsiResult)); });
           }
           catch (std::exception &exc)
           {

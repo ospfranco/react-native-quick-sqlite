@@ -13,25 +13,100 @@
 #include <jsi/jsi.h>
 #include <vector>
 #include <map>
-#include "SequelResult.h"
 
 using namespace std;
 using namespace facebook;
 
 /**
+ * Enum for QuickValue to store/determine correct type for dynamic JSI values
+ */
+enum QuickDataType
+{
+  NULL_VALUE,
+  TEXT,
+  INTEGER,
+  INT64,
+  DOUBLE,
+  BOOLEAN,
+  ARRAY_BUFFER,
+};
+
+/**
+ * Wrapper struct to allocate dynamic JSI values to static C++ primitives
+ */
+struct QuickValue
+{
+  QuickDataType dataType;
+  int booleanValue;
+  double doubleOrIntValue;
+  long long int64Value;
+  string textValue;
+  shared_ptr<uint8_t> arrayBufferValue;
+  size_t arrayBufferSize;
+};
+
+/**
+ * Helper struct to carry SQLite results between entities
+ */
+struct QuickColumnValue
+{
+  QuickValue value;
+  string columnName;
+};
+
+/**
+ * Various structs to help with the results of the SQLite operations
+ */
+enum ResultType
+{
+  SequelResultOk,
+  SequelResultError
+};
+
+struct SequelResult
+{
+  ResultType type;
+  string message;
+  jsi::Value value;
+};
+
+struct SequelOperationStatus
+{
+  ResultType type;
+  string errorMessage;
+  int rowsAffected;
+  double insertId;
+};
+
+struct SequelLiteralUpdateResult
+{
+  ResultType type;
+  string message;
+  int affectedRows;
+};
+
+struct SequelBatchOperationResult
+{
+  ResultType type;
+  string message;
+  int affectedRows;
+  int commands;
+};
+
+
+/**
  * Fill the target vector with parsed parameters
  * */
-void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &args, vector<SequelValue> *target);
+void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &args, vector<QuickValue> *target);
 
-SequelValue createNullSequelValue();
-SequelValue createBooleanSequelValue(bool value);
-SequelValue createTextSequelValue(string value);
-SequelValue createIntegerSequelValue(int value);
-SequelValue createIntegerSequelValue(double value);
-SequelValue createInt64SequelValue(long long value);
-SequelValue createDoubleSequelValue(double value);
-SequelValue createArrayBufferSequelValue(uint8_t *arrayBufferValue, size_t arrayBufferSize);
-jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SequelOperationStatus status, vector<map<string,SequelValue>> *results);
-
+QuickValue createNullQuickValue();
+QuickValue createBooleanQuickValue(bool value);
+QuickValue createTextQuickValue(string value);
+QuickValue createIntegerQuickValue(int value);
+QuickValue createIntegerQuickValue(double value);
+QuickValue createInt64QuickValue(long long value);
+QuickValue createDoubleQuickValue(double value);
+QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBufferSize);
+jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SequelOperationStatus status, vector<map<string, QuickValue>> *results);
 
 #endif /* JSIHelper_h */

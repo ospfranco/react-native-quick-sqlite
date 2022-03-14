@@ -7,7 +7,7 @@
  * This code is licensed under the MIT license
  */
 
-#include "sequel.h"
+#include "sqliteBridge.h"
 #include <sstream>
 #include <iostream>
 #include <sqlite3.h>
@@ -244,7 +244,7 @@ void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &
 }
 
 // Using Structs IMPL
-void bindStatementWithValues(sqlite3_stmt *statement, vector<SequelValue> *values)
+void bindStatementWithValues(sqlite3_stmt *statement, vector<QuickValue> *values)
 {
   size_t size = values->size();
   if (size <= 0)
@@ -255,8 +255,8 @@ void bindStatementWithValues(sqlite3_stmt *statement, vector<SequelValue> *value
   for (int ii = 0; ii < size; ii++)
   {
     int sqIndex = ii + 1;
-    SequelValue value = values->at(ii);
-    SequelDataType dataType = value.dataType;
+    QuickValue value = values->at(ii);
+    QuickDataType dataType = value.dataType;
     if (dataType == NULL_VALUE)
     {
       sqlite3_bind_null(statement, sqIndex);
@@ -267,24 +267,28 @@ void bindStatementWithValues(sqlite3_stmt *statement, vector<SequelValue> *value
     }
     else if (dataType == INTEGER)
     {
-      sqlite3_bind_int(statement, sqIndex, (int) value.doubleOrIntValue);
-    } else if (dataType == DOUBLE)
+      sqlite3_bind_int(statement, sqIndex, (int)value.doubleOrIntValue);
+    }
+    else if (dataType == DOUBLE)
     {
       sqlite3_bind_double(statement, sqIndex, value.doubleOrIntValue);
-    } else if (dataType == INT64)
+    }
+    else if (dataType == INT64)
     {
       sqlite3_bind_int64(statement, sqIndex, value.int64Value);
-    } else if (dataType == TEXT)
+    }
+    else if (dataType == TEXT)
     {
       sqlite3_bind_text(statement, sqIndex, value.textValue.c_str(), value.textValue.length(), SQLITE_TRANSIENT);
-    } else if (dataType == ARRAY_BUFFER)
+    }
+    else if (dataType == ARRAY_BUFFER)
     {
       sqlite3_bind_blob(statement, sqIndex, value.arrayBufferValue.get(), value.arrayBufferSize, SQLITE_STATIC);
     }
   }
 }
 
-SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<SequelValue> *params, vector<map<string,SequelValue>> *results)
+SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<QuickValue> *params, vector<map<string, QuickValue>> *results)
 {
   // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
@@ -292,8 +296,7 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
     return SequelOperationStatus{
         SequelResultError,
         "[react-native-quick-sqlite]: Database " + dbName + " is not open",
-        0
-    };
+        0};
   }
 
   sqlite3 *db = dbMap[dbName];
@@ -311,11 +314,10 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
   else
   {
     const char *message = sqlite3_errmsg(db);
-    return SequelOperationStatus {
+    return SequelOperationStatus{
         SequelResultError,
         "[react-native-quick-sqlite] SQL execution error: " + string(message),
-        0
-    };
+        0};
   }
 
   bool isConsuming = true;
@@ -323,8 +325,8 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
 
   int result, i, count, column_type;
   string column_name;
-  map<string, SequelValue> row;
-  
+  map<string, QuickValue> row;
+
   while (isConsuming)
   {
     result = sqlite3_step(statement);
@@ -333,7 +335,7 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
     {
     case SQLITE_ROW:
       i = 0;
-      row = map<string, SequelValue>();
+      row = map<string, QuickValue>();
       count = sqlite3_column_count(statement);
 
       while (i < count)
@@ -354,21 +356,21 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
            * See https://github.com/ospfranco/react-native-quick-sqlite/issues/16 for more context.
            */
           double column_value = sqlite3_column_double(statement, i);
-          row[column_name] = createIntegerSequelValue(column_value);
+          row[column_name] = createIntegerQuickValue(column_value);
           break;
         }
 
         case SQLITE_FLOAT:
         {
           double column_value = sqlite3_column_double(statement, i);
-          row[column_name] = createDoubleSequelValue(column_value);
+          row[column_name] = createDoubleQuickValue(column_value);
           break;
         }
 
         case SQLITE_TEXT:
         {
           const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
-          row[column_name] = createTextSequelValue(string(column_value));
+          row[column_name] = createTextQuickValue(string(column_value));
           break;
         }
 
@@ -378,14 +380,14 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
           const void *blob = sqlite3_column_blob(statement, i);
           uint8_t *data;
           memcpy(data, blob, blob_size);
-          row[column_name] = createArrayBufferSequelValue(data, blob_size);
+          row[column_name] = createArrayBufferQuickValue(data, blob_size);
           break;
         }
 
         case SQLITE_NULL:
         // Intentionally left blank to switch to default case
         default:
-          row[column_name] = createNullSequelValue();
+          row[column_name] = createNullQuickValue();
           break;
         }
 
@@ -412,18 +414,16 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
         SequelResultError,
         "[react-native-quick-sqlite] SQL execution error: " + string(message),
         0,
-        0
-    };
+        0};
   }
 
   int changedRowCount = sqlite3_changes(db);
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);
   return SequelOperationStatus{
-        SequelResultOk,
-        "",
-        changedRowCount,
-        static_cast<double>(latestInsertRowId)
-  };
+      SequelResultOk,
+      "",
+      changedRowCount,
+      static_cast<double>(latestInsertRowId)};
 }
 
 SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params)

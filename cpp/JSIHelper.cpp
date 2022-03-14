@@ -10,63 +10,63 @@
 using namespace std;
 using namespace facebook;
 
-SequelValue createNullSequelValue() {
-  return SequelValue {
-    .dataType = NULL_VALUE
-  };
+QuickValue createNullQuickValue()
+{
+  return QuickValue{
+      .dataType = NULL_VALUE};
 }
 
-SequelValue createBooleanSequelValue(bool value) {
-  return SequelValue {
-    .dataType = BOOLEAN,
-    .booleanValue = int(value)
-  };
+QuickValue createBooleanQuickValue(bool value)
+{
+  return QuickValue{
+      .dataType = BOOLEAN,
+      .booleanValue = int(value)};
 }
 
-SequelValue createTextSequelValue(string value) {
-  return SequelValue {
-    .dataType = TEXT,
-    .textValue = value
-  };
+QuickValue createTextQuickValue(string value)
+{
+  return QuickValue{
+      .dataType = TEXT,
+      .textValue = value};
 }
 
-SequelValue createIntegerSequelValue(int value) {
-  return SequelValue {
-    .dataType = INTEGER,
-    .doubleOrIntValue = static_cast<double>(value)
-  };
+QuickValue createIntegerQuickValue(int value)
+{
+  return QuickValue{
+      .dataType = INTEGER,
+      .doubleOrIntValue = static_cast<double>(value)};
 }
 
-SequelValue createIntegerSequelValue(double value) {
-  return SequelValue {
-    .dataType = INTEGER,
-    .doubleOrIntValue = value
-  };
+QuickValue createIntegerQuickValue(double value)
+{
+  return QuickValue{
+      .dataType = INTEGER,
+      .doubleOrIntValue = value};
 }
 
-SequelValue createInt64SequelValue(long long value) {
-  return SequelValue {
-    .dataType = INT64,
-    .int64Value = value
-  };
+QuickValue createInt64QuickValue(long long value)
+{
+  return QuickValue{
+      .dataType = INT64,
+      .int64Value = value};
 }
 
-SequelValue createDoubleSequelValue(double value) {
-  return SequelValue {
-    .dataType = DOUBLE,
-    .doubleOrIntValue = value
-  };
+QuickValue createDoubleQuickValue(double value)
+{
+  return QuickValue{
+      .dataType = DOUBLE,
+      .doubleOrIntValue = value};
 }
 
-SequelValue createArrayBufferSequelValue(uint8_t *arrayBufferValue, size_t arrayBufferSize) {
-  return SequelValue {
-    .dataType = ARRAY_BUFFER,
-    .arrayBufferValue = shared_ptr<uint8_t>{arrayBufferValue},
-    .arrayBufferSize = arrayBufferSize
-  };
+QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBufferSize)
+{
+  return QuickValue{
+      .dataType = ARRAY_BUFFER,
+      .arrayBufferValue = shared_ptr<uint8_t>{arrayBufferValue},
+      .arrayBufferSize = arrayBufferSize};
 }
 
-void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, vector<SequelValue> *target) 
+void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, vector<QuickValue> *target)
 {
   if (params.isNull() || params.isUndefined())
   {
@@ -81,12 +81,12 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
     jsi::Value value = values.getValueAtIndex(rt, ii);
     if (value.isNull() || value.isUndefined())
     {
-      target->push_back(createNullSequelValue());
+      target->push_back(createNullQuickValue());
     }
     else if (value.isBool())
     {
       int intVal = int(value.getBool());
-      target->push_back(createBooleanSequelValue(value.getBool()));
+      target->push_back(createBooleanQuickValue(value.getBool()));
     }
     else if (value.isNumber())
     {
@@ -95,21 +95,21 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
       long long longVal = (long)doubleVal;
       if (intVal == doubleVal)
       {
-        target->push_back(createIntegerSequelValue(intVal));
+        target->push_back(createIntegerQuickValue(intVal));
       }
       else if (longVal == doubleVal)
       {
-        target->push_back(createInt64SequelValue(longVal));
+        target->push_back(createInt64QuickValue(longVal));
       }
       else
       {
-        target->push_back(createDoubleSequelValue(doubleVal));
+        target->push_back(createDoubleQuickValue(doubleVal));
       }
     }
     else if (value.isString())
     {
       string strVal = value.asString(rt).utf8(rt);
-      target->push_back(createTextSequelValue(strVal));
+      target->push_back(createTextQuickValue(strVal));
     }
     else if (value.isObject())
     {
@@ -117,21 +117,22 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
       if (obj.isArrayBuffer(rt))
       {
         auto buf = obj.getArrayBuffer(rt);
-        target->push_back(createArrayBufferSequelValue(buf.data(rt), buf.size(rt)));
+        target->push_back(createArrayBufferQuickValue(buf.data(rt), buf.size(rt)));
       }
     }
-    else {
-      target->push_back(createNullSequelValue());
+    else
+    {
+      target->push_back(createNullQuickValue());
     }
   }
 }
 
-jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SequelOperationStatus status, vector<map<string,SequelValue>> *results) 
+jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SequelOperationStatus status, vector<map<string, QuickValue>> *results)
 {
   jsi::Object res = jsi::Object(rt);
-  if(status.type == SequelResultOk)
+  if (status.type == SequelResultOk)
   {
-    //res.setProperty(rt, "rows", move(rows));
+    // res.setProperty(rt, "rows", move(rows));
     res.setProperty(rt, "rowsAffected", jsi::Value(status.rowsAffected));
     if (status.rowsAffected > 0 && status.insertId != 0)
     {
@@ -141,17 +142,17 @@ jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SequelOperationSta
     // Converting row results into objects
     size_t rowCount = results->size();
     jsi::Object rows = jsi::Object(rt);
-    if(rowCount > 0)
+    if (rowCount > 0)
     {
       auto array = jsi::Array(rt, rowCount);
-      for(int i = 0; i<rowCount; i++)
+      for (int i = 0; i < rowCount; i++)
       {
         jsi::Object rowObject = jsi::Object(rt);
         auto row = results->at(i);
-        for (auto const& entry : row)
+        for (auto const &entry : row)
         {
           std::string columnName = entry.first;
-          SequelValue value = entry.second;
+          QuickValue value = entry.second;
           if (value.dataType == TEXT)
           {
             rowObject.setProperty(rt, columnName.c_str(), jsi::String::createFromUtf8(rt, value.textValue.c_str()));
