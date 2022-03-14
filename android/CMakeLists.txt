@@ -49,6 +49,8 @@ add_library(
   ../cpp/JSIHelper.cpp
   ../cpp/ThreadPool.h
   ../cpp/ThreadPool.cpp
+  ../cpp/sqlfileloader.h
+  ../cpp/sqlfileloader.cpp
   cpp-adapter.cpp
 )
 
