@@ -265,7 +265,6 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
                 res.setProperty(rt, "status", jsi::Value(0));
                 res.setProperty(rt, "rowsAffected", jsi::Value(batchResult.affectedRows));
                 callback->asObject(rt).asFunction(rt).call(rt, move(res));
-                return move(res);
               } else
               {
                 callback->asObject(rt).asFunction(rt).call(rt, createError(rt, batchResult.message));
