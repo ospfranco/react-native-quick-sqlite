@@ -14,8 +14,6 @@
 #include "ThreadPool.h"
 #include "sqlfileloader.h"
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include <string>
 
 using namespace std;
