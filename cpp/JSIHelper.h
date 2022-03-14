@@ -93,7 +93,6 @@ struct SequelBatchOperationResult
   int commands;
 };
 
-
 /**
  * Fill the target vector with parsed parameters
  * */

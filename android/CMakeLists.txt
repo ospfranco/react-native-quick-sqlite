@@ -39,9 +39,8 @@ include_directories(
 add_library(
   ${PACKAGE_NAME}
   SHARED
-  ../cpp/sequel.cpp
-  ../cpp/sequel.h
-  ../cpp/SequelResult.h
+  ../cpp/sqliteBridge.cpp
+  ../cpp/sqliteBridge.h
   ../cpp/react-native-quick-sqlite.cpp
   ../cpp/react-native-quick-sqlite.h
   ../cpp/sqlite3.h
