@@ -405,8 +405,10 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         if (count < 4)
         {
-          LOGW("NOT ENOUGH PARAMS PASSED");
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] Incorrect arguments for asyncExecuteSQL");
+          return {};
         }
+        
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
         const jsi::Value &originalParams = args[2];
