@@ -13,6 +13,4 @@
 
 using namespace facebook;
 
-void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath);
-
-void cleanUpSequel();
+void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath);

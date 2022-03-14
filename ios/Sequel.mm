@@ -8,7 +8,7 @@
  */
 
 #import "Sequel.h"
-#import "react-native-quick-sqlite.h"
+#import "installer.h"
 
 #import <React/RCTBridge+Private.h>
 #import <jsi/jsi.h>
@@ -45,11 +45,11 @@ RCT_EXPORT_MODULE()
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
   NSString *documentPath = [paths objectAtIndex:0];
 
-  installSequel(*(facebook::jsi::Runtime *)cxxBridge.runtime, callInvoker,[documentPath UTF8String]);
+  install(*(facebook::jsi::Runtime *)cxxBridge.runtime, callInvoker,[documentPath UTF8String]);
 }
 
 - (void)invalidate {
-  cleanUpSequel();
+  // intentionally left blank
 }
 
 @end

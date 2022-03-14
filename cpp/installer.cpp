@@ -7,7 +7,7 @@
  * This code is licensed under the MIT license
  */
 
-#include "react-native-quick-sqlite.h"
+#include "installer.h"
 #include "sqliteBridge.h"
 #include "logs.h"
 #include "JSIHelper.h"
@@ -87,7 +87,7 @@ jsi::Object createOk(jsi::Runtime &rt)
   return res;
 }
 
-void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
+void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
 {
 
   // Transfer from pointer to variable to prevent de-allocation once calling function has finished
@@ -458,9 +458,4 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
   module.setProperty(rt, "asyncLoadSqlFile", move(loadSQLFileAsync));
 
   rt.global().setProperty(rt, "sqlite", move(module));
-}
-
-void cleanUpSequel()
-{
-  // intentionally left blank
 }

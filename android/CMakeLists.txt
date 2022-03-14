@@ -41,8 +41,8 @@ add_library(
   SHARED
   ../cpp/sqliteBridge.cpp
   ../cpp/sqliteBridge.h
-  ../cpp/react-native-quick-sqlite.cpp
-  ../cpp/react-native-quick-sqlite.h
+  ../cpp/installer.cpp
+  ../cpp/installer.h
   ../cpp/sqlite3.h
   ../cpp/sqlite3.c
   ../cpp/JSIHelper.h
