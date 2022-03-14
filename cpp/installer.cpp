@@ -235,7 +235,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         // Converting results into a JSI Response
         auto jsiResult = createSequelQueryExecutionResult(rt, status, &results);
-        return move(jsiResult);
+        return jsiResult;
       });
 
   // Execute a batch of SQL queries in a transaction
@@ -389,7 +389,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           {
             LOGW("Catched exception: %s", exc.what());
             invoker->invokeAsync([&rt, err = exc.what(), callback]
-                                 { callback->asObject(rt).asFunction(rt).call(rt, createError(rt, "Unknow error")); });
+                                 { callback->asObject(rt).asFunction(rt).call(rt, createError(rt, "Unknown error")); });
           }
         };
         pool->queueWork(task);
