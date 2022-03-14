@@ -334,6 +334,11 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
     switch (result)
     {
     case SQLITE_ROW:
+      if(results == NULL)
+      {
+        break;
+      }
+      
       i = 0;
       row = map<string, QuickValue>();
       count = sqlite3_column_count(statement);

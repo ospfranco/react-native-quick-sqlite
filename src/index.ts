@@ -90,6 +90,11 @@ interface ISQLite {
     dbName: string,
     commands: SQLBatchParams[]
   ) => BatchQueryResult;
+  asyncExecuteSqlBatch: (
+    dbName: string,
+    commands: SQLBatchParams[],
+    cb: (res: BatchQueryResult) => void
+  ) => void;
   loadSqlFile: (dbName: string, location: string) => FileLoadResult;
   asyncLoadSqlFile: (
     dbName: string,
@@ -123,6 +128,10 @@ interface IDBConnection {
   executeSqlBatch: (
     commands: SQLBatchParams[],
     callback?: (res: BatchQueryResult) => void
+  ) => void;
+  asyncExecuteSqlBatch: (
+    commands: SQLBatchParams[],
+    cb: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
   loadSqlFile: (
@@ -188,6 +197,12 @@ export const openDatabase = (
       ) => {
         const response = sqlite.executeSqlBatch(options.name, commands);
         if (callback) callback(response);
+      },
+      asyncExecuteSqlBatch: (
+        commands: SQLBatchParams[],
+        cb: (res: BatchQueryResult) => void
+      ) => {
+        sqlite.asyncExecuteSqlBatch(options.name, commands, cb);
       },
       close: (ok: any, fail: any) => {
         try {
