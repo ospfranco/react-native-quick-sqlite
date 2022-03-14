@@ -8,7 +8,7 @@ target 'SequelExample' do
 
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => false
+    :hermes_enabled => true
   )
 
   pod 'react-native-quick-sqlite', :path => '../..'

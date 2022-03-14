@@ -2,7 +2,7 @@
 #include <fbjni/fbjni.h>
 #include <jsi/jsi.h>
 #include <ReactCommon/CallInvokerHolder.h>
-#include "react-native-quick-sqlite.h"
+#include "installer.h"
 #include "logs.h"
 #include <typeinfo>
 
@@ -26,7 +26,7 @@ private:
     auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
     std::string docPathString = docPath->toStdString();
 
-    installSequel(*jsiRuntime, jsCallInvoker, docPathString.c_str());
+    install(*jsiRuntime, jsCallInvoker, docPathString.c_str());
   }
 };
 
