@@ -227,55 +227,18 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
       {
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
-        const vector<any> params = jsiArrayToVector(rt, args[2].asObject(rt).asArray(rt));
-        
-//        LOGW("VECTOR CREATED");
-//        std::cout << std::boolalpha;
-        
-//        for(auto i: params) {
-          
-//          LOGW("PARAM: %s", i.type().name());
-//          std::cout << "PARAM: " << i.type().name() << endl;
-//        }
-        
-        auto rows = sequel_execute2(dbName, query, params);
-        
-        auto array = jsi::Array(rt, rows.size());
-        
-        for (int i = 0; i < rows.size(); i++)
-        {
-//          LOGW("ITERATE %d", i);
-          auto row = rows[i];
-          
-          auto jsiRow = jsi::Object(rt);
-          
-          for(SQLiteValueWrapper rowInfo: row) {
-            const char* typeName = rowInfo.value.type().name();
-            LOGW("TYPENAME %s", typeName)
-            if(strcmp(typeName, "d") == 0) {
-              jsiRow.setProperty(rt, rowInfo.name.c_str(), jsi::Value(rt, any_cast<double>(rowInfo.value)));
-            } else if(strcmp(typeName, "NSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEE") == 0) {
-//              jsi::String::createFromUtf8(rt, column_value)
-              jsiRow.setProperty(rt, rowInfo.name.c_str(), jsi::String::createFromUtf8(rt, any_cast<string>(rowInfo.value).c_str()));
-            }
-            
-          }
-          array.setValueAtIndex(rt, i, jsiRow);
-        }
-        
-        return array;
-        
-        
-//        const jsi::Value &params = args[2];
-//        SequelResult result = sequel_execute(rt, dbName, query, params);
-//
-//        if (result.type == SequelResultError)
-//        {
-//          return createError(rt, result.message.c_str());
-//        }
-//
-//        return move(result.value);
-        return {};
+        const jsi::Value &originalParams = args[2];
+        // Converting parameters
+        vector<SequelValue> params;
+        jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
+
+        // Filling the results
+        vector<map<string,SequelValue>> results;
+        auto status = sequel_execute3(dbName, query, &params, &results);
+
+        // Converting results into a JSI Response
+        auto jsiResult = createSequelQueryExecutionResult(rt, status, &results);
+        return move(jsiResult);
       });
 
   // Execute a batch of SQL queries in a transaction
@@ -449,28 +412,27 @@ void installSequel(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallI
         }
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
-        auto params = make_shared<jsi::Value>(args[2].asObject(rt));
+        const jsi::Value &originalParams = args[2];
         auto callback = make_shared<jsi::Value>(args[3].asObject(rt));
 
+        // Converting query parameters inside the javascript caller thread
+        vector<SequelValue> params;
+        jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
+
         auto task =
-            [&rt, dbName, query, params, callback]()
+            [&rt, dbName, query, params=make_shared<vector<SequelValue>>(params), callback]()
         {
           try
           {
-            invoker->invokeAsync([&rt, callback] {
-              callback->asObject(rt).asFunction(rt).call(rt, jsi::Value(rt, 4));
+            // Inside the new worker thread, we can now call sqlite operations
+            vector<map<string,SequelValue>> results;
+            auto status = sequel_execute3(dbName, query, params.get(), &results);
+            invoker->invokeAsync([&rt, results=make_shared<vector<map<string,SequelValue>>>(results), status_copy = move(status), callback] {
+              // Now, back into the JavaScript thread, we can translate the results
+              // back to a JSI Object to pass on the callback
+              auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, results.get());
+              callback->asObject(rt).asFunction(rt).call(rt, move(jsiResult));
             });
-//            SequelResult result = sequel_execute(rt, dbName, query, *params);
-//            if (result.type == SequelResultError)
-//            {
-//              invoker->invokeAsync([&rt, callback, &result]
-//                                   { callback->asObject(rt).asFunction(rt).call(rt, createError(rt, result.message.c_str())); });
-//            }
-//            else
-//            {
-//              invoker->invokeAsync([&rt, callback, &result]
-//                                   { callback->asObject(rt).asFunction(rt).call(rt, result.value); });
-//            }
           }
           catch (std::exception &exc)
           {

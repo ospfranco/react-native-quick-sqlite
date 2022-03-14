@@ -12,10 +12,40 @@
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
 #include <string>
-#include <any>
 
 using namespace std;
 using namespace facebook;
+
+enum SequelDataType {
+  NULL_VALUE,
+  TEXT,
+  INTEGER,
+  INT64, 
+  DOUBLE,
+  BOOLEAN,
+  ARRAY_BUFFER,
+};
+
+/**
+ * TypeSafe dynamic parameter value to bind on sqlite statements
+ */
+struct SequelValue {
+  SequelDataType dataType;
+  int booleanValue;
+  double doubleOrIntValue;
+  long long int64Value;
+  string textValue;
+  shared_ptr<uint8_t> arrayBufferValue;
+  size_t arrayBufferSize;
+};
+
+/**
+ * TypeSafe dynamic column value holder representing a sqlite columnValue
+ */
+struct SequelColumnValue {
+  SequelValue value;
+  string columnName;
+};
 
 enum ResultType
 {
@@ -28,6 +58,14 @@ struct SequelResult
   ResultType type;
   string message;
   jsi::Value value;
+};
+
+struct SequelOperationStatus
+{
+  ResultType type;
+  string errorMessage;
+  int rowsAffected;
+  double insertId;
 };
 
 struct SequelLiteralUpdateResult
@@ -45,8 +83,3 @@ struct SequelBatchOperationResult
   int commands;
 };
 
-struct SQLiteValueWrapper
-{
-  string name;
-  any value;
-};
