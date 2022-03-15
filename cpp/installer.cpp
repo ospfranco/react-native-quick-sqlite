@@ -233,19 +233,24 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         if (sizeof(args) < 3)
         {
-          return createError(rt, "[react-native-quick-sqlite][execSQLBatch] - Incorrect parameter count");
+          return {};
         }
 
         const jsi::Value &params = args[1];
-        if (params.isNull() || params.isUndefined())
-        {
-          return createError(rt, "[react-native-quick-sqlite][execSQLBatch] - An array of SQL commands or parameters is needed");
+        const jsi::Value &callbackHolder = args[2];
+        if(!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt)) {
+          return {};
         }
 
+        if (params.isNull() || params.isUndefined())
+        {
+          callbackHolder.asObject(rt).asFunction(rt).call(rt, createError(rt, "[react-native-quick-sqlite][execSQLBatch] - An array of SQL commands or parameters is needed"));
+          return {};
+        }
 
         const string dbName = args[0].asString(rt).utf8(rt);
         const jsi::Array &batchParams = params.asObject(rt).asArray(rt);
-        auto callback = make_shared<jsi::Value>((args[2].asObject(rt)));
+        auto callback = make_shared<jsi::Value>((callbackHolder.asObject(rt)));
 
         vector<QuickQueryArguments> commands;
         jsiBatchParametersToQuickArguments(rt, batchParams, &commands);

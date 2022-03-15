@@ -138,8 +138,5 @@
         }
       ]
     ]
-  },
-  "dependencies": {
-    "react-native-quick-sqlite": "file:///home/eduardo/Projetos/react/plugins/react-native-quick-sqlite"
   }
 }
