@@ -233,24 +233,26 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         if (sizeof(args) < 3)
         {
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] Incorrect parameter count");
           return {};
         }
 
         const jsi::Value &params = args[1];
         const jsi::Value &callbackHolder = args[2];
         if(!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt)) {
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] The callback argument must be a function");
           return {};
         }
 
         if (params.isNull() || params.isUndefined())
         {
-          callbackHolder.asObject(rt).asFunction(rt).call(rt, createError(rt, "[react-native-quick-sqlite][execSQLBatch] - An array of SQL commands or parameters is needed"));
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] - An array of SQL commands or parameters is needed");
           return {};
         }
 
         const string dbName = args[0].asString(rt).utf8(rt);
         const jsi::Array &batchParams = params.asObject(rt).asArray(rt);
-        auto callback = make_shared<jsi::Value>((callbackHolder.asObject(rt)));
+        auto callback = make_shared<jsi::Value>(callbackHolder.asObject(rt));
 
         vector<QuickQueryArguments> commands;
         jsiBatchParametersToQuickArguments(rt, batchParams, &commands);
@@ -318,9 +320,21 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       3,
       [pool](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
+        if (sizeof(args) < 3)
+        {
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncLoadSqlFile] Incorrect parameter count");
+          return {};
+        }
+
+        const jsi::Value &callbackHolder = args[2];
+        if(!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt)) {
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncLoadSqlFile] The callback argument must be a function");
+          return {};
+        }
+
         const string dbName = args[0].asString(rt).utf8(rt);
         const string sqlFileName = args[1].asString(rt).utf8(rt);
-        auto callback = make_shared<jsi::Value>((args[2].asObject(rt)));
+        auto callback = make_shared<jsi::Value>(callbackHolder.asObject(rt));
 
         auto task =
             [&rt, dbName, sqlFileName, callback]()
@@ -364,14 +378,20 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         if (count < 4)
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite] Incorrect arguments for asyncExecuteSQL");
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSql] Incorrect arguments for asyncExecuteSQL");
+          return {};
+        }
+
+        const jsi::Value &callbackHolder = args[3];
+        if(!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt)) {
+          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSql] The callback argument must be a function");
           return {};
         }
         
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
         const jsi::Value &originalParams = args[2];
-        auto callback = make_shared<jsi::Value>(args[3].asObject(rt));
+        auto callback = make_shared<jsi::Value>(callbackHolder.asObject(rt));
 
         // Converting query parameters inside the javascript caller thread
         vector<QuickValue> params;
