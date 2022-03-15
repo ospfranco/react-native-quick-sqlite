@@ -49,6 +49,10 @@ add_library(
   ../cpp/JSIHelper.cpp
   ../cpp/ThreadPool.h
   ../cpp/ThreadPool.cpp
+  ../cpp/sqlfileloader.h
+  ../cpp/sqlfileloader.cpp
+  ../cpp/sqlbatchexecutor.h
+  ../cpp/sqlbatchexecutor.cpp
   cpp-adapter.cpp
 )
 
