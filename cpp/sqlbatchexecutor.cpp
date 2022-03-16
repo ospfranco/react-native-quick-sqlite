@@ -48,7 +48,7 @@ SequelBatchOperationResult executeBatch(std::string dbName, vector<QuickQueryArg
   if(commandCount <= 0)
   {
     return SequelBatchOperationResult {
-      .type = SequelResultError,
+      .type = SQLiteError,
       .message = "No SQL commands provided",
     };
   }
@@ -56,15 +56,15 @@ SequelBatchOperationResult executeBatch(std::string dbName, vector<QuickQueryArg
   try 
   {
     int affectedRows = 0;
-    sequel_execute_literal_update(dbName, "BEGIN EXCLUSIVE TRANSACTION");
+    sqliteExecuteLiteral(dbName, "BEGIN EXCLUSIVE TRANSACTION");
     for(int i = 0; i<commandCount; i++) {
       auto command = commands->at(i);
       // We do not provide a datastructure to receive query data because we don't need/want to handle this results in a batch execution
-      auto result = sequel_execute3(dbName, command.sql, command.params.get(), NULL);
-      if(result.type == SequelResultError)
+      auto result = sqliteExecute(dbName, command.sql, command.params.get(), NULL);
+      if(result.type == SQLiteError)
       {
         return SequelBatchOperationResult {
-          .type = SequelResultError,
+          .type = SQLiteError,
           .message = result.errorMessage,
         };
       } else 
@@ -72,17 +72,17 @@ SequelBatchOperationResult executeBatch(std::string dbName, vector<QuickQueryArg
         affectedRows += result.rowsAffected;
       }
     }
-    sequel_execute_literal_update(dbName, "COMMIT");
+    sqliteExecuteLiteral(dbName, "COMMIT");
     return SequelBatchOperationResult {
-      .type = SequelResultOk,
+      .type = SQLiteOk,
       .affectedRows = affectedRows,
       .commands = (int) commandCount,
     };
   } catch(std::exception &exc)
   {
-    sequel_execute_literal_update(dbName, "ROLLBACK");
+    sqliteExecuteLiteral(dbName, "ROLLBACK");
     return SequelBatchOperationResult {
-      .type = SequelResultError,
+      .type = SQLiteError,
       .message = exc.what(),
     };
   }

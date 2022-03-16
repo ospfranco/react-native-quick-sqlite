@@ -17,17 +17,17 @@ SequelBatchOperationResult importSQLFile(string dbName, string fileLocation)
     {
       int affectedRows = 0;
       int commands = 0;
-      sequel_execute_literal_update(dbName, "BEGIN EXCLUSIVE TRANSACTION");
+      sqliteExecuteLiteral(dbName, "BEGIN EXCLUSIVE TRANSACTION");
       while (std::getline(sqFile, line, '\n'))
       {
         if (!line.empty())
         {
-          SequelLiteralUpdateResult result = sequel_execute_literal_update(dbName, line);
-          if (result.type == SequelResultError)
+          SequelLiteralUpdateResult result = sqliteExecuteLiteral(dbName, line);
+          if (result.type == SQLiteError)
           {
-            sequel_execute_literal_update(dbName, "ROLLBACK");
+            sqliteExecuteLiteral(dbName, "ROLLBACK");
             sqFile.close();
-            return {SequelResultError, result.message, 0, commands};
+            return {SQLiteError, result.message, 0, commands};
           }
           else
           {
@@ -37,18 +37,18 @@ SequelBatchOperationResult importSQLFile(string dbName, string fileLocation)
         }
       }
       sqFile.close();
-      sequel_execute_literal_update(dbName, "COMMIT");
-      return {SequelResultOk, "", affectedRows, commands};
+      sqliteExecuteLiteral(dbName, "COMMIT");
+      return {SQLiteOk, "", affectedRows, commands};
     }
     catch (...)
     {
       sqFile.close();
-      sequel_execute_literal_update(dbName, "ROLLBACK");
-      return {SequelResultError, "[react-native-quick-sqlite][loadSQLFile] Unexpected error, transaction was rolledback", 0, 0};
+      sqliteExecuteLiteral(dbName, "ROLLBACK");
+      return {SQLiteError, "[react-native-quick-sqlite][loadSQLFile] Unexpected error, transaction was rolledback", 0, 0};
     }
   }
   else
   {
-    return {SequelResultError, "[react-native-quick-sqlite][loadSQLFile] Could not open file", 0, 0};
+    return {SQLiteError, "[react-native-quick-sqlite][loadSQLFile] Could not open file", 0, 0};
   }
 }

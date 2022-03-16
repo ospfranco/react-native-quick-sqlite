@@ -75,11 +75,11 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
         }
 
-        SequelResult result = sequel_open(dbName, tempDocPath);
+        SQLiteOPResult result = sqliteOpenDb(dbName, tempDocPath);
 
-        if (result.type == SequelResultError)
+        if (result.type == SQLiteError)
         {
-          return createError(rt, result.message.c_str());
+          return createError(rt, result.errorMessage.c_str());
         }
 
         return createOk(rt);
@@ -99,7 +99,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   //            string dbName = args[0].asString(rt).utf8(rt);
   //            SequelResult result = sequel_attach(dbName);
   //
-  //            if (result.type == SequelResultError)
+  //            if (result.type == SQLiteError)
   //            {
   //                jsi::detail::throwJSError(rt, result.message.c_str());
   //                return {};
@@ -127,14 +127,14 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SequelResult result = sequel_close(dbName);
+        SQLiteOPResult result = sqliteCloseDb(dbName);
 
-        if (result.type == SequelResultError)
+        if (result.type == SQLiteError)
         {
-          return createError(rt, result.message.c_str());
+          return createError(rt, result.errorMessage.c_str());
         }
 
-        return move(result.value);
+        return createOk(rt);
       });
 
   // Delete db
@@ -156,11 +156,11 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SequelResult result = sequel_remove(dbName, docPathStr);
+        SQLiteOPResult result = sqliteRemoveDb(dbName, docPathStr);
 
-        if (result.type == SequelResultError)
+        if (result.type == SQLiteError)
         {
-          return createError(rt, result.message.c_str());
+          return createError(rt, result.errorMessage.c_str());
         }
 
         return jsi::Value::undefined();
@@ -182,7 +182,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         // Filling the results
         vector<map<string, QuickValue>> results;
-        auto status = sequel_execute3(dbName, query, &params, &results);
+        auto status = sqliteExecute(dbName, query, &params, &results);
 
         // Converting results into a JSI Response
         auto jsiResult = createSequelQueryExecutionResult(rt, status, &results);
@@ -213,13 +213,14 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         jsiBatchParametersToQuickArguments(rt, batchParams, &commands);
 
         auto batchResult = executeBatch(dbName, &commands);
-        if(batchResult.type == SequelResultOk)
+        if (batchResult.type == SQLiteOk)
         {
           auto res = jsi::Object(rt);
           res.setProperty(rt, "status", jsi::Value(0));
           res.setProperty(rt, "rowsAffected", jsi::Value(batchResult.affectedRows));
           return move(res);
-        } else
+        }
+        else
         {
           return createError(rt, batchResult.message);
         }
@@ -239,7 +240,8 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         const jsi::Value &params = args[1];
         const jsi::Value &callbackHolder = args[2];
-        if(!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt)) {
+        if (!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt))
+        {
           jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] The callback argument must be a function");
           return {};
         }
@@ -264,9 +266,9 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           {
             // Inside the new worker thread, we can now call sqlite operations
             auto batchResult = executeBatch(dbName, commands.get());
-            invoker->invokeAsync([&rt, batchResult = move(batchResult), callback] 
-            {
-              if(batchResult.type == SequelResultOk)
+            invoker->invokeAsync([&rt, batchResult = move(batchResult), callback]
+                                 {
+              if(batchResult.type == SQLiteOk)
               {
                 auto res = jsi::Object(rt);
                 res.setProperty(rt, "status", jsi::Value(0));
@@ -275,8 +277,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
               } else
               {
                 callback->asObject(rt).asFunction(rt).call(rt, createError(rt, batchResult.message));
-              }
-            });
+              } });
           }
           catch (std::exception &exc)
           {
@@ -299,7 +300,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         const string sqlFileName = args[1].asString(rt).utf8(rt);
 
         const auto importResult = importSQLFile(dbName, sqlFileName);
-        if (importResult.type == SequelResultOk)
+        if (importResult.type == SQLiteOk)
         {
           auto res = jsi::Object(rt);
           res.setProperty(rt, "status", jsi::Value(0));
@@ -327,7 +328,8 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         }
 
         const jsi::Value &callbackHolder = args[2];
-        if(!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt)) {
+        if (!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt))
+        {
           jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncLoadSqlFile] The callback argument must be a function");
           return {};
         }
@@ -347,7 +349,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
             // Executing the callback invoke inside the JavaScript thread in order to safe build JSI objects that depends on jsi::Runtime and must be synchronized.
             invoker->invokeAsync([&rt, result = move(importResult), callback]
                                  {
-              if(result.type == SequelResultOk)
+              if(result.type == SQLiteOk)
               {
                 auto res = jsi::Object(rt);
                 res.setProperty(rt, "status", jsi::Value(0));
@@ -383,11 +385,12 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         }
 
         const jsi::Value &callbackHolder = args[3];
-        if(!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt)) {
+        if (!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt))
+        {
           jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSql] The callback argument must be a function");
           return {};
         }
-        
+
         const string dbName = args[0].asString(rt).utf8(rt);
         const string query = args[1].asString(rt).utf8(rt);
         const jsi::Value &originalParams = args[2];
@@ -404,7 +407,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           {
             // Inside the new worker thread, we can now call sqlite operations
             vector<map<string, QuickValue>> results;
-            auto status = sequel_execute3(dbName, query, params.get(), &results);
+            auto status = sqliteExecute(dbName, query, params.get(), &results);
             invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), status_copy = move(status), callback]
                                  {
               // Now, back into the JavaScript thread, we can translate the results

@@ -7,24 +7,20 @@
  * This code is licensed under the MIT license
  */
 
-#include <jsi/jsilib.h>
-#include <jsi/jsi.h>
 #include "JSIHelper.h"
 #include <vector>
 
 using namespace std;
 using namespace facebook;
 
-SequelResult sequel_open(string const dbName, string const docPath);
+SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath);
 
-SequelResult sequel_close(string const dbName);
+SQLiteOPResult sqliteCloseDb(string const dbName);
 
-SequelResult sequel_remove(string const dbName, string const docPath);
+SQLiteOPResult sqliteRemoveDb(string const dbName, string const docPath);
 
 // SequelResult sequel_attach(string const &dbName);
 
-SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params);
+SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<QuickValue> *values, vector<map<string, QuickValue>> *result);
 
-SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<QuickValue> *values, vector<map<string, QuickValue>> *result);
-
-SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, string const &query);
+SequelLiteralUpdateResult sqliteExecuteLiteral(string const dbName, string const &query);

@@ -85,7 +85,6 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
     }
     else if (value.isBool())
     {
-      int intVal = int(value.getBool());
       target->push_back(createBooleanQuickValue(value.getBool()));
     }
     else if (value.isNumber())
@@ -127,10 +126,10 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
   }
 }
 
-jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SequelOperationStatus status, vector<map<string, QuickValue>> *results)
+jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results)
 {
   jsi::Object res = jsi::Object(rt);
-  if (status.type == SequelResultOk)
+  if (status.type == SQLiteOk)
   {
     // res.setProperty(rt, "rows", move(rows));
     res.setProperty(rt, "rowsAffected", jsi::Value(status.rowsAffected));

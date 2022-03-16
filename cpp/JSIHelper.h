@@ -59,18 +59,11 @@ struct QuickColumnValue
  */
 enum ResultType
 {
-  SequelResultOk,
-  SequelResultError
+  SQLiteOk,
+  SQLiteError
 };
 
-struct SequelResult
-{
-  ResultType type;
-  string message;
-  jsi::Value value;
-};
-
-struct SequelOperationStatus
+struct SQLiteOPResult
 {
   ResultType type;
   string errorMessage;
@@ -106,6 +99,6 @@ QuickValue createIntegerQuickValue(double value);
 QuickValue createInt64QuickValue(long long value);
 QuickValue createDoubleQuickValue(double value);
 QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBufferSize);
-jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SequelOperationStatus status, vector<map<string, QuickValue>> *results);
+jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results);
 
 #endif /* JSIHelper_h */

@@ -10,28 +10,30 @@ export const lowLevelInit = async () => {
   // Just uncomment this methods to try the low level api of the library
 
   // Creates a table in db
-  // const result = sqlite.executeSql(
-  //   'test',
-  //   'CREATE TABLE "User" ( id INT PRIMARY KEY, name TEXT NOT NULL );',
-  //   undefined
-  // );
-  // console.warn('tried to create table result', result);
+  const createResult = sqlite.executeSql(
+    'test',
+    'CREATE TABLE "User" ( id INT PRIMARY KEY, name TEXT NOT NULL );',
+    undefined
+  );
+  console.warn({ createResult });
 
   // This is how you do a sync request
-  // const result = sqlite.executeSql(
-  //   'test',
-  //   'INSERT INTO "User" (id, name) VALUES(?, ?)',
-  //   [new Date().getMilliseconds(), `${new Date().getMilliseconds()}`]
-  // );
+  const insertResult = sqlite.executeSql(
+    'test',
+    'INSERT INTO "User" (id, name) VALUES(?, ?)',
+    [new Date().getMilliseconds(), `${new Date().getMilliseconds()}`]
+  );
+  console.warn({ insertResult });
 
   // A simple select
-  // const result = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
+  const queryResult = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
+  console.warn({ queryResult });
 
   // For more advanced use cases where you don't want to block the UI thread
   // use async methods
-  sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
-    console.warn('asyncRes2', asyncRes);
-  });
+  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
+  //   console.warn('asyncRes2', asyncRes);
+  // });
 };
 
 export async function typeORMInit() {

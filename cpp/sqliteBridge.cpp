@@ -80,7 +80,7 @@ string get_db_path(string const dbName, string const docPath)
   return docPath + "/" + dbName;
 }
 
-SequelResult sequel_open(string const dbName, string const docPath)
+SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath)
 {
   string dbPath = get_db_path(dbName, docPath);
 
@@ -92,32 +92,31 @@ SequelResult sequel_open(string const dbName, string const docPath)
 
   if (exit != SQLITE_OK)
   {
-    return SequelResult{
-        SequelResultError,
-        sqlite3_errmsg(db),
-        jsi::Value::undefined()};
+    return SQLiteOPResult{
+      .type = SQLiteError,
+      .errorMessage = sqlite3_errmsg(db)
+    };
   }
   else
   {
     dbMap[dbName] = db;
   }
 
-  return SequelResult{
-      SequelResultOk,
-      "",
-      jsi::Value::undefined()};
+  return SQLiteOPResult{
+      .type = SQLiteOk,
+      .rowsAffected = 0
+  };
 }
 
-SequelResult sequel_close(string const dbName)
+SQLiteOPResult sqliteCloseDb(string const dbName)
 {
 
   if (dbMap.count(dbName) == 0)
   {
-    // cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
-    return SequelResult{
-        SequelResultError,
-        dbName + " is not open",
-        jsi::Value::undefined()};
+    return SQLiteOPResult{
+        .type = SQLiteError,
+        .errorMessage = dbName + " is not open",
+      };
   }
 
   sqlite3 *db = dbMap[dbName];
@@ -126,10 +125,9 @@ SequelResult sequel_close(string const dbName)
 
   dbMap.erase(dbName);
 
-  return SequelResult{
-      SequelResultOk,
-      "",
-      jsi::Value::undefined()};
+  return SQLiteOPResult{
+      .type = SQLiteOk,
+  };
 }
 
 // SequelResult sequel_attach(string const &dbName)
@@ -156,12 +154,12 @@ SequelResult sequel_close(string const dbName)
 
 //}
 
-SequelResult sequel_remove(string const dbName, string const docPath)
+SQLiteOPResult sqliteRemoveDb(string const dbName, string const docPath)
 {
   if (dbMap.count(dbName) == 1)
   {
-    SequelResult closeResult = sequel_close(dbName);
-    if (closeResult.type == SequelResultError)
+    SQLiteOPResult closeResult = sqliteCloseDb(dbName);
+    if (closeResult.type == SQLiteError)
     {
       return closeResult;
     }
@@ -171,80 +169,20 @@ SequelResult sequel_remove(string const dbName, string const docPath)
 
   if (!file_exists(dbPath))
   {
-    return SequelResult{
-        SequelResultError,
-        "[react-native-quick-sqlite]: Database file not found" + dbPath};
+    return SQLiteOPResult{
+        .type = SQLiteOk,
+        .errorMessage = "[react-native-quick-sqlite]: Database file not found" + dbPath
+    };
   }
 
   remove(dbPath.c_str());
 
-  return SequelResult{
-      SequelResultOk,
-      "",
-      jsi::Value::undefined()};
+  return SQLiteOPResult{
+    .type = SQLiteOk,
+  };
 }
 
-void bindStatement(sqlite3_stmt *statement, jsi::Runtime &rt, jsi::Value const &params)
-{
-  if (params.isNull() || params.isUndefined())
-  {
-    return;
-  }
-
-  jsi::Array values = params.asObject(rt).asArray(rt);
-
-  for (int ii = 0; ii < values.length(rt); ii++)
-  {
-
-    jsi::Value value = values.getValueAtIndex(rt, ii);
-    if (value.isNull())
-    {
-      sqlite3_bind_null(statement, ii + 1);
-    }
-    else if (value.isBool())
-    {
-      int intVal = int(value.getBool());
-      sqlite3_bind_int(statement, ii + 1, intVal);
-    }
-    else if (value.isNumber())
-    {
-      double doubleVal = value.asNumber();
-      int intVal = (int)doubleVal;
-      long long longVal = (long)doubleVal;
-      if (intVal == doubleVal)
-      {
-        sqlite3_bind_int(statement, ii + 1, intVal);
-      }
-      else if (longVal == doubleVal)
-      {
-        sqlite3_bind_int64(statement, ii + 1, longVal);
-      }
-      else
-      {
-        sqlite3_bind_double(statement, ii + 1, doubleVal);
-      }
-    }
-    else if (value.isString())
-    {
-      string strVal = value.asString(rt).utf8(rt);
-
-      sqlite3_bind_text(statement, ii + 1, strVal.c_str(), strVal.length(), SQLITE_TRANSIENT);
-    }
-    else if (value.isObject())
-    {
-      auto obj = value.asObject(rt);
-      if (obj.isArrayBuffer(rt))
-      {
-        auto buf = obj.getArrayBuffer(rt);
-        // The statement is executed before returning control to JSI, so we don't need to copy the data to extend its lifetime.
-        sqlite3_bind_blob(statement, ii + 1, buf.data(rt), buf.size(rt), SQLITE_STATIC);
-      }
-    }
-  }
-}
-
-// Using Structs IMPL
-void bindStatementWithValues(sqlite3_stmt *statement, vector<QuickValue> *values)
+void bindStatement(sqlite3_stmt *statement, vector<QuickValue> *values)
 {
   size_t size = values->size();
   if (size <= 0)
@@ -288,15 +226,16 @@ void bindStatementWithValues(sqlite3_stmt *statement, vector<QuickValue> *values
   }
 }
 
-SequelOperationStatus sequel_execute3(string const dbName, string const &query, vector<QuickValue> *params, vector<map<string, QuickValue>> *results)
+SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<QuickValue> *params, vector<map<string, QuickValue>> *results)
 {
   // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
   {
-    return SequelOperationStatus{
-        SequelResultError,
-        "[react-native-quick-sqlite]: Database " + dbName + " is not open",
-        0};
+    return SQLiteOPResult{
+        .type = SQLiteError,
+        .errorMessage = "[react-native-quick-sqlite]: Database " + dbName + " is not open",
+        .rowsAffected = 0
+    };
   }
 
   sqlite3 *db = dbMap[dbName];
@@ -309,15 +248,15 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
 
   if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
   {
-    bindStatementWithValues(statement, params);
+    bindStatement(statement, params);
   }
   else
   {
     const char *message = sqlite3_errmsg(db);
-    return SequelOperationStatus{
-        SequelResultError,
-        "[react-native-quick-sqlite] SQL execution error: " + string(message),
-        0};
+    return SQLiteOPResult{
+        .type = SQLiteError,
+        .errorMessage = "[react-native-quick-sqlite] SQL execution error: " + string(message),
+        .rowsAffected = 0};
   }
 
   bool isConsuming = true;
@@ -415,215 +354,32 @@ SequelOperationStatus sequel_execute3(string const dbName, string const &query, 
   if (isFailed)
   {
     const char *message = sqlite3_errmsg(db);
-    return SequelOperationStatus{
-        SequelResultError,
-        "[react-native-quick-sqlite] SQL execution error: " + string(message),
-        0,
-        0};
+    return SQLiteOPResult{
+        .type = SQLiteError,
+        .errorMessage = "[react-native-quick-sqlite] SQL execution error: " + string(message),
+        .rowsAffected = 0,
+        .insertId = 0
+    };
   }
 
   int changedRowCount = sqlite3_changes(db);
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-  return SequelOperationStatus{
-      SequelResultOk,
-      "",
-      changedRowCount,
-      static_cast<double>(latestInsertRowId)};
+  return SQLiteOPResult{
+      .type = SQLiteOk,
+      .rowsAffected = changedRowCount,
+      .insertId = static_cast<double>(latestInsertRowId)};
 }
 
-SequelResult sequel_execute(jsi::Runtime &rt, string const dbName, string const &query, jsi::Value const &params)
-{
-  // Check if db connection is opened
-  if (dbMap.count(dbName) == 0)
-  {
-    return SequelResult{
-        SequelResultError,
-        "[react-native-quick-sqlite]: Database " + dbName + " is not open"};
-  }
-
-  sqlite3 *db = dbMap[dbName];
-
-  vector<jsi::Object> results;
-
-  // SQLite statements need to be compiled before executed
-  sqlite3_stmt *statement;
-
-  // Compile and move result into statement memory spot
-  int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
-
-  if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
-  {
-    bindStatement(statement, rt, params);
-  }
-  else
-  {
-    const char *message = sqlite3_errmsg(db);
-    return {
-        SequelResultError,
-        "[react-native-quick-sqlite] SQL execution error: " + string(message),
-        jsi::Value::undefined()};
-  }
-
-  bool isConsuming = true;
-  bool isFailed = false;
-
-  int result, i, count, column_type;
-  string column_name;
-
-  while (isConsuming)
-  {
-    result = sqlite3_step(statement);
-    jsi::Object entry = jsi::Object(rt);
-
-    switch (result)
-    {
-    case SQLITE_ROW:
-      i = 0;
-      count = sqlite3_column_count(statement);
-
-      while (i < count)
-      {
-        column_type = sqlite3_column_type(statement, i);
-        column_name = sqlite3_column_name(statement, i);
-
-        switch (column_type)
-        {
-
-        case SQLITE_INTEGER:
-        {
-          /**
-           * It's not possible to send a int64_t in a jsi::Value because JS cannot represent the whole number range.
-           * Instead, we're sending a double, which can represent all integers up to 53 bits long, which is more
-           * than what was there before (a 32-bit int).
-           *
-           * See https://github.com/ospfranco/react-native-quick-sqlite/issues/16 for more context.
-           */
-          double column_value = sqlite3_column_double(statement, i);
-          entry.setProperty(rt, column_name.c_str(), jsi::Value(column_value));
-          break;
-        }
-
-        case SQLITE_FLOAT:
-        {
-          double column_value = sqlite3_column_double(statement, i);
-          entry.setProperty(rt, column_name.c_str(), jsi::Value(column_value));
-          break;
-        }
-
-        case SQLITE_TEXT:
-        {
-          const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
-          entry.setProperty(rt, column_name.c_str(), jsi::String::createFromUtf8(rt, column_value));
-          break;
-        }
-
-        case SQLITE_BLOB:
-        {
-          int blob_size = sqlite3_column_bytes(statement, i);
-          const void *blob = sqlite3_column_blob(statement, i);
-          jsi::Function array_buffer_ctor = rt.global().getPropertyAsFunction(rt, "ArrayBuffer");
-          jsi::Object o = array_buffer_ctor.callAsConstructor(rt, blob_size).getObject(rt);
-          jsi::ArrayBuffer buf = o.getArrayBuffer(rt);
-          // It's a shame we have to copy here: see https://github.com/facebook/hermes/pull/419 and https://github.com/facebook/hermes/issues/564.
-          memcpy(buf.data(rt), blob, blob_size);
-          entry.setProperty(rt, column_name.c_str(), o);
-          break;
-        }
-
-        case SQLITE_NULL:
-        // Intentionally left blank to switch to default case
-        default:
-          entry.setProperty(rt, column_name.c_str(), jsi::Value(nullptr));
-          break;
-        }
-
-        i++;
-      }
-
-      results.push_back(move(entry));
-      break;
-
-    case SQLITE_DONE:
-      isConsuming = false;
-      break;
-
-    default:
-      isFailed = true;
-      isConsuming = false;
-    }
-  }
-
-  sqlite3_finalize(statement);
-
-  if (isFailed)
-  {
-    const char *message = sqlite3_errmsg(db);
-    return {
-        SequelResultError,
-        "[react-native-quick-sqlite] SQL execution error: " + string(message),
-        jsi::Value::undefined()};
-  }
-
-  // Move everything into a JSI object
-  auto array = jsi::Array(rt, results.size());
-  for (int i = 0; i < results.size(); i++)
-  {
-    array.setValueAtIndex(rt, i, move(results[i]));
-  }
-
-  jsi::Object rows = jsi::Object(rt);
-  rows.setProperty(rt, "status", jsi::Value(0));
-  rows.setProperty(rt, "length", jsi::Value((int)results.size()));
-  rows.setProperty(rt, "_array", move(array));
-
-  //    For any future endaevors, I tried to create the accesor function directly on via JSI
-  //      But this is too complex for my punny brain, so this function is created on the index.ts file
-  //  // Create accessor function
-  //  auto itemAccesser = jsi::Function::createFromHostFunction(
-  //                          rt,
-  //                          jsi::PropNameID::forAscii(rt, "item"),
-  //                          1,
-  //                          [&array](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
-  //                          {
-  //      if(args[0].isNumber()) {
-  //          double rowNumber = args[0].asNumber();
-  //          cout << "trying to access value at" << rowNumber << endl;
-  //          return array.getValueAtIndex(rt, (int)rowNumber);
-  //      }
-  //
-  //      return {};
-  //  });
-
-  //  rows.setProperty(rt, "item", move(itemAccesser));
-
-  jsi::Object res = jsi::Object(rt);
-  res.setProperty(rt, "rows", move(rows));
-
-  int changedRowCount = sqlite3_changes(db);
-  res.setProperty(rt, "rowsAffected", jsi::Value(changedRowCount));
-
-  // row id has nothing to do with the actual uuid/id of the object, but internal row count
-  long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-  if (changedRowCount > 0 && latestInsertRowId != 0)
-  {
-    res.setProperty(rt, "insertId", jsi::Value((int)latestInsertRowId));
-  }
-
-  return {
-      SequelResultOk,
-      "",
-      move(res)};
-}
-
-SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, string const &query)
+SequelLiteralUpdateResult sqliteExecuteLiteral(string const dbName, string const &query)
 {
   // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
   {
     return {
-        SequelResultError,
+        SQLiteError,
         "[react-native-quick-sqlite] Database not opened: " + dbName,
-        0};
+        0
+    };
   }
 
   sqlite3 *db = dbMap[dbName];
@@ -638,7 +394,7 @@ SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, str
   {
     const char *message = sqlite3_errmsg(db);
     return {
-        SequelResultError,
+        SQLiteError,
         "[react-native-quick-sqlite] SQL execution error: " + string(message),
         0};
   }
@@ -675,14 +431,14 @@ SequelLiteralUpdateResult sequel_execute_literal_update(string const dbName, str
   {
     const char *message = sqlite3_errmsg(db);
     return {
-        SequelResultError,
+        SQLiteError,
         "[react-native-quick-sqlite] SQL execution error: " + string(message),
         0};
   }
 
   int changedRowCount = sqlite3_changes(db);
   return {
-      SequelResultOk,
+      SQLiteOk,
       "",
       changedRowCount};
 }
