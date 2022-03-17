@@ -1,17 +1,37 @@
 #include <jni.h>
-#include "react-native-quick-sqlite.h"
+#include <fbjni/fbjni.h>
+#include <jsi/jsi.h>
+#include <ReactCommon/CallInvokerHolder.h>
+#include "installer.h"
+#include "logs.h"
+#include <typeinfo>
 
-extern "C" JNIEXPORT void JNICALL
-Java_com_reactnativequicksqlite_SequelModule_initialize(JNIEnv *env, jclass clazz, jlong jsiPtr, jstring docPath)
+struct QuickSQLiteBridge : jni::JavaClass<QuickSQLiteBridge>
 {
-  jboolean isCopy;
-  const char *docPathString = (env)->GetStringUTFChars(docPath, &isCopy);
+  static constexpr auto kJavaDescriptor = "Lcom/reactnativequicksqlite/QuickSQLiteBridge;";
 
-  installSequel(*reinterpret_cast<facebook::jsi::Runtime *>(jsiPtr), docPathString);
-}
+  static void registerNatives()
+  {
+    javaClassStatic()->registerNatives({// initialization for JSI
+                                        makeNativeMethod("installNativeJsi", QuickSQLiteBridge::installNativeJsi)});
+  }
 
-extern "C" JNIEXPORT void JNICALL
-Java_com_reactnativequicksqlite_SequelModule_destruct(JNIEnv *env, jclass clazz)
+private:
+  static void installNativeJsi(jni::alias_ref<jni::JObject> thiz,
+                               jlong jsiRuntimePtr,
+                               jni::alias_ref<react::CallInvokerHolder::javaobject> jsCallInvokerHolder,
+                               jni::alias_ref<jni::JString> docPath)
+  {
+    auto jsiRuntime = reinterpret_cast<jsi::Runtime *>(jsiRuntimePtr);
+    auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
+    std::string docPathString = docPath->toStdString();
+
+    install(*jsiRuntime, jsCallInvoker, docPathString.c_str());
+  }
+};
+
+JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *)
 {
-  cleanUpSequel();
+  return jni::initialize(vm, []
+                         { QuickSQLiteBridge::registerNatives(); });
 }

@@ -1,8 +1,8 @@
 <h1 align="center">React Native Quick SQLite</h1>
 
-<h3 align="center">Fast SQLite for react-native.</h3>
+<h3 align="center">Fast SQLite for React-Native.</h3>
 
-![Frame 2](https://user-images.githubusercontent.com/1634213/127499575-aed1d0e2-8a93-42ab-917e-badaab8916f6.png)
+![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header.png)
 
 <div align="center">
   <pre align="center">
@@ -21,7 +21,7 @@
 </div>
 <br />
 
-This library uses [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2) to directly call C++ code from JS. It provides a low-level API to execute SQL queries, therefore I recommend you use it with TypeORM.
+This library provides a low-level API to execute SQL queries, fast bindings via [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2).
 
 Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2).
 
@@ -30,20 +30,8 @@ Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor
 - **Javascript cannot represent intergers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
 - **It's not possible to use a browser to debug a JSI app**, use [Flipper](https://github.com/facebook/flipper) (for android Flipper also has SQLite Database explorer).
 - Your app will now include C++, you will need to install the NDK on your machine for android.
-- This library supports SQLite BLOBs which are mapped to JS ArrayBuffers, check out the sample project on how to use it
-- From version 2.0.0 onwards errors are no longer thrown on invalid SQL statements. The response contains a `status` number, `0` signals correct execution, `1` signals an error.
-- From version 3.0.0 onwards no JS errors are thown, every operation returns an object with a `status` field.
-- If you want to run the example project on android, you will have to change the paths on the android/CMakeLists.txt file, they are already there, just uncomment them.
-
-## Use TypeORM
-
-This package offers a low-level API to raw execute SQL queries. I strongly recommend to use [TypeORM](https://github.com/typeorm/typeorm) (with [patch-package](https://github.com/ds300/patch-package)). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch).
-
-Follow the instructions to make TypeORM work with React Native (enable decorators, configure babel, etc), then apply the patch via patch-package and you should be good to go.
 
 ## API
-
-It is also possible to directly execute SQL against the db:
 
 ```typescript
 interface QueryResult {
@@ -60,23 +48,41 @@ interface BatchQueryResult {
 }
 
 interface ISQLite {
-  open: (dbName: string, location?: string) => any;
-  close: (dbName: string) => any;
+  open: (dbName: string, location?: string) => { status: 0 | 1 };
+  close: (dbName: string) => { status: 0 | 1 };
   executeSql: (
     dbName: string,
     query: string,
     params: any[] | undefined
   ) => QueryResult;
+  asyncExecuteSql: (
+    dbName: string,
+    query: string,
+    params: any[] | undefined,
+    cb: (res: QueryResult) => void
+  ) => void;
   executeSqlBatch: (
     dbName: string,
     commands: SQLBatchParams[]
   ) => BatchQueryResult;
+  asyncExecuteSqlBatch: (
+    dbName: string,
+    commands: SQLBatchParams[],
+    cb: (res: BatchQueryResult) => void
+  ) => void;
+  loadSqlFile: (dbName: string, location: string) => FileLoadResult;
+  asyncLoadSqlFile: (
+    dbName: string,
+    location: string,
+    cb: (res: FileLoadResult) => void
+  ) => void;
 }
 ```
 
-In your code
+# Usage
 
 ```typescript
+// Import as early as possible, auto-installs bindings
 import 'react-native-quick-sqlite';
 
 // `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
@@ -128,9 +134,25 @@ if (!result.status) {
 }
 ```
 
+Async versions are also available if you have too much SQL to execute
+
+```ts
+sqlite.asyncExecuteSql('myDatabase', 'SELECT * FROM "User";', [], (result) => {
+  if (result.status === 0) {
+    console.log('users', result.rows);
+  }
+});
+```
+
+## Use TypeORM
+
+This package offers a low-level API to raw execute SQL queries. I strongly recommend to use [TypeORM](https://github.com/typeorm/typeorm) (with [patch-package](https://github.com/ds300/patch-package)). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch).
+
+Follow the instructions to make TypeORM work with React Native (enable decorators, configure babel, etc), then apply the example patch via patch-package.
+
 ## Learn React Native JSI
 
-If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/l/IeeIvl), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance)!
+If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/l/jsi_guide), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance)!
 
 ## License
 

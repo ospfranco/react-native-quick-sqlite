@@ -1,3 +1,12 @@
+import { NativeModules } from 'react-native';
+
+const SequelModule = NativeModules.QuickSQLite;
+
+if (SequelModule) {
+  if (typeof SequelModule.install === 'function') {
+    SequelModule.install();
+  }
+}
 /**
  * JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE CHROME DEBUGGER
  * Use flipper to debug your RN apps from now on
@@ -14,6 +23,7 @@
  *
  * @interface QueryResult
  */
+
 interface QueryResult {
   status?: 0 | 1;
   insertId?: number;
@@ -70,15 +80,32 @@ interface ISQLite {
     query: string,
     params: any[] | undefined
   ) => QueryResult;
+  asyncExecuteSql: (
+    dbName: string,
+    query: string,
+    params: any[] | undefined,
+    cb: (res: QueryResult) => void
+  ) => void;
   executeSqlBatch: (
     dbName: string,
     commands: SQLBatchParams[]
   ) => BatchQueryResult;
+  asyncExecuteSqlBatch: (
+    dbName: string,
+    commands: SQLBatchParams[],
+    cb: (res: BatchQueryResult) => void
+  ) => void;
   loadSqlFile: (dbName: string, location: string) => FileLoadResult;
-  // backgroundExecuteSql: (dbName: string, query: string, params: any[]) => any;
+  asyncLoadSqlFile: (
+    dbName: string,
+    location: string,
+    cb: (res: FileLoadResult) => void
+  ) => void;
 }
 
-declare var sqlite: ISQLite;
+declare global {
+  const sqlite: ISQLite;
+}
 
 // API FOR TYPEORM
 interface IConnectionOptions {
@@ -93,14 +120,27 @@ interface IDBConnection {
     ok: (res: QueryResult) => void,
     fail: (msg: string) => void
   ) => void;
+  asyncExecuteSql: (
+    query: string,
+    params: any[] | undefined,
+    cb: (res: QueryResult) => void
+  ) => void;
   executeSqlBatch: (
     commands: SQLBatchParams[],
     callback?: (res: BatchQueryResult) => void
+  ) => void;
+  asyncExecuteSqlBatch: (
+    commands: SQLBatchParams[],
+    cb: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
   loadSqlFile: (
     location: string,
     callback: (result: FileLoadResult) => void
+  ) => void;
+  asyncLoadSqlFile: (
+    location: string,
+    callback: (res: FileLoadResult) => void
   ) => void;
 }
 
@@ -133,12 +173,36 @@ export const openDatabase = (
           fail(e);
         }
       },
+      asyncExecuteSql: (
+        sql: string,
+        params: any[] | undefined,
+        cb: (res: QueryResult) => void
+      ) => {
+        try {
+          // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
+          sqlite.asyncExecuteSql(options.name, sql, params, (response) => {
+            // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
+            if (response.rows != null) {
+              response.rows.item = (idx: number) => response.rows._array[idx];
+            }
+            cb(response);
+          });
+        } catch (e) {
+          fail(e);
+        }
+      },
       executeSqlBatch: (
         commands: SQLBatchParams[],
         callback?: (res: BatchQueryResult) => void
       ) => {
         const response = sqlite.executeSqlBatch(options.name, commands);
         if (callback) callback(response);
+      },
+      asyncExecuteSqlBatch: (
+        commands: SQLBatchParams[],
+        cb: (res: BatchQueryResult) => void
+      ) => {
+        sqlite.asyncExecuteSqlBatch(options.name, commands, cb);
       },
       close: (ok: any, fail: any) => {
         try {
@@ -156,6 +220,12 @@ export const openDatabase = (
         if (callback) {
           callback(result);
         }
+      },
+      asyncLoadSqlFile: (
+        location: string,
+        callback: (result: FileLoadResult) => void
+      ) => {
+        sqlite.asyncLoadSqlFile(options.name, location, callback);
       },
     };
 

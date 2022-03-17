@@ -1,12 +1,44 @@
+/* eslint-disable no-undef */
+import '../..';
 import { createConnection, getRepository } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
 import { Buffer } from 'buffer';
 
-export const createDb = async () => {
+export const lowLevelInit = async () => {
+  sqlite.open('test', 'sample/database');
+  // Just uncomment this methods to try the low level api of the library
+
+  // Creates a table in db
+  const createResult = sqlite.executeSql(
+    'test',
+    'CREATE TABLE "User" ( id INT PRIMARY KEY, name TEXT NOT NULL );',
+    undefined
+  );
+  console.warn({ createResult });
+
+  // This is how you do a sync request
+  const insertResult = sqlite.executeSql(
+    'test',
+    'INSERT INTO "User" (id, name) VALUES(?, ?)',
+    [new Date().getMilliseconds(), `${new Date().getMilliseconds()}`]
+  );
+  console.warn({ insertResult });
+
+  // A simple select
+  const queryResult = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
+  console.warn({ queryResult });
+
+  // For more advanced use cases where you don't want to block the UI thread
+  // use async methods
+  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
+  //   console.warn('asyncRes2', asyncRes);
+  // });
+};
+
+export async function typeORMInit() {
   await createConnection({
     type: 'react-native',
-    // driver: require('react-native-quick-sqlite'),
     database: 'test',
     location: 'sample/database',
     logging: ['error'],
@@ -45,4 +77,4 @@ export const createDb = async () => {
   // });
 
   return users;
-};
+}

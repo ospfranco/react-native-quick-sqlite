@@ -9,11 +9,8 @@
 
 #include <jsi/jsilib.h>
 #include <jsi/jsi.h>
-// #include <ReactCommon/CallInvoker.h>
+#include <ReactCommon/CallInvoker.h>
 
 using namespace facebook;
 
-// void installSequel(jsi::Runtime& rt, std::shared_ptr<react::CallInvoker> callInvoker);
-void installSequel(jsi::Runtime &rt, const char *docPath);
-
-void cleanUpSequel();
+void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath);
