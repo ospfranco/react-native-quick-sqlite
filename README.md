@@ -1,7 +1,5 @@
 <h1 align="center">React Native Quick SQLite</h1>
 
-<h3 align="center">Fast SQLite for React-Native.</h3>
-
 ![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header.png)
 
 <div align="center">
