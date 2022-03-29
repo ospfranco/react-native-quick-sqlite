@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "10.0" }
+  s.platforms    = { :ios => "11.0" }
   s.source       = { :git => "https://github.com/ospfranco/react-native-quick-sqlite.git", :tag => "#{s.version}" }
 
   s.pod_target_xcconfig = {
