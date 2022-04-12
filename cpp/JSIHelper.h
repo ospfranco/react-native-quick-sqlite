@@ -87,6 +87,16 @@ struct SequelBatchOperationResult
 };
 
 /**
+ * Describe column information of a resultset
+ */
+struct QuickColumnMetadata
+{
+  string colunmName;
+  int columnIndex;
+  string columnDeclaredType;
+};
+
+/**
  * Fill the target vector with parsed parameters
  * */
 void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &args, vector<QuickValue> *target);
@@ -99,6 +109,6 @@ QuickValue createIntegerQuickValue(double value);
 QuickValue createInt64QuickValue(long long value);
 QuickValue createDoubleQuickValue(double value);
 QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBufferSize);
-jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results);
+jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results, vector<QuickColumnMetadata> *metadata);
 
 #endif /* JSIHelper_h */

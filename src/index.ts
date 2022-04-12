@@ -40,7 +40,30 @@ interface QueryResult {
      */
     item: (idx: number) => any;
   };
+  /**
+   * Query metadata, avaliable only for select query results
+   */
+  metadata?: ResultsetMetadata;
 }
+
+/**
+ * Column metadata
+ * Describes some information about columns fetched by the query
+ */
+declare type ColumnMetadata = {
+  /** The name used for this column for this resultset */
+  columnName: string;
+  /** The declared column type for this column, when fetched directly from a table or a View resulting from a table column. "UNKNOWN" for dynamic values, like function returned ones. */
+  columnDeclaredType: string;
+  /**
+   * The index for this column for this resultset*/
+  columnIndex: number;
+};
+
+/**
+ * Collection of columns that represents the resultset of a query
+ */
+declare type ResultsetMetadata = ColumnMetadata[];
 
 /**
  * Allows the execution of bulk of sql commands

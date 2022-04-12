@@ -182,10 +182,11 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         // Filling the results
         vector<map<string, QuickValue>> results;
-        auto status = sqliteExecute(dbName, query, &params, &results);
+        vector<QuickColumnMetadata> metadata;
+        auto status = sqliteExecute(dbName, query, &params, &results, &metadata);
 
         // Converting results into a JSI Response
-        auto jsiResult = createSequelQueryExecutionResult(rt, status, &results);
+        auto jsiResult = createSequelQueryExecutionResult(rt, status, &results, &metadata);
         return move(jsiResult);
       });
 
@@ -407,12 +408,13 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           {
             // Inside the new worker thread, we can now call sqlite operations
             vector<map<string, QuickValue>> results;
-            auto status = sqliteExecute(dbName, query, params.get(), &results);
-            invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), status_copy = move(status), callback]
+            vector<QuickColumnMetadata> metadata;
+            auto status = sqliteExecute(dbName, query, params.get(), &results, &metadata);
+            invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), metadata = make_shared<vector<QuickColumnMetadata>>(metadata), status_copy = move(status), callback]
                                  {
               // Now, back into the JavaScript thread, we can translate the results
               // back to a JSI Object to pass on the callback
-              auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, results.get());
+              auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, results.get(), metadata.get());
               callback->asObject(rt).asFunction(rt).call(rt, move(jsiResult)); });
           }
           catch (std::exception &exc)

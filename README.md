@@ -33,11 +33,45 @@ Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor
 
 ```typescript
 interface QueryResult {
-  status: 0 | 1; // 0 for correct execution
-  message: string; // if status === 1, here you will find error description
-  rows: any[];
+  status?: 0 | 1; // 0 for correct execution
   insertId?: number;
+  rowsAffected: number;
+  message?: string;
+  rows?: {
+    /** Raw array with all dataset */
+    _array: any[];
+    /** The lengh of the dataset */
+    length: number;
+    /** A convenience function to acess the index based the row object
+     * @param idx the row index
+     * @returns the row structure identified by column names
+     */
+    item: (idx: number) => any;
+  };
+  /**
+   * Query metadata, avaliable only for select query results
+   */
+  metadata?: ResultsetMetadata;
 }
+
+/**
+ * Column metadata
+ * Describes some information about columns fetched by the query
+ */
+declare type ColumnMetadata = {
+  /** The name used for this column for this resultset */
+  columnName: string;
+  /** The declared column type for this column, when fetched directly from a table or a View resulting from a table column. "UNKNOWN" for dynamic values, like function returned ones. */
+  columnDeclaredType: string;
+  /**
+   * The index for this column for this resultset*/
+  columnIndex: number;
+};
+
+/**
+ * Collection of columns that represents the resultset of a query
+ */
+declare type ResultsetMetadata = ColumnMetadata[];
 
 interface BatchQueryResult {
   status?: 0 | 1;
@@ -116,6 +150,24 @@ if (!result.status) {
 }
 ```
 
+In some scenarios, dynamic applications may need to get some metadata information about the returned resultset.
+This can be done testing the returned data directly, but in some cases may not be enought, like when data is stored outside
+storage datatypes, like booleans or datetimes. When fetching data directly from tables or views linked to table columns, SQLite is able
+to identify the table declared types:
+
+```typescript
+let result = sqlite.executeSql('myDatabase', 'SELECT int_column_1, bol_column_2 FROM sometable');
+if (!result.status) {
+  // result.status undefined or 0 === sucess
+  for (let i = 0; i < result.metadata.length; i++) {
+    const column = result.metadata[i];
+    console.log(`${column.columnName} - ${column.columnDeclaredType}`);
+    // Output:
+    // int_column_1 - INTEGER
+    // bol_column_2 - BOOLEAN
+  }
+}
+```
 Batch execution allows transactional execution of a set of commands
 
 ```typescript
