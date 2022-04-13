@@ -42,16 +42,11 @@ interface QueryResult {
     _array: any[];
     /** The lengh of the dataset */
     length: number;
-    /** A convenience function to acess the index based the row object
-     * @param idx the row index
-     * @returns the row structure identified by column names
-     */
-    item: (idx: number) => any;
   };
   /**
    * Query metadata, avaliable only for select query results
    */
-  metadata?: ResultsetMetadata;
+  metadata?: ColumnMetadata[];
 }
 
 /**
@@ -67,11 +62,6 @@ declare type ColumnMetadata = {
    * The index for this column for this resultset*/
   columnIndex: number;
 };
-
-/**
- * Collection of columns that represents the resultset of a query
- */
-declare type ResultsetMetadata = ColumnMetadata[];
 
 interface BatchQueryResult {
   status?: 0 | 1;
@@ -151,7 +141,7 @@ if (!result.status) {
 ```
 
 In some scenarios, dynamic applications may need to get some metadata information about the returned resultset.
-This can be done testing the returned data directly, but in some cases may not be enought, like when data is stored outside
+This can be done testing the returned data directly, but in some cases may not be enough, like when data is stored outside
 storage datatypes, like booleans or datetimes. When fetching data directly from tables or views linked to table columns, SQLite is able
 to identify the table declared types:
 
