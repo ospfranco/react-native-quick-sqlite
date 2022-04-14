@@ -43,7 +43,7 @@ interface QueryResult {
   /**
    * Query metadata, avaliable only for select query results
    */
-  metadata?: ResultsetMetadata;
+  metadata?: ColumnMetadata[];
 }
 
 /**
@@ -59,11 +59,6 @@ declare type ColumnMetadata = {
    * The index for this column for this resultset*/
   columnIndex: number;
 };
-
-/**
- * Collection of columns that represents the resultset of a query
- */
-declare type ResultsetMetadata = ColumnMetadata[];
 
 /**
  * Allows the execution of bulk of sql commands
