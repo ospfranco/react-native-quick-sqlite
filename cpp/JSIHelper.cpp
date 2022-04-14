@@ -126,7 +126,7 @@ void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, 
   }
 }
 
-jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results)
+jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results, vector<QuickColumnMetadata> *metadata)
 {
   jsi::Object res = jsi::Object(rt);
   if (status.type == SQLiteOk)
@@ -183,7 +183,23 @@ jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult sta
       rows.setProperty(rt, "_array", move(array));
       res.setProperty(rt, "rows", move(rows));
     }
-    rows.setProperty(rt, "status", jsi::Value(0));
+
+    if(metadata != NULL)
+    {
+      size_t column_count = metadata->size();
+      auto column_array = jsi::Array(rt, column_count);
+      for (int i = 0; i < column_count; i++) {
+        auto column = metadata->at(i);
+        jsi::Object column_object = jsi::Object(rt);
+        column_object.setProperty(rt, "columnName", jsi::String::createFromUtf8(rt, column.colunmName.c_str()));
+        column_object.setProperty(rt, "columnDeclaredType", jsi::String::createFromUtf8(rt, column.columnDeclaredType.c_str()));
+        column_object.setProperty(rt, "columnIndex", jsi::Value(column.columnIndex));
+        column_array.setValueAtIndex(rt, i, move(column_object));
+      }
+      res.setProperty(rt, "metadata", move(column_array));
+    }
+
+    res.setProperty(rt, "status", jsi::Value(0));
     rows.setProperty(rt, "length", jsi::Value((int)rowCount));
   }
   else

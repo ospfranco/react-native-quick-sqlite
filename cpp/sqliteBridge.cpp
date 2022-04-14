@@ -226,7 +226,7 @@ void bindStatement(sqlite3_stmt *statement, vector<QuickValue> *values)
   }
 }
 
-SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<QuickValue> *params, vector<map<string, QuickValue>> *results)
+SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<QuickValue> *params, vector<map<string, QuickValue>> *results, vector<QuickColumnMetadata> *metadata)
 {
   // Check if db connection is opened
   if (dbMap.count(dbName) == 0)
@@ -263,7 +263,7 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
   bool isFailed = false;
 
   int result, i, count, column_type;
-  string column_name;
+  string column_name, column_declared_type;
   map<string, QuickValue> row;
 
   while (isConsuming)
@@ -334,12 +334,29 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
           row[column_name] = createNullQuickValue();
           break;
         }
-
         i++;
       }
       results->push_back(move(row));
       break;
     case SQLITE_DONE:
+      if(metadata != NULL)
+      {
+        i = 0;
+        count = sqlite3_column_count(statement);
+        while (i < count)
+        {
+          column_name = sqlite3_column_name(statement, i);
+          const char *tp = sqlite3_column_decltype(statement, i);
+          column_declared_type = tp != NULL ? tp : "UNKNOWN";
+          QuickColumnMetadata meta = {
+            .colunmName = column_name,
+            .columnIndex = i,
+            .columnDeclaredType = column_declared_type,
+          };
+          metadata->push_back(meta);
+          i++;
+        }
+      }
       isConsuming = false;
       break;
 

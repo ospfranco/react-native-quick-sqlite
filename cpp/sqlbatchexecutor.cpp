@@ -60,7 +60,7 @@ SequelBatchOperationResult executeBatch(std::string dbName, vector<QuickQueryArg
     for(int i = 0; i<commandCount; i++) {
       auto command = commands->at(i);
       // We do not provide a datastructure to receive query data because we don't need/want to handle this results in a batch execution
-      auto result = sqliteExecute(dbName, command.sql, command.params.get(), NULL);
+      auto result = sqliteExecute(dbName, command.sql, command.params.get(), NULL, NULL);
       if(result.type == SQLiteError)
       {
         return SequelBatchOperationResult {
