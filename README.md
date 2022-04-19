@@ -105,7 +105,7 @@ interface ISQLite {
 
 ```typescript
 // Import as early as possible, auto-installs bindings. 
-// Thanks to @msrousavy for this installation method, see one example: https://github.com/mrousavy/react-native-mmkv/blob/75b425db530e26cf10c7054308583d03ff01851f/src/createMMKV.ts#L56
+// Thanks to @mrousavy for this installation method, see one example: https://github.com/mrousavy/react-native-mmkv/blob/75b425db530e26cf10c7054308583d03ff01851f/src/createMMKV.ts#L56
 import 'react-native-quick-sqlite';
 
 // `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
