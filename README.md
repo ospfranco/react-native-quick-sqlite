@@ -3,11 +3,18 @@
 ![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header.png)
 
 <div align="center">
+  <h3>With TypeORM</h3>
   <pre align="center">
     <a href="https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch">Copy typeORM patch-package from example dir</a>
-    npm i react-native-quick-sqlite typeorm
+    yarn add react-native-quick-sqlite typeorm
     npx pod-install
     <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a>
+  </pre>
+  <br>
+  <h3>Low level bindings only</h3>
+  <pre align="center">
+    yarn add react-native-quick-sqlite
+    npx pod-install
   </pre>
   <a align="center" href="https://github.com/ospfranco?tab=followers">
     <img src="https://img.shields.io/github/followers/ospfranco?label=Follow%20%40ospfranco&style=social" />
@@ -104,7 +111,7 @@ interface ISQLite {
 # Usage
 
 ```typescript
-// Import as early as possible, auto-installs bindings. 
+// Import as early as possible, auto-installs bindings.
 // Thanks to @mrousavy for this installation method, see one example: https://github.com/mrousavy/react-native-mmkv/blob/75b425db530e26cf10c7054308583d03ff01851f/src/createMMKV.ts#L56
 import 'react-native-quick-sqlite';
 
@@ -147,7 +154,10 @@ storage datatypes, like booleans or datetimes. When fetching data directly from 
 to identify the table declared types:
 
 ```typescript
-let result = sqlite.executeSql('myDatabase', 'SELECT int_column_1, bol_column_2 FROM sometable');
+let result = sqlite.executeSql(
+  'myDatabase',
+  'SELECT int_column_1, bol_column_2 FROM sometable'
+);
 if (!result.status) {
   // result.status undefined or 0 === sucess
   for (let i = 0; i < result.metadata.length; i++) {
@@ -159,6 +169,7 @@ if (!result.status) {
   }
 }
 ```
+
 Batch execution allows transactional execution of a set of commands
 
 ```typescript
