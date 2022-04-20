@@ -26,7 +26,7 @@
 </div>
 <br />
 
-This library provides a low-level API to execute SQL queries, fast bindings via [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2).
+This library embeds the latest version of SQLite and provides a low-level API to execute SQL queries, fast bindings via [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2). By using the latest version of SQLite instead of the phone's you get all the latest security fixes and also all new features.
 
 Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2).
 
