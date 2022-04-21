@@ -8,14 +8,12 @@
     <a href="https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch">Copy typeORM patch-package from example dir</a>
     yarn add react-native-quick-sqlite typeorm
     npx pod-install
-    <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a>
-  </pre>
+    <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a></pre>
   <br>
   <h3>Low level bindings only</h3>
   <pre align="center">
     yarn add react-native-quick-sqlite
-    npx pod-install
-  </pre>
+    npx pod-install</pre>
   <a align="center" href="https://github.com/ospfranco?tab=followers">
     <img src="https://img.shields.io/github/followers/ospfranco?label=Follow%20%40ospfranco&style=social" />
   </a>
