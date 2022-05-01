@@ -1,10 +1,10 @@
 import { NativeModules } from 'react-native';
 
-const SequelModule = NativeModules.QuickSQLite;
+const QuickSQLiteModule = NativeModules.QuickSQLite;
 
-if (SequelModule) {
-  if (typeof SequelModule.install === 'function') {
-    SequelModule.install();
+if (QuickSQLiteModule) {
+  if (typeof QuickSQLiteModule.install === 'function') {
+    QuickSQLiteModule.install();
   }
 }
 /**
@@ -23,7 +23,6 @@ if (SequelModule) {
  *
  * @interface QueryResult
  */
-
 interface QueryResult {
   status?: 0 | 1;
   insertId?: number;
@@ -90,9 +89,32 @@ interface FileLoadResult {
   status?: 0 | 1;
 }
 
+interface TransactionObject {
+  executeSql: (query: string, params?: any[]) => QueryResult;
+}
+
+interface Transaction {
+  dbName: string;
+  callback: (tx: TransactionObject) => void;
+  finalized: boolean;
+  start: () => void;
+}
+
 interface ISQLite {
-  open: (dbName: string, location?: string) => any;
-  close: (dbName: string) => any;
+  open: (
+    dbName: string,
+    location?: string
+  ) => {
+    status: 0 | 1;
+    message?: string;
+  };
+  close: (
+    dbName: string
+  ) => {
+    status: 0 | 1;
+    message?: string;
+  };
+  transaction: (dbName: string, fn: (tx: TransactionObject) => void) => void;
   executeSql: (
     dbName: string,
     query: string,
@@ -125,7 +147,84 @@ declare global {
   const sqlite: ISQLite;
 }
 
-// API FOR TYPEORM
+const locks: Record<string, { queue: Transaction[]; inProgress: boolean }> = {};
+
+const _open = sqlite.open;
+sqlite.open = (dbName: string, location?: string) => {
+  const res = _open(dbName, location);
+  if (res.status === 0) {
+    locks[dbName] = {
+      queue: [],
+      inProgress: false,
+    };
+  }
+
+  return res;
+};
+
+const _close = sqlite.close;
+sqlite.close = (dbName: string) => {
+  const res = _close(dbName);
+  if (res.status === 0) {
+    // TODO check if ongoing transaction? query close for next tick
+    delete locks[dbName];
+  }
+  return res;
+};
+
+sqlite.transaction = (
+  dbName: string,
+  callback: (tx: TransactionObject) => void
+) => {
+  if (!locks[dbName]) {
+    throw Error(`No lock found on db: ${dbName}`);
+  }
+
+  const executeSql = (query: string, params?: any[]) => {
+    return sqlite.executeSql(tx.dbName, query, params);
+  };
+  const tx: Transaction = {
+    dbName,
+    callback,
+    finalized: false,
+
+    start: () => {
+      sqlite.executeSql(tx.dbName, 'BEGIN TRANSACTION', null);
+      const success = tx.callback({ executeSql });
+      if (success) {
+        sqlite.executeSql(tx.dbName, 'COMMIT', null);
+      } else {
+        sqlite.executeSql(tx.dbName, 'ROLLBACK', null);
+      }
+
+      locks[tx.dbName].inProgress = false;
+      startNextTransaction(tx.dbName);
+    },
+  };
+
+  locks[dbName].queue.push(tx);
+
+  startNextTransaction(dbName);
+};
+
+const startNextTransaction = (dbName: string) => {
+  setImmediate(() => {
+    if (!locks[dbName]) {
+      throw Error(`Lock not found for db ${dbName}`);
+    }
+
+    locks[dbName].inProgress = true;
+    locks[dbName].queue.shift().start();
+  });
+};
+
+//   _________     _______  ______ ____  _____  __  __            _____ _____
+//  |__   __\ \   / /  __ \|  ____/ __ \|  __ \|  \/  |     /\   |  __ \_   _|
+//     | |   \ \_/ /| |__) | |__ | |  | | |__) | \  / |    /  \  | |__) || |
+//     | |    \   / |  ___/|  __|| |  | |  _  /| |\/| |   / /\ \ |  ___/ | |
+//     | |     | |  | |    | |___| |__| | | \ \| |  | |  / ____ \| |    _| |_
+//     |_|     |_|  |_|    |______\____/|_|  \_\_|  |_| /_/    \_\_|   |_____|
+
 interface IConnectionOptions {
   name: string;
   location?: string; // not used, we are storing everything on the documents folder
@@ -178,7 +277,6 @@ export const openDatabase = (
         fail: (msg: string) => void
       ) => {
         try {
-          // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           let response = sqlite.executeSql(options.name, sql, params);
 
           // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
@@ -197,7 +295,6 @@ export const openDatabase = (
         cb: (res: QueryResult) => void
       ) => {
         try {
-          // console.warn(`[react-native-quick-sqlite], sql: `, sql, ` params: ` , params);
           sqlite.asyncExecuteSql(options.name, sql, params, (response) => {
             // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
             if (response.rows != null) {
