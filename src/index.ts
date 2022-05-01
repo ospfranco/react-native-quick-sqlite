@@ -95,7 +95,7 @@ interface TransactionObject {
 
 interface Transaction {
   dbName: string;
-  callback: (tx: TransactionObject) => void;
+  callback: (tx: TransactionObject) => boolean;
   finalized: boolean;
   start: () => void;
 }
@@ -114,7 +114,7 @@ interface ISQLite {
     status: 0 | 1;
     message?: string;
   };
-  transaction: (dbName: string, fn: (tx: TransactionObject) => void) => void;
+  transaction: (dbName: string, fn: (tx: TransactionObject) => boolean) => void;
   executeSql: (
     dbName: string,
     query: string,
@@ -147,6 +147,13 @@ declare global {
   const sqlite: ISQLite;
 }
 
+//   _______ _____            _   _  _____         _____ _______ _____ ____  _   _  _____
+//  |__   __|  __ \     /\   | \ | |/ ____|  /\   / ____|__   __|_   _/ __ \| \ | |/ ____|
+//     | |  | |__) |   /  \  |  \| | (___   /  \ | |       | |    | || |  | |  \| | (___
+//     | |  |  _  /   / /\ \ | . ` |\___ \ / /\ \| |       | |    | || |  | | . ` |\___ \
+//     | |  | | \ \  / ____ \| |\  |____) / ____ \ |____   | |   _| || |__| | |\  |____) |
+//     |_|  |_|  \_\/_/    \_\_| \_|_____/_/    \_\_____|  |_|  |_____\____/|_| \_|_____/
+
 const locks: Record<string, { queue: Transaction[]; inProgress: boolean }> = {};
 
 const _open = sqlite.open;
@@ -166,15 +173,16 @@ const _close = sqlite.close;
 sqlite.close = (dbName: string) => {
   const res = _close(dbName);
   if (res.status === 0) {
-    // TODO check if ongoing transaction? query close for next tick
-    delete locks[dbName];
+    setImmediate(() => {
+      delete locks[dbName];
+    });
   }
   return res;
 };
 
 sqlite.transaction = (
   dbName: string,
-  callback: (tx: TransactionObject) => void
+  callback: (tx: TransactionObject) => boolean
 ) => {
   if (!locks[dbName]) {
     throw Error(`No lock found on db: ${dbName}`);

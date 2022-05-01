@@ -1,5 +1,3 @@
-<h1 align="center">React Native Quick SQLite</h1>
-
 ![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header.png)
 
 <div align="center">
@@ -8,14 +6,12 @@
     <a href="https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch">Copy typeORM patch-package from example dir</a>
     yarn add react-native-quick-sqlite typeorm
     npx pod-install
-    <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a>
-  </pre>
+    <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a></pre>
   <br>
   <h3>Low level bindings only</h3>
   <pre align="center">
     yarn add react-native-quick-sqlite
-    npx pod-install
-  </pre>
+    npx pod-install</pre>
   <a align="center" href="https://github.com/ospfranco?tab=followers">
     <img src="https://img.shields.io/github/followers/ospfranco?label=Follow%20%40ospfranco&style=social" />
   </a>
@@ -26,7 +22,7 @@
 </div>
 <br />
 
-This library embeds the latest version of SQLite and provides a low-level API to execute SQL queries, fast bindings via [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2). By using the latest version of SQLite instead of the phone's you get all the latest security fixes and also all new features.
+Quick SQLite embeds the latest version of SQLite and provides a low-level API to execute SQL queries, uses fast bindings via [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2). By using an embedded SQLite you get access the latest security patches and latest features.
 
 Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2).
 
@@ -59,14 +55,11 @@ interface QueryResult {
 /**
  * Column metadata
  * Describes some information about columns fetched by the query
+ * columnDeclaredType - declared column type for this column, when fetched directly from a table or a View resulting from a table column. "UNKNOWN" for dynamic values, like function returned ones.
  */
-declare type ColumnMetadata = {
-  /** The name used for this column for this resultset */
+interface ColumnMetadata = {
   columnName: string;
-  /** The declared column type for this column, when fetched directly from a table or a View resulting from a table column. "UNKNOWN" for dynamic values, like function returned ones. */
   columnDeclaredType: string;
-  /**
-   * The index for this column for this resultset*/
   columnIndex: number;
 };
 
@@ -110,13 +103,13 @@ interface ISQLite {
 
 # Usage
 
+Import as early as possible, auto-installs bindings in a thread-safe manner.
+
 ```typescript
-// Import as early as possible, auto-installs bindings.
 // Thanks to @mrousavy for this installation method, see one example: https://github.com/mrousavy/react-native-mmkv/blob/75b425db530e26cf10c7054308583d03ff01851f/src/createMMKV.ts#L56
 import 'react-native-quick-sqlite';
 
-// `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
-// the import on the top of the file only registers typescript types but it is not mandatory
+// Afterwards `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
 const dbOpenResult = sqlite.open('myDatabase', 'databases');
 
 // status === 1, operation failed
@@ -125,50 +118,55 @@ if (dbOpenResult.status) {
 }
 ```
 
-### Example queries
+### Simple queries
+
+The basic query is **synchronous**, it will block rendering on large operations, below there are async versions.
 
 ```typescript
-let result = sqlite.executeSql('myDatabase', 'SELECT somevalue FROM sometable');
-if (!result.status) {
-  // result.status undefined or 0 === sucess
-  for (let i = 0; i < result.rows.length; i++) {
-    const row = result.rows.item(i);
-    console.log(row.somevalue);
-  }
+let { status, rows } = sqlite.executeSql(
+  'myDatabase',
+  'SELECT somevalue FROM sometable'
+);
+if (!status) {
+  rows.forEach((row) => {
+    console.log(row);
+  });
 }
 
-result = sqlite.executeSql(
+let { status, rowsAffected } = sqlite.executeSql(
   'myDatabase',
-  'UPDATE sometable set somecolumn = ? where somekey = ?',
+  'UPDATE sometable SET somecolumn = ? where somekey = ?',
   [0, 1]
 );
-if (!result.status) {
-  // result.status undefined or 0 === sucess
-  console.log(`Update affected ${result.rowsAffected} rows`);
+if (!status) {
+  console.log(`Update affected ${rowsAffected} rows`);
 }
 ```
 
-In some scenarios, dynamic applications may need to get some metadata information about the returned resultset.
-This can be done testing the returned data directly, but in some cases may not be enough, like when data is stored outside
-storage datatypes, like booleans or datetimes. When fetching data directly from tables or views linked to table columns, SQLite is able
-to identify the table declared types:
+### Transactions
+
+Transactions are supported. However, due to the library being opionionated and mostly not throwing errors you need to return a boolean (true for correct exceution, false for incorrect execution) to either commit or rollback the transaction.
+
+JSI bindings are fast but there is still some overhead calling `executeSql` for single queries, if you want to execute a large set of commands as fast as possible you should use the `executeSqlBatch` method below, it still uses transactions, but only transmits data between JS and native once.
 
 ```typescript
-let result = sqlite.executeSql(
-  'myDatabase',
-  'SELECT int_column_1, bol_column_2 FROM sometable'
-);
-if (!result.status) {
-  // result.status undefined or 0 === sucess
-  for (let i = 0; i < result.metadata.length; i++) {
-    const column = result.metadata[i];
-    console.log(`${column.columnName} - ${column.columnDeclaredType}`);
-    // Output:
-    // int_column_1 - INTEGER
-    // bol_column_2 - BOOLEAN
+sqlite.transaction('myDatabase', (tx) => {
+  const {
+    status,
+  } = tx.executeSql('UPDATE sometable SET somecolumn = ? where somekey = ?', [
+    0,
+    1,
+  ]);
+
+  if (status) {
+    return false;
   }
-}
+
+  return true;
+});
 ```
+
+### Batch operation
 
 Batch execution allows transactional execution of a set of commands
 
@@ -186,14 +184,44 @@ if (!result.status) {
 }
 ```
 
-Async versions are also available if you have too much SQL to execute
+### Dynamic Column Metadata
+
+In some scenarios, dynamic applications may need to get some metadata information about the returned result set.
+
+This can be done testing the returned data directly, but in some cases may not be enough, for example when data is stored outside
+sqlite datatypes. When fetching data directly from tables or views linked to table columns, SQLite is able
+to identify the table declared types:
+
+```typescript
+let { status, metadata } = sqlite.executeSql(
+  'myDatabase',
+  'SELECT int_column_1, bol_column_2 FROM sometable'
+);
+if (!status) {
+  metadata.forEach((column) => {
+    // Output:
+    // int_column_1 - INTEGER
+    // bol_column_2 - BOOLEAN
+    console.log(`${column.columnName} - ${column.columnDeclaredType}`);
+  });
+}
+```
+
+### Async operations
+
+You might have too much SQL too process and it will cause your application to freeze. There are async versions for some of the operations. This will offload the SQLite processing to a different thread.
 
 ```ts
-sqlite.asyncExecuteSql('myDatabase', 'SELECT * FROM "User";', [], (result) => {
-  if (result.status === 0) {
-    console.log('users', result.rows);
+sqlite.asyncExecuteSql(
+  'myDatabase',
+  'SELECT * FROM "User";',
+  [],
+  ({ status, rows }) => {
+    if (status === 0) {
+      console.log('users', rows);
+    }
   }
-});
+);
 ```
 
 ## Use TypeORM
