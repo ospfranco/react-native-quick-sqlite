@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import * as React from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Image,
@@ -7,9 +7,15 @@ import {
   Text,
   FlatList,
   ListRenderItemInfo,
+  Button,
 } from 'react-native';
-// Replace if you want to test the low level API
-import { lowLevelInit } from './Database';
+// Swap imports to test the typeORM version
+import {
+  lowLevelInit,
+  queryUsers,
+  testInsert,
+  testTransaction,
+} from './Database';
 // import { typeORMInit } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
@@ -19,15 +25,38 @@ export default function App() {
 
   React.useEffect(() => {
     lowLevelInit();
+    const users = queryUsers();
+    setUsers(users);
     // typeORMInit().then(setUsers);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Quick SQLite tester app</Text>
+      <Text style={styles.header}>Quick SQLite tester app</Text>
+      <Button
+        title="Refresh"
+        onPress={() => {
+          const users = queryUsers();
+          setUsers(users);
+        }}
+      />
+      <Button
+        title="Create user (without transaction)"
+        onPress={() => {
+          testInsert();
+          const users = queryUsers();
+          setUsers(users);
+        }}
+      />
+      <Button
+        title="Create user (with transaction)"
+        onPress={() => {
+          testTransaction();
+        }}
+      />
       <FlatList
         data={users}
-        renderItem={(info: ListRenderItemInfo<User>) => {
+        renderItem={({ item }: ListRenderItemInfo<User>) => {
           return (
             <View
               style={{
@@ -38,19 +67,20 @@ export default function App() {
                 backgroundColor: 'white',
               }}
             >
-              <Image
-                style={{ width: 64, height: 64 }}
-                source={{
-                  uri: `data:image/png;base64,${Buffer.from(
-                    info.item.avatar
-                  ).toString('base64')}`,
-                }}
-              />
-              <Text style={{ fontWeight: 'bold' }}>Name</Text>
-              <Text>{info.item.name}</Text>
-              <Text style={{ fontWeight: 'bold', marginTop: 10 }}>Age</Text>
-              <Text>{info.item.age}</Text>
-              <Text>{info.item.metadata.nickname}</Text>
+              {!!item.avatar && (
+                <Image
+                  style={{ width: 64, height: 64 }}
+                  source={{
+                    uri: `data:image/png;base64,${Buffer.from(
+                      item.avatar
+                    ).toString('base64')}`,
+                  }}
+                />
+              )}
+              <Text style={styles.name}>{item.name}</Text>
+              <Text>{item.age}</Text>
+              <Text>{item.networth}</Text>
+              {/* <Text>{item.metadata.nickname}</Text> */}
               {/* <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
                 Favorite Book
               </Text>
@@ -74,5 +104,13 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     marginVertical: 20,
+  },
+  header: {
+    alignSelf: 'center',
+    fontWeight: '500',
+    fontSize: 20,
+  },
+  name: {
+    fontSize: 20,
   },
 });

@@ -5,32 +5,65 @@ import { Book } from './model/Book';
 import { User } from './model/User';
 import { Buffer } from 'buffer';
 
-export const lowLevelInit = async () => {
-  sqlite.open('test', 'sample/database');
-  // Just uncomment this methods to try the low level api of the library
+export const lowLevelInit = () => {
+  // Start by opening a connection
+  const { status: dbOpenStatus } = sqlite.open('test', 'sample/database');
+
+  if (dbOpenStatus) {
+    console.error('Failed to open the Database');
+  }
 
   // Creates a table in db
-  const createResult = sqlite.executeSql(
+  const { status: createTableStatus } = sqlite.executeSql(
     'test',
-    'CREATE TABLE "User" ( id INT PRIMARY KEY, name TEXT NOT NULL );',
+    'CREATE TABLE "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);',
     undefined
   );
-  console.warn({ createResult });
 
-  // This is how you do a sync request
-  const insertResult = sqlite.executeSql(
+  // Handle table creation error
+  if (createTableStatus) {
+    console.error('Failed to create table');
+  }
+};
+
+export const testTransaction = () => {
+  sqlite.transaction('test', (tx) => {
+    tx.executeSql(
+      'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+      [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
+    );
+
+    tx.executeSql(
+      'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+      [new Date().getMilliseconds(), `Tom`, 23, 100]
+    );
+
+    // return true to commit transaction, false to revert
+    return true;
+  });
+};
+
+export const testInsert = () => {
+  // Basic request
+  const { status: createUserStatus } = sqlite.executeSql(
     'test',
-    'INSERT INTO "User" (id, name) VALUES(?, ?)',
-    [new Date().getMilliseconds(), `${new Date().getMilliseconds()}`]
+    'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+    [new Date().getMilliseconds(), `Frank`, 32, 3000.23]
   );
-  console.warn({ insertResult });
 
-  // A simple select
+  // handle error
+  if (createUserStatus) {
+    console.error('Failed to insert user');
+  }
+
+  return queryUsers();
+};
+
+export const queryUsers = () => {
   const queryResult = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
-  console.warn({ queryResult });
+  return queryResult.rows?._array;
 
-  // For more advanced use cases where you don't want to block the UI thread
-  // use async methods
+  // If you don't want to block the UI thread use async methods
   // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
   //   console.warn('asyncRes2', asyncRes);
   // });

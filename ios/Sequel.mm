@@ -31,6 +31,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)setBridge:(RCTBridge *)bridge {
+  NSLog(@"Setting bridge");
   _bridge = bridge;
   _setBridgeOnMainQueue = RCTIsMainQueue();
 

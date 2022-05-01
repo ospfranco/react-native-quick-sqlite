@@ -222,7 +222,9 @@ const startNextTransaction = (dbName: string) => {
     }
 
     locks[dbName].inProgress = true;
-    locks[dbName].queue.shift().start();
+    if (locks[dbName].queue.length) {
+      locks[dbName].queue.shift().start();
+    }
   });
 };
 
