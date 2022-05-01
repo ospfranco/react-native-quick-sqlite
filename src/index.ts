@@ -94,9 +94,8 @@ interface TransactionObject {
 }
 
 interface Transaction {
-  dbName: string;
-  callback: (tx: TransactionObject) => boolean;
-  finalized: boolean;
+  // dbName: string;
+  // callback: (tx: TransactionObject) => boolean;
   start: () => void;
 }
 
@@ -188,25 +187,21 @@ sqlite.transaction = (
     throw Error(`No lock found on db: ${dbName}`);
   }
 
-  const executeSql = (query: string, params?: any[]) => {
-    return sqlite.executeSql(tx.dbName, query, params);
-  };
-  const tx: Transaction = {
-    dbName,
-    callback,
-    finalized: false,
+  const executeSql = (query: string, params?: any[]) =>
+    sqlite.executeSql(dbName, query, params);
 
+  const tx: Transaction = {
     start: () => {
-      sqlite.executeSql(tx.dbName, 'BEGIN TRANSACTION', null);
-      const success = tx.callback({ executeSql });
+      sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
+      const success = callback({ executeSql });
       if (success) {
-        sqlite.executeSql(tx.dbName, 'COMMIT', null);
+        sqlite.executeSql(dbName, 'COMMIT', null);
       } else {
-        sqlite.executeSql(tx.dbName, 'ROLLBACK', null);
+        sqlite.executeSql(dbName, 'ROLLBACK', null);
       }
 
-      locks[tx.dbName].inProgress = false;
-      startNextTransaction(tx.dbName);
+      locks[dbName].inProgress = false;
+      startNextTransaction(dbName);
     },
   };
 
@@ -216,13 +211,18 @@ sqlite.transaction = (
 };
 
 const startNextTransaction = (dbName: string) => {
+  if (locks[dbName].inProgress) {
+    // Transaction is already in process bail out
+    return;
+  }
+
   setImmediate(() => {
     if (!locks[dbName]) {
       throw Error(`Lock not found for db ${dbName}`);
     }
 
-    locks[dbName].inProgress = true;
     if (locks[dbName].queue.length) {
+      locks[dbName].inProgress = true;
       locks[dbName].queue.shift().start();
     }
   });
