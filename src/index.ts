@@ -92,30 +92,6 @@ export interface FileLoadResult {
 
 export interface Transaction {
   executeSql: (query: string, params?: any[]) => QueryResult;
-  markForRollback(): void;
-}
-
-// Local implementation of the transaction object
-class TransactionObjectImpl implements Transaction {
-  private readonly dbName: string;
-  private readonly _rollbackPoison: Object;
-
-  constructor(dbName: string) {
-    this.dbName = dbName;
-    this._rollbackPoison = {};
-  }
-
-  executeSql(query: string, params?: any[]): QueryResult {
-    return sqlite.executeSql(this.dbName, query, params);
-  }
-
-  markForRollback(): void {
-    throw this._rollbackPoison;
-  }
-
-  isRollbackObject(source: any): boolean {
-    return Object.is(this._rollbackPoison, source);
-  }
 }
 
 export interface PendingTransaction {
@@ -136,7 +112,7 @@ interface ISQLite {
     status: 0 | 1;
     message?: string;
   };
-  transaction: (dbName: string, fn: (tx: Transaction) => void) => void;
+  transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
   executeSql: (
     dbName: string,
     query: string,
@@ -215,13 +191,13 @@ sqlite.close = (dbName: string) => {
   return res;
 };
 
-const _executeSQL = sqlite.executeSql;
+const _executeSql = sqlite.executeSql;
 sqlite.executeSql = (
   dbName: string,
   query: string,
   params: any[] | undefined
 ): QueryResult => {
-  const result = _executeSQL(dbName, query, params);
+  const result = _executeSql(dbName, query, params);
   enhanceQueryResult(result);
   return result;
 };
@@ -240,23 +216,32 @@ sqlite.asyncExecuteSql = (
   _asyncExecuteSql(dbName, query, params, localCB);
 };
 
-sqlite.transaction = (dbName: string, callback: (tx: Transaction) => void) => {
+sqlite.transaction = (
+  dbName: string,
+  callback: (tx: Transaction) => boolean
+) => {
   if (!locks[dbName]) {
     throw Error(`No lock found on db: ${dbName}`);
   }
 
-  const txObject = new TransactionObjectImpl(dbName);
+  // Local transaction context object implementation
+  const executeSql = (query: string, params?: any[]): QueryResult => {
+    return sqlite.executeSql(dbName, query, params);
+  };
+
   const tx: PendingTransaction = {
     start: () => {
       try {
         sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
-        callback(txObject);
-        sqlite.executeSql(dbName, 'COMMIT', null);
+        const result = callback({ executeSql });
+        if (result === true) {
+          sqlite.executeSql(dbName, 'COMMIT', null);
+        } else {
+          sqlite.executeSql(dbName, 'ROLLBACK', null);
+        }
       } catch (e: any) {
         sqlite.executeSql(dbName, 'ROLLBACK', null);
-        if (!txObject.isRollbackObject(e)) {
-          throw e;
-        }
+        throw e;
       } finally {
         locks[dbName].inProgress = false;
         startNextTransaction(dbName);
@@ -319,7 +304,7 @@ interface IDBConnection {
     cb: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
-  transaction: (fn: (tx: Transaction) => void) => void;
+  transaction: (fn: (tx: Transaction) => boolean) => void;
   loadSqlFile: (
     location: string,
     callback: (result: FileLoadResult) => void
@@ -380,7 +365,7 @@ export const openDatabase = (
       ) => {
         sqlite.asyncExecuteSqlBatch(options.name, commands, cb);
       },
-      transaction: (fn: (tx: Transaction) => void): void => {
+      transaction: (fn: (tx: Transaction) => boolean): void => {
         sqlite.transaction(options.name, fn);
       },
       close: (ok: any, fail: any) => {
