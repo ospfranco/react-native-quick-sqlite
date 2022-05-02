@@ -7,7 +7,7 @@
  * This code is licensed under the MIT license
  */
 
-#import "Sequel.h"
+#import "QuickSQLite.h"
 #import "installer.h"
 
 #import <React/RCTBridge+Private.h>
@@ -19,7 +19,7 @@
 
 #import <memory>
 
-@implementation Sequel
+@implementation QuickSQLite
 
 @synthesize bridge = _bridge;
 @synthesize methodQueue = _methodQueue;
