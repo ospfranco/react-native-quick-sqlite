@@ -248,8 +248,8 @@ sqlite.transaction = (dbName: string, callback: (tx: Transaction) => void) => {
   const txObject = new TransactionObjectImpl(dbName);
   const tx: PendingTransaction = {
     start: () => {
-      sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
       try {
+        sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
         callback(txObject);
         sqlite.executeSql(dbName, 'COMMIT', null);
       } catch (e: any) {
