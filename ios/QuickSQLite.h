@@ -9,7 +9,7 @@
 
 #import <React/RCTBridgeModule.h>
 
-@interface Sequel : NSObject <RCTBridgeModule>
+@interface QuickSQLite : NSObject <RCTBridgeModule>
 
 @property(nonatomic, assign) BOOL setBridgeOnMainQueue;
 

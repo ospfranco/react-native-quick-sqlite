@@ -24,7 +24,7 @@ if (QuickSQLiteModule) {
  *
  * @interface QueryResult
  */
-interface QueryResult {
+export interface QueryResult {
   status?: 0 | 1;
   insertId?: number;
   rowsAffected: number;
@@ -50,7 +50,7 @@ interface QueryResult {
  * Column metadata
  * Describes some information about columns fetched by the query
  */
-declare type ColumnMetadata = {
+export type ColumnMetadata = {
   /** The name used for this column for this resultset */
   columnName: string;
   /** The declared column type for this column, when fetched directly from a table or a View resulting from a table column. "UNKNOWN" for dynamic values, like function returned ones. */
@@ -73,7 +73,7 @@ type SQLBatchParams = [string] | [string, Array<any> | Array<Array<any>>];
  * message: if status === 1, here you will find error description
  * rowsAffected: Number of affected rows if status == 0
  */
-interface BatchQueryResult {
+export interface BatchQueryResult {
   status?: 0 | 1;
   rowsAffected?: number;
   message?: string;
@@ -83,19 +83,20 @@ interface BatchQueryResult {
  * Result of loading a file and executing every line as a SQL command
  * Similar to BatchQueryResult
  */
-interface FileLoadResult {
+export interface FileLoadResult {
   rowsAffected?: number;
   commands?: number;
   message?: string;
   status?: 0 | 1;
 }
 
-interface TransactionObject {
+export interface Transaction {
   executeSql: (query: string, params?: any[]) => QueryResult;
   markForRollback(): void;
 }
 
-class TransactionObjectImpl implements TransactionObject {
+// Local implementation of the transaction object
+class TransactionObjectImpl implements Transaction {
   private readonly dbName: string;
   private readonly _rollbackPoison: Object;
 
@@ -117,9 +118,7 @@ class TransactionObjectImpl implements TransactionObject {
   }
 }
 
-interface Transaction {
-  // dbName: string;
-  // callback: (tx: TransactionObject) => boolean;
+export interface PendingTransaction {
   start: () => void;
 }
 
@@ -137,10 +136,7 @@ interface ISQLite {
     status: 0 | 1;
     message?: string;
   };
-  transaction: (
-    dbName: string,
-    fn: (tx: TransactionObject) => boolean | undefined
-  ) => void;
+  transaction: (dbName: string, fn: (tx: Transaction) => void) => void;
   executeSql: (
     dbName: string,
     query: string,
@@ -180,7 +176,10 @@ declare global {
 //     | |  | | \ \  / ____ \| |\  |____) / ____ \ |____   | |   _| || |__| | |\  |____) |
 //     |_|  |_|  \_\/_/    \_\_| \_|_____/_/    \_\_____|  |_|  |_____\____/|_| \_|_____/
 
-const locks: Record<string, { queue: Transaction[]; inProgress: boolean }> = {};
+const locks: Record<
+  string,
+  { queue: PendingTransaction[]; inProgress: boolean }
+> = {};
 
 // Enhance some host functions
 
@@ -241,16 +240,13 @@ sqlite.asyncExecuteSql = (
   _asyncExecuteSql(dbName, query, params, localCB);
 };
 
-sqlite.transaction = (
-  dbName: string,
-  callback: (tx: TransactionObject) => void
-) => {
+sqlite.transaction = (dbName: string, callback: (tx: Transaction) => void) => {
   if (!locks[dbName]) {
     throw Error(`No lock found on db: ${dbName}`);
   }
 
   const txObject = new TransactionObjectImpl(dbName);
-  const tx: Transaction = {
+  const tx: PendingTransaction = {
     start: () => {
       sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
       try {
@@ -323,7 +319,7 @@ interface IDBConnection {
     cb: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
-  transaction: (fn: (tx: TransactionObject) => void) => void;
+  transaction: (fn: (tx: Transaction) => void) => void;
   loadSqlFile: (
     location: string,
     callback: (result: FileLoadResult) => void
@@ -384,7 +380,7 @@ export const openDatabase = (
       ) => {
         sqlite.asyncExecuteSqlBatch(options.name, commands, cb);
       },
-      transaction: (fn: (tx: TransactionObject) => void): void => {
+      transaction: (fn: (tx: Transaction) => void): void => {
         sqlite.transaction(options.name, fn);
       },
       close: (ok: any, fail: any) => {
