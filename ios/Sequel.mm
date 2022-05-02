@@ -31,7 +31,6 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)setBridge:(RCTBridge *)bridge {
-  NSLog(@"Setting bridge");
   _bridge = bridge;
   _setBridgeOnMainQueue = RCTIsMainQueue();
 
@@ -47,10 +46,6 @@ RCT_EXPORT_MODULE()
   NSString *documentPath = [paths objectAtIndex:0];
 
   install(*(facebook::jsi::Runtime *)cxxBridge.runtime, callInvoker,[documentPath UTF8String]);
-}
-
-- (void)invalidate {
-  // intentionally left blank
 }
 
 @end
