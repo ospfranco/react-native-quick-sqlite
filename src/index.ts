@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { NativeModules } from 'react-native';
 
 const QuickSQLiteModule = NativeModules.QuickSQLite;
@@ -82,7 +83,7 @@ export interface BatchQueryResult {
  * Result of loading a file and executing every line as a SQL command
  * Similar to BatchQueryResult
  */
-interface FileLoadResult {
+export interface FileLoadResult {
   rowsAffected?: number;
   commands?: number;
   message?: string;
@@ -156,6 +157,16 @@ const locks: Record<
   { queue: PendingTransaction[]; inProgress: boolean }
 > = {};
 
+// Enhance some host functions
+
+// Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
+const enhanceQueryResult = (result: QueryResult): void => {
+  // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
+  if (result.rows != null) {
+    result.rows.item = (idx: number) => result.rows._array[idx];
+  }
+};
+
 const _open = sqlite.open;
 sqlite.open = (dbName: string, location?: string) => {
   const res = _open(dbName, location);
@@ -180,6 +191,31 @@ sqlite.close = (dbName: string) => {
   return res;
 };
 
+const _executeSql = sqlite.executeSql;
+sqlite.executeSql = (
+  dbName: string,
+  query: string,
+  params: any[] | undefined
+): QueryResult => {
+  const result = _executeSql(dbName, query, params);
+  enhanceQueryResult(result);
+  return result;
+};
+
+const _asyncExecuteSql = sqlite.asyncExecuteSql;
+sqlite.asyncExecuteSql = (
+  dbName: string,
+  query: string,
+  params: any[] | undefined,
+  cb: (res: QueryResult) => void
+): void => {
+  const localCB = (res: QueryResult): void => {
+    enhanceQueryResult(res);
+    cb(res);
+  };
+  _asyncExecuteSql(dbName, query, params, localCB);
+};
+
 sqlite.transaction = (
   dbName: string,
   callback: (tx: Transaction) => boolean
@@ -188,26 +224,32 @@ sqlite.transaction = (
     throw Error(`No lock found on db: ${dbName}`);
   }
 
-  const executeSql = (query: string, params?: any[]) =>
-    sqlite.executeSql(dbName, query, params);
+  // Local transaction context object implementation
+  const executeSql = (query: string, params?: any[]): QueryResult => {
+    return sqlite.executeSql(dbName, query, params);
+  };
 
   const tx: PendingTransaction = {
     start: () => {
-      sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
-      const success = callback({ executeSql });
-      if (success) {
-        sqlite.executeSql(dbName, 'COMMIT', null);
-      } else {
+      try {
+        sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
+        const result = callback({ executeSql });
+        if (result === true) {
+          sqlite.executeSql(dbName, 'COMMIT', null);
+        } else {
+          sqlite.executeSql(dbName, 'ROLLBACK', null);
+        }
+      } catch (e: any) {
         sqlite.executeSql(dbName, 'ROLLBACK', null);
+        throw e;
+      } finally {
+        locks[dbName].inProgress = false;
+        startNextTransaction(dbName);
       }
-
-      locks[dbName].inProgress = false;
-      startNextTransaction(dbName);
     },
   };
 
   locks[dbName].queue.push(tx);
-
   startNextTransaction(dbName);
 };
 
@@ -262,6 +304,7 @@ interface IDBConnection {
     cb: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
+  transaction: (fn: (tx: Transaction) => boolean) => void;
   loadSqlFile: (
     location: string,
     callback: (result: FileLoadResult) => void
@@ -289,12 +332,7 @@ export const openDatabase = (
       ) => {
         try {
           let response = sqlite.executeSql(options.name, sql, params);
-
-          // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
-          if (response.rows != null) {
-            response.rows.item = (idx: number) => response.rows._array[idx];
-          }
-
+          enhanceQueryResult(response);
           ok(response);
         } catch (e) {
           fail(e);
@@ -307,10 +345,7 @@ export const openDatabase = (
       ) => {
         try {
           sqlite.asyncExecuteSql(options.name, sql, params, (response) => {
-            // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
-            if (response.rows != null) {
-              response.rows.item = (idx: number) => response.rows._array[idx];
-            }
+            enhanceQueryResult(response);
             cb(response);
           });
         } catch (e) {
@@ -329,6 +364,9 @@ export const openDatabase = (
         cb: (res: BatchQueryResult) => void
       ) => {
         sqlite.asyncExecuteSqlBatch(options.name, commands, cb);
+      },
+      transaction: (fn: (tx: Transaction) => boolean): void => {
+        sqlite.transaction(options.name, fn);
       },
       close: (ok: any, fail: any) => {
         try {
