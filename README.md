@@ -43,11 +43,11 @@ interface QueryResult {
   rows?: {
     /** Raw array with all dataset */
     _array: any[];
-    /** The lengh of the dataset */
+    /** The length of the dataset */
     length: number;
   };
   /**
-   * Query metadata, avaliable only for select query results
+   * Query metadata, available only for select query results
    */
   metadata?: ColumnMetadata[];
 }
@@ -145,7 +145,7 @@ if (!status) {
 
 ### Transactions
 
-Transactions are supported. However, due to the library being opionionated and mostly not throwing errors you need to return a boolean (true for correct exceution, false for incorrect execution) to either commit or rollback the transaction.
+Transactions are supported. However, due to the library being opinionated and mostly not throwing errors you need to return a boolean (true for correct execution, false for incorrect execution) to either commit or rollback the transaction.
 
 JSI bindings are fast but there is still some overhead calling `executeSql` for single queries, if you want to execute a large set of commands as fast as possible you should use the `executeSqlBatch` method below, it still uses transactions, but only transmits data between JS and native once.
 
@@ -179,7 +179,7 @@ const commands = [
 ];
 const result = sqlite.executeSqlBatch('myDatabase', commands);
 if (!result.status) {
-  // result.status undefined or 0 === sucess
+  // result.status undefined or 0 === success
   console.log(`Batch affected ${result.rowsAffected} rows`);
 }
 ```
@@ -209,7 +209,7 @@ if (!status) {
 
 ### Async operations
 
-You might have too much SQL too process and it will cause your application to freeze. There are async versions for some of the operations. This will offload the SQLite processing to a different thread.
+You might have too much SQL to process and it will cause your application to freeze. There are async versions for some of the operations. This will offload the SQLite processing to a different thread.
 
 ```ts
 sqlite.asyncExecuteSql(
@@ -230,9 +230,9 @@ This package offers a low-level API to raw execute SQL queries. I strongly recom
 
 Follow the instructions to make TypeORM work with React Native (enable decorators, configure babel, etc), then apply the example patch via patch-package.
 
-## Learn React Native JSI
+## More
 
-If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/l/jsi_guide), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance)!
+If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance)!
 
 ## License
 
