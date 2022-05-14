@@ -72,6 +72,7 @@ interface BatchQueryResult {
 interface ISQLite {
   open: (dbName: string, location?: string) => { status: 0 | 1 };
   close: (dbName: string) => { status: 0 | 1 };
+  delete: (dbName: string, location?: string) => { status: 0 | 1 };
   executeSql: (
     dbName: string,
     query: string,
