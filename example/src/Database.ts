@@ -7,10 +7,10 @@ import { Buffer } from 'buffer';
 
 export const lowLevelInit = () => {
   // Start by opening a connection
-  const { status: dbOpenStatus } = sqlite.open('test', 'sample/database');
+  const { status: dbOpenStatus, message } = sqlite.open('test');
 
   if (dbOpenStatus) {
-    console.error('Failed to open the Database');
+    console.error('Failed to open the Database', message);
   }
 
   // Creates a table in db
