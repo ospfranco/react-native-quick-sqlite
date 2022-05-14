@@ -112,6 +112,13 @@ interface ISQLite {
     status: 0 | 1;
     message?: string;
   };
+  delete: (
+    dbName: string,
+    location?: string
+  ) => {
+    status: 0 | 1;
+    message?: string;
+  };
   transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
   executeSql: (
     dbName: string,

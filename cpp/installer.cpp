@@ -50,7 +50,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   auto open = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_open"),
-      1,
+      2,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
         if (count == 0)
@@ -65,7 +65,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         string dbName = args[0].asString(rt).utf8(rt);
         string tempDocPath = string(docPathStr);
-        if (count > 1)
+        if (count > 1 && !args[1].isUndefined() && !args[1].isNull())
         {
           if (!args[1].isString())
           {
@@ -141,7 +141,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   auto remove = jsi::Function::createFromHostFunction(
       rt,
       jsi::PropNameID::forAscii(rt, "sequel_delete"),
-      1,
+      2,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value
       {
         if (count == 0)
@@ -156,14 +156,26 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         string dbName = args[0].asString(rt).utf8(rt);
 
-        SQLiteOPResult result = sqliteRemoveDb(dbName, docPathStr);
+        string tempDocPath = string(docPathStr);
+        if (count > 1 && !args[1].isUndefined() && !args[1].isNull())
+        {
+          if (!args[1].isString())
+          {
+            return createError(rt, "[react-native-quick-sqlite][open] database location must be a string");
+          }
+
+          tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
+        }
+
+
+        SQLiteOPResult result = sqliteRemoveDb(dbName, tempDocPath);
 
         if (result.type == SQLiteError)
         {
           return createError(rt, result.errorMessage.c_str());
         }
 
-        return jsi::Value::undefined();
+        return createOk(rt);
       });
 
   // Execute SQL query
@@ -187,7 +199,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
         // Converting results into a JSI Response
         auto jsiResult = createSequelQueryExecutionResult(rt, status, &results, &metadata);
-        return move(jsiResult);
+        return jsiResult;
       });
 
   // Execute a batch of SQL queries in a transaction
