@@ -401,6 +401,8 @@ export const openDatabase = (
     };
 
     ok(connection);
+  
+    return connection;
   } catch (e) {
     fail(e);
   }
