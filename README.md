@@ -102,6 +102,18 @@ interface ISQLite {
 }
 ```
 
+### WebSQL wrapper
+
+You can get a WebSQL wrapper (meant to be used with TypeORM or other drivers) with a different global call. It's a simple wrapper around the low level API.
+
+```ts
+openDatabase(
+  options: IConnectionOptions,
+  ok: (db: IDBConnection) => void,
+  fail: (msg: string) => void
+): IDBConnection
+```
+
 # Usage
 
 Import as early as possible, auto-installs bindings in a thread-safe manner.

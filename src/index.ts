@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 /* eslint-disable no-undef */
 import { NativeModules } from 'react-native';
 
@@ -326,7 +327,7 @@ export const openDatabase = (
   options: IConnectionOptions,
   ok: (db: IDBConnection) => void,
   fail: (msg: string) => void
-) => {
+): IDBConnection => {
   try {
     sqlite.open(options.name, options.location);
 
@@ -401,7 +402,7 @@ export const openDatabase = (
     };
 
     ok(connection);
-  
+
     return connection;
   } catch (e) {
     fail(e);
