@@ -24,7 +24,7 @@
 
 Quick SQLite embeds the latest version of SQLite and provides a low-level API to execute SQL queries, uses fast bindings via [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2). By using an embedded SQLite you get access the latest security patches and latest features.
 
-Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2).
+Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2). Performance metrics are intentionally not posted, [annecdotical testimonies](dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
 ## Gotchas
 
