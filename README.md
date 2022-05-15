@@ -30,7 +30,7 @@ Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor
 
 - **Javascript cannot represent integers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
 - **It's not possible to use a browser to debug a JSI app**, use [Flipper](https://github.com/facebook/flipper) (for android Flipper also has SQLite Database explorer).
-- Your app will now include C++, you will need to install the NDK on your machine for android.
+- Install the NDK on your machine for android.
 
 ## API
 
