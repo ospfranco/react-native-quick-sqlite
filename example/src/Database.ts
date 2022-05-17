@@ -16,7 +16,7 @@ export const lowLevelInit = () => {
   // Creates a table in db
   const { status: createTableStatus } = sqlite.executeSql(
     'test',
-    'CREATE TABLE "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);',
+    'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);',
     undefined
   );
 
@@ -48,7 +48,12 @@ export const testInsert = () => {
   const { status: createUserStatus } = sqlite.executeSql(
     'test',
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-    [new Date().getMilliseconds(), `Frank`, 32, 3000.23]
+    [
+      new Date().getMilliseconds(),
+      `{"nickname":"mike", "name":"michael"}`,
+      32,
+      3000.23,
+    ]
   );
 
   // handle error
@@ -60,7 +65,12 @@ export const testInsert = () => {
 };
 
 export const queryUsers = () => {
-  const queryResult = sqlite.executeSql('test', 'SELECT * FROM "User";', []);
+  const queryResult = sqlite.executeSql(
+    'test',
+    `SELECT *, json_extract("User".name, '$.nickname') as name FROM "User"`,
+    []
+  );
+
   return queryResult.rows?._array;
 
   // If you don't want to block the UI thread use async methods
