@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.9.0)
 
-set (CMAKE_VERBOSE_MAKEFILE ON)
+#set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 14)
-#set (CMAKE_CXX_FLAGS "-DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_HAVE_MEMRCHR=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_MOBILE=1 -DON_ANDROID -DONANDROID -DFOR_HERMES=${FOR_HERMES}")
 
 set (PACKAGE_NAME "react-native-quick-sqlite")
 set (BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
@@ -22,39 +21,62 @@ endif()
 file (GLOB LIBFBJNI_INCLUDE_DIR "${BUILD_DIR}/fbjni-*-headers.jar/")
 
 include_directories(
-  ../cpp
-  "${NODE_MODULES_DIR}/react-native/React"
-  "${NODE_MODULES_DIR}/react-native/React/Base"
-  "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
-  "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
-  "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/java/com/facebook/react/turbomodule/core/jni"
-  "${NODE_MODULES_DIR}/react-native/ReactCommon"
-  "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
-  "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
-  "${NODE_MODULES_DIR}/hermes-engine/android/include/"
-  ${INCLUDE_JSI_CPP} # only on older RN versions
-  ${INCLUDE_JSIDYNAMIC_CPP} # only on older RN versions
+        ../cpp
+        "${NODE_MODULES_DIR}/react-native/React"
+        "${NODE_MODULES_DIR}/react-native/React/Base"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
+        "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/java/com/facebook/react/turbomodule/core/jni"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
+        "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
+        "${NODE_MODULES_DIR}/hermes-engine/android/include/"
+        ${INCLUDE_JSI_CPP} # only on older RN versions
+        ${INCLUDE_JSIDYNAMIC_CPP} # only on older RN versions
 )
 
-add_library(
-  ${PACKAGE_NAME}
-  SHARED
-  ../cpp/sqliteBridge.cpp
-  ../cpp/sqliteBridge.h
-  ../cpp/installer.cpp
-  ../cpp/installer.h
-  ../cpp/sqlite3.h
-  ../cpp/sqlite3.c
-  ../cpp/JSIHelper.h
-  ../cpp/JSIHelper.cpp
-  ../cpp/ThreadPool.h
-  ../cpp/ThreadPool.cpp
-  ../cpp/sqlfileloader.h
-  ../cpp/sqlfileloader.cpp
-  ../cpp/sqlbatchexecutor.h
-  ../cpp/sqlbatchexecutor.cpp
-  cpp-adapter.cpp
-)
+if($ENV{QUICK_SQLITE_USE_PHONE_VERSION})
+        message(STATUS "Using phone's sqlite")
+        add_library(
+                ${PACKAGE_NAME}
+                SHARED
+                ../cpp/sqliteBridge.cpp
+                ../cpp/sqliteBridge.h
+                ../cpp/installer.cpp
+                ../cpp/installer.h
+                ../cpp/sqlite3.h
+                ../cpp/JSIHelper.h
+                ../cpp/JSIHelper.cpp
+                ../cpp/ThreadPool.h
+                ../cpp/ThreadPool.cpp
+                ../cpp/sqlfileloader.h
+                ../cpp/sqlfileloader.cpp
+                ../cpp/sqlbatchexecutor.h
+                ../cpp/sqlbatchexecutor.cpp
+                cpp-adapter.cpp
+        )
+else()
+        message(STATUS "Embedding sqlite")
+        add_library(
+                ${PACKAGE_NAME}
+                SHARED
+                ../cpp/sqliteBridge.cpp
+                ../cpp/sqliteBridge.h
+                ../cpp/installer.cpp
+                ../cpp/installer.h
+                ../cpp/sqlite3.h
+                ../cpp/sqlite3.c
+                ../cpp/JSIHelper.h
+                ../cpp/JSIHelper.cpp
+                ../cpp/ThreadPool.h
+                ../cpp/ThreadPool.cpp
+                ../cpp/sqlfileloader.h
+                ../cpp/sqlfileloader.cpp
+                ../cpp/sqlbatchexecutor.h
+                ../cpp/sqlbatchexecutor.cpp
+                cpp-adapter.cpp
+        )
+endif()
 
 # find fbjni package
 file (GLOB LIBFBJNI_INCLUDE_DIR "${BUILD_DIR}/fbjni-*-headers.jar/")
@@ -92,6 +114,7 @@ find_library(
         PATHS ${LIBRN_DIR}
         NO_CMAKE_FIND_ROOT_PATH
 )
+
 if(${REACT_NATIVE_VERSION} LESS 66)
         # JSI lib didn't exist on RN 0.65 and before. Simply omit it.
         set (JSI_LIB "")
@@ -110,7 +133,12 @@ find_library(
         log
 )
 
-# target_link_libraries(sequel fbjni::fbjni android log)
+if($ENV{QUICK_SQLITE_USE_PHONE_VERSION})
+        find_package (SQLite3)
+        include_directories(${SQLite3_INCLUDE_DIRS})
+        target_link_libraries (${PACKAGE_NAME} ${SQLite3_LIBRARIES})
+endif()
+
 target_link_libraries(
         ${PACKAGE_NAME}
         ${LOG_LIB}
