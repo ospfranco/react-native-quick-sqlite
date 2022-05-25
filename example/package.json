@@ -6,7 +6,7 @@
   "scripts": {
     "android": "react-native run-android",
     "android:logcat": "$ANDROID_HOME/platform-tools/adb logcat",
-    "ios": "react-native run-ios",
+    "ios": "react-native run-ios --simulator 'iPhone 13 mini'",
     "start": "react-native start",
     "postinstall": "patch-package"
   },

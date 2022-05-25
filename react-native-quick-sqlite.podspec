@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "11.0" }
+  s.platforms    = { :ios => "10.0" }
   s.source       = { :git => "https://github.com/ospfranco/react-native-quick-sqlite.git", :tag => "#{s.version}" }
 
   s.pod_target_xcconfig = {
@@ -25,4 +25,10 @@ Pod::Spec.new do |s|
   s.dependency "React-callinvoker"
   s.dependency "React"
   s.dependency "React-Core"
+
+  if ENV['QUICK_SQLITE_USE_PHONE_VERSION'] == 'true' then
+    s.exclude_files = "cpp/sqlite3.c", "cpp/sqlite3.h"
+    s.library = "sqlite3"
+  end
+  
 end
