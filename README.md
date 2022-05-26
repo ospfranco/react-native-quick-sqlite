@@ -1,14 +1,6 @@
 ![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header.png)
 
 <div align="center">
-  <h3>With TypeORM</h3>
-  <pre align="center">
-    <a href="https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch">Copy typeORM patch-package from example dir</a>
-    yarn add react-native-quick-sqlite typeorm
-    npx pod-install
-    <a href="https://dev.to/vinipachecov/setup-typeorm-with-react-native-50c4">Enable decorators and configure babel</a></pre>
-  <br>
-  <h3>Low level bindings only</h3>
   <pre align="center">
     yarn add react-native-quick-sqlite
     npx pod-install</pre>
@@ -251,13 +243,11 @@ On Android unfortunately it is not possible to link from C++ to the phone's embe
 
 ## Use TypeORM
 
-This package offers a low-level API to raw execute SQL queries. I strongly recommend to use [TypeORM](https://github.com/typeorm/typeorm) (with [patch-package](https://github.com/ds300/patch-package)). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch).
-
-Follow the instructions to make TypeORM work with React Native (enable decorators, configure babel, etc), then apply the example patch via patch-package.
+You can use this driver with [TypeORM](https://github.com/typeorm/typeorm) and [patch-package](https://github.com/ds300/patch-package) by the default react-native-sqlite-storage driver. Go inside your `node_modules/typeorm` and do a global replace of `react-native-sqlite-storage` for `react-native-quick-sqlite` and then patch package it. The [patch](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.36.patch) on the example folder you will see an example of what it should look like
 
 ## More
 
-If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance)!
+If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance).
 
 ## License
 
