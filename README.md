@@ -236,7 +236,7 @@ App size is a real concern for some teams.
 On iOS you can use the OS embedded SQLite instance, when running `pod-install` add an environment flag:
 
 ```
-QUICK_SQLITE_USE_PHONE_VERSION=true npx pod-install
+QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
 On Android unfortunately it is not possible to link from C++ to the phone's embedded SQLite. It is also very buggy (vendor changes, old android bugs, etc). The recommended way is to embed your own version of SQLite anyways. Unfortunately this means we are stuck and this library will add some mbs to your app size.
