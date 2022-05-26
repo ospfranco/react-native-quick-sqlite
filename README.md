@@ -237,6 +237,18 @@ sqlite.asyncExecuteSql(
 );
 ```
 
+## Use built-in SQLite
+
+App size is a real concern for some teams.
+
+On iOS you can use the OS embedded SQLite instance, when running `pod-install` add an environment flag:
+
+```
+QUICK_SQLITE_USE_PHONE_VERSION=true npx pod-install
+```
+
+On Android unfortunately it is not possible to link from C++ to the phone's embedded SQLite. It is also very buggy (vendor changes, old android bugs, etc). The recommended way is to embed your own version of SQLite anyways. Unfortunately this means we are stuck and this library will add some mbs to your app size.
+
 ## Use TypeORM
 
 This package offers a low-level API to raw execute SQL queries. I strongly recommend to use [TypeORM](https://github.com/typeorm/typeorm) (with [patch-package](https://github.com/ds300/patch-package)). TypeORM already has a sqlite-storage driver. In the `example` project on the `patch` folder you can a find a [patch for TypeORM](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.31.patch).
