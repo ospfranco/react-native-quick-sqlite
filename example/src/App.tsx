@@ -15,6 +15,8 @@ import {
   queryUsers,
   testInsert,
   testTransaction,
+  typeORMGetBooks,
+  typeORMInit,
 } from './Database';
 // import { typeORMInit } from './Database';
 import type { User } from './model/User';
@@ -24,15 +26,21 @@ export default function App() {
   let [users, setUsers] = React.useState<User[]>([]);
 
   React.useEffect(() => {
-    lowLevelInit();
-    const users = queryUsers();
-    setUsers(users);
-    // typeORMInit().then(setUsers);
+    // lowLevelInit();
+    // const users = queryUsers();
+    // setUsers(users);
+    typeORMInit().then(() => {
+      console.warn('db initialized');
+      typeORMGetBooks().then((books) => {
+        console.warn('typeORM books', books);
+        
+      })
+    });
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Quick SQLite tester app</Text>
+      <Text style={styles.header}>Quick-SQLite Tester</Text>
       <Button
         title="Refresh"
         onPress={() => {
