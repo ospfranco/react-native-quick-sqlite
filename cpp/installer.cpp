@@ -85,28 +85,69 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         return createOk(rt);
       });
 
-  //    auto attach = jsi::Function::createFromHostFunction(
-  //        rt,
-  //        jsi::PropNameID::forAscii(rt, "sequel_attach"),
-  //        1,
-  //        [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
-  //            if (!args[0].isString())
-  //            {
-  //                jsi::detail::throwJSError(rt, "dbName must be a string");
-  //                return {};
-  //            }
-  //
-  //            string dbName = args[0].asString(rt).utf8(rt);
-  //            SequelResult result = sequel_attach(dbName);
-  //
-  //            if (result.type == SQLiteError)
-  //            {
-  //                jsi::detail::throwJSError(rt, result.message.c_str());
-  //                return {};
-  //            }
-  //
-  //            return move(result.value);
-  //        });
+  auto attachDatabase = jsi::Function::createFromHostFunction(
+      rt,
+      jsi::PropNameID::forAscii(rt, "attachDatabase"),
+      4,
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+          if(count < 3) {
+            return createError(rt, "[react-native-quick-sqlite][attachDatabase] Incorrect number of arguments");
+          }
+          if (!args[0].isString() || !args[1].isString() || !args[2].isString())
+          {
+              jsi::detail::throwJSError(rt, "dbName, databaseToAttach and alias must be a strings");
+              return {};
+          }
+          
+          string tempDocPath = string(docPathStr);
+          if (count > 3 && !args[3].isUndefined() && !args[3].isNull())
+          {
+            if (!args[3].isString())
+            {
+              return createError(rt, "[react-native-quick-sqlite][attachDatabase] database location must be a string");
+            }
+
+            tempDocPath = tempDocPath + "/" + args[3].asString(rt).utf8(rt);
+          }
+          
+          string dbName = args[0].asString(rt).utf8(rt);
+          string databaseToAttach = args[1].asString(rt).utf8(rt);
+          string alias = args[2].asString(rt).utf8(rt);
+          SQLiteOPResult result = sqliteAttachDb(dbName, tempDocPath, databaseToAttach, alias);
+
+          if (result.type == SQLiteError)
+          {
+            return createError(rt, result.errorMessage.c_str());
+          }
+
+          return createOk(rt);
+      });
+
+  auto detachDatabase = jsi::Function::createFromHostFunction(
+      rt,
+      jsi::PropNameID::forAscii(rt, "detachDatabase"),
+      2,
+      [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
+          if(count < 2) {
+            return createError(rt, "[react-native-quick-sqlite][detachDatabase] Incorrect number of arguments");
+          }
+          if (!args[0].isString() || !args[1].isString())
+          {
+              jsi::detail::throwJSError(rt, "dbName, databaseToAttach and alias must be a strings");
+              return {};
+          }
+
+          string dbName = args[0].asString(rt).utf8(rt);
+          string alias = args[1].asString(rt).utf8(rt);
+          SQLiteOPResult result = sqliteDetachDb(dbName, alias);
+
+          if (result.type == SQLiteError)
+          {
+            return createError(rt, result.errorMessage.c_str());
+          }
+
+          return createOk(rt);
+      });
 
   // Close db
   auto close = jsi::Function::createFromHostFunction(
@@ -447,7 +488,8 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   // Callable properties
   module.setProperty(rt, "open", move(open));
   module.setProperty(rt, "close", move(close));
-  //    module.setProperty(rt, "attach", move(attach));
+  module.setProperty(rt, "attach", move(attachDatabase));
+  module.setProperty(rt, "detach", move(detachDatabase));
   module.setProperty(rt, "delete", move(remove));
   module.setProperty(rt, "executeSql", move(execSQL));
   module.setProperty(rt, "asyncExecuteSql", move(asyncExecSQL));

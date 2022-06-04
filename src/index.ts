@@ -48,6 +48,16 @@ export interface QueryResult {
 }
 
 /**
+ * Possible result for any attach or dettach database command
+ * status: 0 or undefined for correct execution, 1 for error
+ *  message: if status === 1, here you will find error description
+ */
+export interface AttachDetachResult {
+  status?: 0 | 1;
+  message?: string;
+}
+
+/**
  * Column metadata
  * Describes some information about columns fetched by the query
  */
@@ -116,6 +126,22 @@ interface ISQLite {
   delete: (
     dbName: string,
     location?: string
+  ) => {
+    status: 0 | 1;
+    message?: string;
+  };
+  attach: (
+    mainDbName: string,
+    dbNameToAttach: string,
+    alias: string,
+    location?: string
+  ) => {
+    status: 0 | 1;
+    message?: string;
+  };
+  detach: (
+    mainDbName: string,
+    alias: string
   ) => {
     status: 0 | 1;
     message?: string;
@@ -318,6 +344,16 @@ interface IDBConnection {
     cb: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
+  attach: (
+    dbNameToAttach: string,
+    alias: string,
+    location: string | undefined,
+    callback: (result: AttachDetachResult) => void
+  ) => void;
+  detach: (
+    alias: string,
+    callback: (result: AttachDetachResult) => void
+  ) => void;
   transaction: (fn: (tx: Transaction) => boolean) => void;
   loadSqlFile: (
     location: string,
@@ -389,6 +425,24 @@ export const openDatabase = (
         } catch (e) {
           fail(e);
         }
+      },
+      attach: (
+        dbNameToAttach: string,
+        alias: string,
+        location: string | undefined,
+        callback: (result: AttachDetachResult) => void
+      ) => {
+        const result = sqlite.attach(
+          options.name,
+          dbNameToAttach,
+          alias,
+          location
+        );
+        callback(result);
+      },
+      detach: (alias, callback: (result: AttachDetachResult) => void) => {
+        const result = sqlite.detach(options.name, alias);
+        callback(result);
       },
       loadSqlFile: (
         location: string,

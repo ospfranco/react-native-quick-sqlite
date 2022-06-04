@@ -130,29 +130,44 @@ SQLiteOPResult sqliteCloseDb(string const dbName)
   };
 }
 
-// SequelResult sequel_attach(string const &dbName)
-//{
-//     if(dbMap.count(dbName) == 0){
-//         cout << "[react-native-quick-sqlite]: DB " << dbName << " not open" << endl;
-//         return SequelResult{
-//             SequelResultError,
-//             dbName + " is not open",
-//             jsi::Value::undefined()
-//         };
-//     }
+SQLiteOPResult sqliteAttachDb(string const mainDBName, string const docPath, string const databaseToAttach, string const alias)
+{
+  /**
+   * There is no need to check if mainDBName is opened because sqliteExecuteLiteral will do that.
+   * */
+  string dbPath = get_db_path(databaseToAttach, docPath);
+  string statement = "ATTACH DATABASE '" + dbPath + "' AS " + alias;
+  SequelLiteralUpdateResult result = sqliteExecuteLiteral(mainDBName, statement);
+  if (result.type == SQLiteError)
+  {
+    return SQLiteOPResult{
+        .type = SQLiteError,
+        .errorMessage = mainDBName + " was unable to attach another database: " + string(result.message),
+      };
+  }
+  return SQLiteOPResult{
+      .type = SQLiteOk,
+  };
+}
 
-// TODO: What does "Attach" do? is it really necessary?
-// https://github.com/andpor/react-native-sqlite-storage/blob/master/platforms/ios/SQLite.m#L362
-
-//    NSString* sql = [NSString stringWithFormat:@"ATTACH DATABASE '%@' AS %@", dbPathToAttach, dbAlias];
-//
-//            if(sqlite3_exec(db, [sql UTF8String], NULL, NULL, NULL) == SQLITE_OK) {
-//              pluginResult = [SQLiteResult resultWithStatus:SQLiteStatus_OK messageAsString:@"Database attached successfully."];
-//            } else {
-//              pluginResult = [SQLiteResult resultWithStatus:SQLiteStatus_ERROR messageAsString:@"Unable to attach DB"];
-//            }
-
-//}
+SQLiteOPResult sqliteDetachDb(string const mainDBName, string const alias)
+{
+  /**
+   * There is no need to check if mainDBName is opened because sqliteExecuteLiteral will do that.
+   * */
+  string statement = "DETACH DATABASE " + alias;
+  SequelLiteralUpdateResult result = sqliteExecuteLiteral(mainDBName, statement);
+  if (result.type == SQLiteError)
+  {
+    return SQLiteOPResult{
+        .type = SQLiteError,
+        .errorMessage = mainDBName + "was unable to detach database: " + string(result.message),
+      };
+  }
+  return SQLiteOPResult{
+      .type = SQLiteOk,
+  };
+}
 
 SQLiteOPResult sqliteRemoveDb(string const dbName, string const docPath)
 {
