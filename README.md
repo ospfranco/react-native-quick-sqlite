@@ -267,9 +267,7 @@ Note: You don't need to detach an attached database before closing your connecti
 will dettach any dettached databases.
 SQLite have a limit for attached databases: A default of 10, and a global max of 125
 
-Ref: 
-https://www.sqlite.org/lang_attach.html
-https://www.sqlite.org/lang_detach.html
+References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
 
 ```ts
 const result = sqlite.attach('mainDatabase', 'statistics', 'stats', '../databases',);
