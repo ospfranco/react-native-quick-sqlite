@@ -85,13 +85,13 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         return createOk(rt);
       });
 
-  auto attachDatabase = jsi::Function::createFromHostFunction(
+  auto attach = jsi::Function::createFromHostFunction(
       rt,
-      jsi::PropNameID::forAscii(rt, "attachDatabase"),
+      jsi::PropNameID::forAscii(rt, "attach"),
       4,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
           if(count < 3) {
-            return createError(rt, "[react-native-quick-sqlite][attachDatabase] Incorrect number of arguments");
+            return createError(rt, "[react-native-quick-sqlite][attach] Incorrect number of arguments");
           }
           if (!args[0].isString() || !args[1].isString() || !args[2].isString())
           {
@@ -104,7 +104,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           {
             if (!args[3].isString())
             {
-              return createError(rt, "[react-native-quick-sqlite][attachDatabase] database location must be a string");
+              return createError(rt, "[react-native-quick-sqlite][attach] database location must be a string");
             }
 
             tempDocPath = tempDocPath + "/" + args[3].asString(rt).utf8(rt);
@@ -123,13 +123,13 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           return createOk(rt);
       });
 
-  auto detachDatabase = jsi::Function::createFromHostFunction(
+  auto detach = jsi::Function::createFromHostFunction(
       rt,
-      jsi::PropNameID::forAscii(rt, "detachDatabase"),
+      jsi::PropNameID::forAscii(rt, "detach"),
       2,
       [](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) -> jsi::Value {
           if(count < 2) {
-            return createError(rt, "[react-native-quick-sqlite][detachDatabase] Incorrect number of arguments");
+            return createError(rt, "[react-native-quick-sqlite][detach] Incorrect number of arguments");
           }
           if (!args[0].isString() || !args[1].isString())
           {
@@ -488,8 +488,8 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   // Callable properties
   module.setProperty(rt, "open", move(open));
   module.setProperty(rt, "close", move(close));
-  module.setProperty(rt, "attach", move(attachDatabase));
-  module.setProperty(rt, "detach", move(detachDatabase));
+  module.setProperty(rt, "attach", move(attach));
+  module.setProperty(rt, "detach", move(detach));
   module.setProperty(rt, "delete", move(remove));
   module.setProperty(rt, "executeSql", move(execSQL));
   module.setProperty(rt, "asyncExecuteSql", move(asyncExecSQL));
