@@ -281,6 +281,12 @@ if(!result.status) {
   if(!data.status) {}
 }
 
+// You can detach databases at any moment
+const detachResult = sqlite.detach('mainDatabase', 'stats');
+if(!detachResult.status) {
+  // Database dettached
+}
+
 ```
 
 ## Use built-in SQLite
