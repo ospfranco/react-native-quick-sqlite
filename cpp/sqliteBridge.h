@@ -19,7 +19,9 @@ SQLiteOPResult sqliteCloseDb(string const dbName);
 
 SQLiteOPResult sqliteRemoveDb(string const dbName, string const docPath);
 
-// SequelResult sequel_attach(string const &dbName);
+SQLiteOPResult sqliteAttachDb(string const mainDBName, string const docPath, string const databaseToAttach, string const alias);
+
+SQLiteOPResult sqliteDetachDb(string const mainDBName, string const alias);
 
 SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<QuickValue> *values, vector<map<string, QuickValue>> *result, vector<QuickColumnMetadata> *metadata);
 

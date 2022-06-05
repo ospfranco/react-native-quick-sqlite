@@ -27,11 +27,20 @@ Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor
 ## API
 
 ```typescript
-interface QueryResult {
-  status?: 0 | 1; // 0 for correct execution
+/**
+ * All SQLIte command results will have at least this status definition:
+ * Specific statments or actions can bring more data, relative to its context
+ * status: 0 or undefined for correct execution, 1 for error
+ *  message: if status === 1, here you will find error description
+ */
+export interface StatementResult {
+  status?: 0 | 1;
+  message?: string;
+}
+
+interface QueryResult extends StatementResult {
   insertId?: number;
   rowsAffected: number;
-  message?: string;
   rows?: {
     /** Raw array with all dataset */
     _array: any[];
@@ -55,16 +64,34 @@ interface ColumnMetadata = {
   columnIndex: number;
 };
 
-interface BatchQueryResult {
-  status?: 0 | 1;
+/**
+ * status: 0 or undefined for correct execution, 1 for error
+ * message: if status === 1, here you will find error description
+ * rowsAffected: Number of affected rows if status == 0
+ */
+export interface BatchQueryResult extends StatementResult {
   rowsAffected?: number;
-  message?: string;
+}
+
+/**
+ * Result of loading a file and executing every line as a SQL command
+ * Similar to BatchQueryResult
+ */
+export interface FileLoadResult extends BatchQueryResult {
+  commands?: number;
 }
 
 interface ISQLite {
-  open: (dbName: string, location?: string) => { status: 0 | 1 };
-  close: (dbName: string) => { status: 0 | 1 };
-  delete: (dbName: string, location?: string) => { status: 0 | 1 };
+  open: (dbName: string, location?: string) => StatementResult;
+  close: (dbName: string) => StatementResult;
+  delete: (dbName: string, location?: string) => StatementResult;
+  attach: (
+    mainDbName: string,
+    dbNameToAttach: string,
+    alias: string,
+    location?: string
+  ) => StatementResult;
+  detach: (mainDbName: string, alias: string) => StatementResult;
   executeSql: (
     dbName: string,
     query: string,
@@ -227,6 +254,37 @@ sqlite.asyncExecuteSql(
     }
   }
 );
+```
+
+### Attach or Detach another databases
+
+SQLite supports to attach or detach another database files into your main database connection through an alias.
+You can do any operation you like on this attached databases like JOIN results across tables in different schemas, or update data or objects.
+This databases can have different configurations, like journal modes, cache settings.
+
+You can, at any moment detach a database that you don't need anymore.
+Note: You don't need to detach an attached database before closing your connection. Closing the main connection
+will dettach any dettached databases.
+SQLite have a limit for attached databases: A default of 10, and a global max of 125
+
+References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
+
+```ts
+const result = sqlite.attach('mainDatabase', 'statistics', 'stats', '../databases',);
+
+// Database is attached sucefully
+if(!result.status) {
+  const data = sqlite.executeSql('mainDatabase', 'SELECT * FROM some_table_from_mainschema a INNER JOIN stats.some_table b on a.id_column = b.id_column');
+  // Consume the results
+  if(!data.status) {}
+}
+
+// You can detach databases at any moment
+const detachResult = sqlite.detach('mainDatabase', 'stats');
+if(!detachResult.status) {
+  // Database dettached
+}
+
 ```
 
 ## Use built-in SQLite

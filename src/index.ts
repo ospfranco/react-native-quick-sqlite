@@ -15,6 +15,17 @@ if (QuickSQLiteModule) {
  */
 
 /**
+ * All SQLIte command results will have at least this status definition:
+ * Specific statments or actions can bring more data, relative to its context
+ * status: 0 or undefined for correct execution, 1 for error
+ *  message: if status === 1, here you will find error description
+ */
+export interface StatementResult {
+  status?: 0 | 1;
+  message?: string;
+}
+
+/**
  * Object returned by SQL Query executions {
  *  status: 0 or undefined for correct execution, 1 for error
  *  insertId: Represent the auto-generated row id if applicable
@@ -25,11 +36,9 @@ if (QuickSQLiteModule) {
  *
  * @interface QueryResult
  */
-export interface QueryResult {
-  status?: 0 | 1;
+export interface QueryResult extends StatementResult {
   insertId?: number;
   rowsAffected: number;
-  message?: string;
   rows?: {
     /** Raw array with all dataset */
     _array: any[];
@@ -74,21 +83,16 @@ type SQLBatchParams = [string] | [string, Array<any> | Array<Array<any>>];
  * message: if status === 1, here you will find error description
  * rowsAffected: Number of affected rows if status == 0
  */
-export interface BatchQueryResult {
-  status?: 0 | 1;
+export interface BatchQueryResult extends StatementResult {
   rowsAffected?: number;
-  message?: string;
 }
 
 /**
  * Result of loading a file and executing every line as a SQL command
  * Similar to BatchQueryResult
  */
-export interface FileLoadResult {
-  rowsAffected?: number;
+export interface FileLoadResult extends BatchQueryResult {
   commands?: number;
-  message?: string;
-  status?: 0 | 1;
 }
 
 export interface Transaction {
@@ -113,13 +117,14 @@ interface ISQLite {
     status: 0 | 1;
     message?: string;
   };
-  delete: (
-    dbName: string,
+  delete: (dbName: string, location?: string) => StatementResult;
+  attach: (
+    mainDbName: string,
+    dbNameToAttach: string,
+    alias: string,
     location?: string
-  ) => {
-    status: 0 | 1;
-    message?: string;
-  };
+  ) => StatementResult;
+  detach: (mainDbName: string, alias: string) => StatementResult;
   transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
   executeSql: (
     dbName: string,
@@ -318,6 +323,13 @@ interface IDBConnection {
     cb: (res: BatchQueryResult) => void
   ) => void;
   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
+  attach: (
+    dbNameToAttach: string,
+    alias: string,
+    location: string | undefined,
+    callback: (result: StatementResult) => void
+  ) => void;
+  detach: (alias: string, callback: (result: StatementResult) => void) => void;
   transaction: (fn: (tx: Transaction) => boolean) => void;
   loadSqlFile: (
     location: string,
@@ -389,6 +401,24 @@ export const openDatabase = (
         } catch (e) {
           fail(e);
         }
+      },
+      attach: (
+        dbNameToAttach: string,
+        alias: string,
+        location: string | undefined,
+        callback: (result: StatementResult) => void
+      ) => {
+        const result = sqlite.attach(
+          options.name,
+          dbNameToAttach,
+          alias,
+          location
+        );
+        callback(result);
+      },
+      detach: (alias, callback: (result: StatementResult) => void) => {
+        const result = sqlite.detach(options.name, alias);
+        callback(result);
       },
       loadSqlFile: (
         location: string,
