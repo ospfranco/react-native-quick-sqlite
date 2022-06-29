@@ -17,8 +17,8 @@ import {
   testTransaction,
   typeORMGetBooks,
   typeORMInit,
+  executeFailingTypeORMQuery,
 } from './Database';
-// import { typeORMInit } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
 
@@ -30,11 +30,9 @@ export default function App() {
     // const users = queryUsers();
     // setUsers(users);
     typeORMInit().then(() => {
-      console.warn('db initialized');
       typeORMGetBooks().then((books) => {
-        console.warn('typeORM books', books);
-        
-      })
+        // console.warn('typeORM books', books);
+      });
     });
   }, []);
 
@@ -61,6 +59,10 @@ export default function App() {
         onPress={() => {
           testTransaction();
         }}
+      />
+      <Button
+        title="Execute typeORM failing query"
+        onPress={executeFailingTypeORMQuery}
       />
       <FlatList
         data={users}

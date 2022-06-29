@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
 // import { Buffer } from 'buffer';
-let datasource: DataSource
+let datasource: DataSource;
 
 export const lowLevelInit = () => {
   // Start by opening a connection
@@ -86,11 +86,10 @@ export async function typeORMInit() {
     database: 'test2',
     location: '.',
     entities: [Book],
-    synchronize: true
+    synchronize: true,
   });
 
-  await datasource.initialize()
-
+  await datasource.initialize();
 
   // await createConnection({
   //   type: 'react-native',
@@ -129,5 +128,17 @@ export async function typeORMInit() {
 
 export async function typeORMGetBooks() {
   const bookRepository = datasource.getRepository(Book);
-  return await bookRepository.find()
+  return await bookRepository.find();
+}
+
+export async function executeFailingTypeORMQuery() {
+  const bookRepository = datasource.getRepository(Book);
+
+  try {
+    const manualQuery = await bookRepository.query(`
+          SELECT * From UnexistingTable
+        `);
+  } catch (e) {
+    console.warn('should have cached');
+  }
 }

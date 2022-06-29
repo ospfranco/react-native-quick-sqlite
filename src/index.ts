@@ -359,7 +359,12 @@ export const openDatabase = (
         try {
           let response = sqlite.executeSql(options.name, sql, params);
           enhanceQueryResult(response);
-          ok(response);
+
+          if (response.status === 1) {
+            fail(response.message);
+          } else {
+            ok(response);
+          }
         } catch (e) {
           fail(e);
         }
