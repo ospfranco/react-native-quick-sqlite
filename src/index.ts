@@ -312,7 +312,8 @@ interface IDBConnection {
   asyncExecuteSql: (
     query: string,
     params: any[] | undefined,
-    cb: (res: QueryResult) => void
+    cb: (res: QueryResult) => void,
+    fail: (msg: string) => void
   ) => void;
   executeSqlBatch: (
     commands: SQLBatchParams[],
@@ -372,10 +373,14 @@ export const openDatabase = (
       asyncExecuteSql: (
         sql: string,
         params: any[] | undefined,
-        cb: (res: QueryResult) => void
+        cb: (res: QueryResult) => void,
+        fail: (msg: string) => void
       ) => {
         try {
           sqlite.asyncExecuteSql(options.name, sql, params, (response) => {
+            if (response.status === 1) {
+              fail(response.message);
+            }
             enhanceQueryResult(response);
             cb(response);
           });
