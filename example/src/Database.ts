@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import '../..';
+import { QuickSQLite as sqlite } from 'react-native-quick-sqlite';
 import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
@@ -30,15 +30,10 @@ export const lowLevelInit = () => {
 export const testTransaction = () => {
   sqlite.transaction('test', (tx) => {
     tx.executeSql(
-      'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+      'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
       [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
     );
-
-    tx.executeSql(
-      'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-      [new Date().getMilliseconds(), `Tom`, 23, 100]
-    );
-
+    console.warn('committing transaction');
     // return true to commit transaction, false to revert
     return true;
   });
@@ -46,31 +41,24 @@ export const testTransaction = () => {
 
 export const testInsert = () => {
   // Basic request
-  const { status: createUserStatus } = sqlite.executeSql(
+  const { status: createUserStatus, message } = sqlite.executeSql(
     'test',
-    'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-    [
-      new Date().getMilliseconds(),
-      `{"nickname":"mike", "name":"michael"}`,
-      32,
-      3000.23,
-    ]
+    'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
+    [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
   );
 
   // handle error
   if (createUserStatus) {
-    console.error('Failed to insert user');
+    console.error('Failed to insert user:', message);
   }
+
+  console.warn('user inserted', createUserStatus);
 
   return queryUsers();
 };
 
 export const queryUsers = () => {
-  const queryResult = sqlite.executeSql(
-    'test',
-    `SELECT *, json_extract("User".name, '$.nickname') as name FROM "User"`,
-    []
-  );
+  const queryResult = sqlite.executeSql('test', `SELECT * FROM "User"`, []);
 
   return queryResult.rows?._array;
 
@@ -83,9 +71,9 @@ export const queryUsers = () => {
 export async function typeORMInit() {
   datasource = new DataSource({
     type: 'react-native',
-    database: 'test2',
+    database: 'test',
     location: '.',
-    entities: [Book],
+    entities: [Book, User],
     synchronize: true,
   });
 
