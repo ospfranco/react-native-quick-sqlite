@@ -279,7 +279,6 @@ QuickSQLite.transaction = (
       try {
         QuickSQLite.executeSql(dbName, 'BEGIN TRANSACTION', null);
         const result = callback({ executeSql });
-        console.warn('transaction executed!', result);
         if (result === true) {
           QuickSQLite.executeSql(dbName, 'COMMIT', null);
         } else {
