@@ -135,14 +135,13 @@ openDatabase(
 
 # Usage
 
-Import as early as possible, auto-installs bindings in a thread-safe manner.
+Just import the package and fire away
 
 ```typescript
 // Thanks to @mrousavy for this installation method, see one example: https://github.com/mrousavy/react-native-mmkv/blob/75b425db530e26cf10c7054308583d03ff01851f/src/createMMKV.ts#L56
-import 'react-native-quick-sqlite';
+import { QuickSQLite } from 'react-native-quick-sqlite';
 
-// Afterwards `sqlite` is a globally registered object, so you can directly call it from anywhere in your javascript
-const dbOpenResult = sqlite.open('myDatabase', 'databases');
+const dbOpenResult = QuickSQLite.open('myDatabase', 'databases');
 
 // status === 1, operation failed
 if (dbOpenResult.status) {
@@ -155,7 +154,7 @@ if (dbOpenResult.status) {
 The basic query is **synchronous**, it will block rendering on large operations, below there are async versions.
 
 ```typescript
-let { status, rows } = sqlite.executeSql(
+let { status, rows } = QuickSQLite.executeSql(
   'myDatabase',
   'SELECT somevalue FROM sometable'
 );
@@ -165,7 +164,7 @@ if (!status) {
   });
 }
 
-let { status, rowsAffected } = sqlite.executeSql(
+let { status, rowsAffected } = QuickSQLite.executeSql(
   'myDatabase',
   'UPDATE sometable SET somecolumn = ? where somekey = ?',
   [0, 1]
@@ -182,7 +181,7 @@ Transactions are supported. However, due to the library being opinionated and mo
 JSI bindings are fast but there is still some overhead calling `executeSql` for single queries, if you want to execute a large set of commands as fast as possible you should use the `executeSqlBatch` method below, it still uses transactions, but only transmits data between JS and native once.
 
 ```typescript
-sqlite.transaction('myDatabase', (tx) => {
+QuickSQLite.transaction('myDatabase', (tx) => {
   const {
     status,
   } = tx.executeSql('UPDATE sometable SET somecolumn = ? where somekey = ?', [
@@ -209,7 +208,7 @@ const commands = [
     ('INSERT INTO TABLE TEST (id) VALUES (?)', [2])
   ][('INSERT INTO TABLE TEST (id) VALUES (?)', [[3], [4], [5], [6]])],
 ];
-const result = sqlite.executeSqlBatch('myDatabase', commands);
+const result = QuickSQLite.executeSqlBatch('myDatabase', commands);
 if (!result.status) {
   // result.status undefined or 0 === success
   console.log(`Batch affected ${result.rowsAffected} rows`);
@@ -225,7 +224,7 @@ sqlite datatypes. When fetching data directly from tables or views linked to tab
 to identify the table declared types:
 
 ```typescript
-let { status, metadata } = sqlite.executeSql(
+let { status, metadata } = QuickSQLite.executeSql(
   'myDatabase',
   'SELECT int_column_1, bol_column_2 FROM sometable'
 );
@@ -244,7 +243,7 @@ if (!status) {
 You might have too much SQL to process and it will cause your application to freeze. There are async versions for some of the operations. This will offload the SQLite processing to a different thread.
 
 ```ts
-sqlite.asyncExecuteSql(
+QuickSQLite.asyncExecuteSql(
   'myDatabase',
   'SELECT * FROM "User";',
   [],
@@ -270,21 +269,29 @@ SQLite have a limit for attached databases: A default of 10, and a global max of
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
 
 ```ts
-const result = sqlite.attach('mainDatabase', 'statistics', 'stats', '../databases',);
+const result = QuickSQLite.attach(
+  'mainDatabase',
+  'statistics',
+  'stats',
+  '../databases'
+);
 
 // Database is attached sucefully
-if(!result.status) {
-  const data = sqlite.executeSql('mainDatabase', 'SELECT * FROM some_table_from_mainschema a INNER JOIN stats.some_table b on a.id_column = b.id_column');
+if (!result.status) {
+  const data = QuickSQLite.executeSql(
+    'mainDatabase',
+    'SELECT * FROM some_table_from_mainschema a INNER JOIN stats.some_table b on a.id_column = b.id_column'
+  );
   // Consume the results
-  if(!data.status) {}
+  if (!data.status) {
+  }
 }
 
 // You can detach databases at any moment
-const detachResult = sqlite.detach('mainDatabase', 'stats');
-if(!detachResult.status) {
+const detachResult = QuickSQLite.detach('mainDatabase', 'stats');
+if (!detachResult.status) {
   // Database dettached
 }
-
 ```
 
 ## Use built-in SQLite
