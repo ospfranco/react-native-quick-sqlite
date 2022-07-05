@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { QuickSQLite as sqlite } from 'react-native-quick-sqlite';
+import { QuickSQLite as sqlite, openDatabase } from 'react-native-quick-sqlite';
 import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
@@ -69,24 +69,19 @@ export const queryUsers = () => {
 };
 
 export async function typeORMInit() {
+  // const driver = require('react-native-quick-sqlite').QuickSQLite;
+  // console.warn('driver', driver);
   datasource = new DataSource({
     type: 'react-native',
-    database: 'test',
+    database: 'typeormdb',
     location: '.',
+    driver: require('react-native-quick-sqlite'),
     entities: [Book, User],
     synchronize: true,
   });
 
   await datasource.initialize();
 
-  // await createConnection({
-  //   type: 'react-native',
-  //   database: 'test',
-  //   location: 'sample/database',
-  //   logging: ['error'],
-  //   synchronize: true,
-  //   entities: [User, Book],
-  // });
   const bookRepository = datasource.getRepository(Book);
   // const userRepository = getRepository(User);
   // const user1 = new User();

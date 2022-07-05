@@ -15,8 +15,8 @@ import {
   queryUsers,
   testInsert,
   testTransaction,
-  // typeORMGetBooks,
-  // typeORMInit,
+  typeORMGetBooks,
+  typeORMInit,
   executeFailingTypeORMQuery,
 } from './Database';
 import type { User } from './model/User';
@@ -28,13 +28,14 @@ export default function App() {
   React.useEffect(() => {
     lowLevelInit();
     const users = queryUsers();
-    console.warn('db users', users);
+    // console.warn('db users', users);
     setUsers(users);
-    // typeORMInit().then(() => {
-    //   typeORMGetBooks().then((books) => {
-    //     // console.warn('typeORM books', books);
-    //   });
-    // });
+    typeORMInit().then(() => {
+      console.warn('typeorm initialized!');
+      typeORMGetBooks().then((books) => {
+        console.warn('typeORM books', books);
+      });
+    });
   }, []);
 
   return (
