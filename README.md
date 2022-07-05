@@ -182,12 +182,10 @@ JSI bindings are fast but there is still some overhead calling `executeSql` for 
 
 ```typescript
 QuickSQLite.transaction('myDatabase', (tx) => {
-  const {
-    status,
-  } = tx.executeSql('UPDATE sometable SET somecolumn = ? where somekey = ?', [
-    0,
-    1,
-  ]);
+  const { status } = tx.executeSql(
+    'UPDATE sometable SET somecolumn = ? where somekey = ?',
+    [0, 1]
+  );
 
   if (status) {
     return false;
@@ -308,7 +306,20 @@ On Android unfortunately it is not possible to link from C++ to the phone's embe
 
 ## Use TypeORM
 
-You can use this driver with [TypeORM](https://github.com/typeorm/typeorm) and [patch-package](https://github.com/ds300/patch-package) by the default react-native-sqlite-storage driver. Go inside your `node_modules/typeorm` and do a global replace of `react-native-sqlite-storage` for `react-native-quick-sqlite` and then patch package it. The [patch](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/example/patches/typeorm%2B0.2.36.patch) on the example folder you will see an example of what it should look like
+You can use this driver with [TypeORM](https://github.com/typeorm/typeorm), when initializing the connection use:
+
+```ts
+datasource = new DataSource({
+  type: 'react-native',
+  database: 'typeormdb',
+  location: '.',
+  driver: require('react-native-quick-sqlite'),
+  entities: [Book, User],
+  synchronize: true,
+});
+```
+
+If you are using Node 14+, TypeORM is currently broken with React Native. You can patch your node-modules installation and apply the fix [in this issue](https://github.com/typeorm/typeorm/issues/9178).
 
 ## More
 
