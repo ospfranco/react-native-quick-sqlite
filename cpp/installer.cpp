@@ -498,5 +498,5 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   module.setProperty(rt, "loadSqlFile", move(loadSQLFile));
   module.setProperty(rt, "asyncLoadSqlFile", move(loadSQLFileAsync));
 
-  rt.global().setProperty(rt, "sqlite", move(module));
+  rt.global().setProperty(rt, "__QuickSQLiteProxy", move(module));
 }

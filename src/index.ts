@@ -2,13 +2,43 @@
 /* eslint-disable no-undef */
 import { NativeModules } from 'react-native';
 
-const QuickSQLiteModule = NativeModules.QuickSQLite;
-
-if (QuickSQLiteModule) {
-  if (typeof QuickSQLiteModule.install === 'function') {
-    QuickSQLiteModule.install();
-  }
+declare global {
+  function nativeCallSyncHook(): unknown;
+  var __QuickSQLiteProxy: object | undefined;
 }
+
+if (global.__QuickSQLiteProxy == null) {
+  const QuickSQLiteModule = NativeModules.QuickSQLite;
+
+  if (QuickSQLiteModule == null) {
+    throw new Error(
+      'Base quick-sqlite module not found. Maybe try rebuilding the app.'
+    );
+  }
+
+  // Check if we are running on-device (JSI)
+  if (global.nativeCallSyncHook == null || QuickSQLiteModule.install == null) {
+    throw new Error(
+      'Failed to install react-native-quick-sqlite: React Native is not running on-device. QuickSQLite can only be used when synchronous method invocations (JSI) are possible. If you are using a remote debugger (e.g. Chrome), switch to an on-device debugger (e.g. Flipper) instead.'
+    );
+  }
+
+  // Call the synchronous blocking install() function
+  const result = QuickSQLiteModule.install();
+  if (result !== true)
+    throw new Error(
+      `Failed to install react-native-quick-sqlite: The native QuickSQLite Module could not be installed! Looks like something went wrong when installing JSI bindings: ${result}`
+    );
+
+  // Check again if the constructor now exists. If not, throw an error.
+  if (global.__QuickSQLiteProxy == null)
+    throw new Error(
+      'Failed to install react-native-quick-sqlite, the native initializer function does not exist. Are you trying to use QuickSQLite from different JS Runtimes?'
+    );
+}
+
+const proxy = global.__QuickSQLiteProxy;
+export const QuickSQLite = proxy as ISQLite;
 /**
  * JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE CHROME DEBUGGER
  * Use flipper to debug your RN apps from now on
@@ -154,10 +184,6 @@ interface ISQLite {
   ) => void;
 }
 
-declare global {
-  const sqlite: ISQLite;
-}
-
 //   _______ _____            _   _  _____         _____ _______ _____ ____  _   _  _____
 //  |__   __|  __ \     /\   | \ | |/ ____|  /\   / ____|__   __|_   _/ __ \| \ | |/ ____|
 //     | |  | |__) |   /  \  |  \| | (___   /  \ | |       | |    | || |  | |  \| | (___
@@ -186,8 +212,8 @@ const enhanceQueryResult = (result: QueryResult): void => {
   }
 };
 
-const _open = sqlite.open;
-sqlite.open = (dbName: string, location?: string) => {
+const _open = QuickSQLite.open;
+QuickSQLite.open = (dbName: string, location?: string) => {
   const res = _open(dbName, location);
   if (res.status === 0) {
     locks[dbName] = {
@@ -199,8 +225,8 @@ sqlite.open = (dbName: string, location?: string) => {
   return res;
 };
 
-const _close = sqlite.close;
-sqlite.close = (dbName: string) => {
+const _close = QuickSQLite.close;
+QuickSQLite.close = (dbName: string) => {
   const res = _close(dbName);
   if (res.status === 0) {
     setImmediate(() => {
@@ -210,8 +236,8 @@ sqlite.close = (dbName: string) => {
   return res;
 };
 
-const _executeSql = sqlite.executeSql;
-sqlite.executeSql = (
+const _executeSql = QuickSQLite.executeSql;
+QuickSQLite.executeSql = (
   dbName: string,
   query: string,
   params: any[] | undefined
@@ -221,8 +247,8 @@ sqlite.executeSql = (
   return result;
 };
 
-const _asyncExecuteSql = sqlite.asyncExecuteSql;
-sqlite.asyncExecuteSql = (
+const _asyncExecuteSql = QuickSQLite.asyncExecuteSql;
+QuickSQLite.asyncExecuteSql = (
   dbName: string,
   query: string,
   params: any[] | undefined,
@@ -235,7 +261,7 @@ sqlite.asyncExecuteSql = (
   _asyncExecuteSql(dbName, query, params, localCB);
 };
 
-sqlite.transaction = (
+QuickSQLite.transaction = (
   dbName: string,
   callback: (tx: Transaction) => boolean
 ) => {
@@ -245,21 +271,21 @@ sqlite.transaction = (
 
   // Local transaction context object implementation
   const executeSql = (query: string, params?: any[]): QueryResult => {
-    return sqlite.executeSql(dbName, query, params);
+    return QuickSQLite.executeSql(dbName, query, params);
   };
 
   const tx: PendingTransaction = {
     start: () => {
       try {
-        sqlite.executeSql(dbName, 'BEGIN TRANSACTION', null);
+        QuickSQLite.executeSql(dbName, 'BEGIN TRANSACTION', null);
         const result = callback({ executeSql });
         if (result === true) {
-          sqlite.executeSql(dbName, 'COMMIT', null);
+          QuickSQLite.executeSql(dbName, 'COMMIT', null);
         } else {
-          sqlite.executeSql(dbName, 'ROLLBACK', null);
+          QuickSQLite.executeSql(dbName, 'ROLLBACK', null);
         }
       } catch (e: any) {
-        sqlite.executeSql(dbName, 'ROLLBACK', null);
+        QuickSQLite.executeSql(dbName, 'ROLLBACK', null);
         throw e;
       } finally {
         locks[dbName].inProgress = false;
@@ -348,7 +374,7 @@ export const openDatabase = (
   fail: (msg: string) => void
 ): IDBConnection => {
   try {
-    sqlite.open(options.name, options.location);
+    QuickSQLite.open(options.name, options.location);
 
     const connection: IDBConnection = {
       executeSql: (
@@ -358,7 +384,7 @@ export const openDatabase = (
         fail: (msg: string) => void
       ) => {
         try {
-          let response = sqlite.executeSql(options.name, sql, params);
+          let response = QuickSQLite.executeSql(options.name, sql, params);
           enhanceQueryResult(response);
 
           if (response.status === 1) {
@@ -377,7 +403,7 @@ export const openDatabase = (
         fail: (msg: string) => void
       ) => {
         try {
-          sqlite.asyncExecuteSql(options.name, sql, params, (response) => {
+          QuickSQLite.asyncExecuteSql(options.name, sql, params, (response) => {
             if (response.status === 1) {
               fail(response.message);
             }
@@ -392,21 +418,21 @@ export const openDatabase = (
         commands: SQLBatchParams[],
         callback?: (res: BatchQueryResult) => void
       ) => {
-        const response = sqlite.executeSqlBatch(options.name, commands);
+        const response = QuickSQLite.executeSqlBatch(options.name, commands);
         if (callback) callback(response);
       },
       asyncExecuteSqlBatch: (
         commands: SQLBatchParams[],
         cb: (res: BatchQueryResult) => void
       ) => {
-        sqlite.asyncExecuteSqlBatch(options.name, commands, cb);
+        QuickSQLite.asyncExecuteSqlBatch(options.name, commands, cb);
       },
       transaction: (fn: (tx: Transaction) => boolean): void => {
-        sqlite.transaction(options.name, fn);
+        QuickSQLite.transaction(options.name, fn);
       },
       close: (ok: any, fail: any) => {
         try {
-          sqlite.close(options.name);
+          QuickSQLite.close(options.name);
           ok();
         } catch (e) {
           fail(e);
@@ -418,7 +444,7 @@ export const openDatabase = (
         location: string | undefined,
         callback: (result: StatementResult) => void
       ) => {
-        const result = sqlite.attach(
+        const result = QuickSQLite.attach(
           options.name,
           dbNameToAttach,
           alias,
@@ -427,14 +453,14 @@ export const openDatabase = (
         callback(result);
       },
       detach: (alias, callback: (result: StatementResult) => void) => {
-        const result = sqlite.detach(options.name, alias);
+        const result = QuickSQLite.detach(options.name, alias);
         callback(result);
       },
       loadSqlFile: (
         location: string,
         callback: (result: FileLoadResult) => void
       ) => {
-        const result = sqlite.loadSqlFile(options.name, location);
+        const result = QuickSQLite.loadSqlFile(options.name, location);
         if (callback) {
           callback(result);
         }
@@ -443,7 +469,7 @@ export const openDatabase = (
         location: string,
         callback: (result: FileLoadResult) => void
       ) => {
-        sqlite.asyncLoadSqlFile(options.name, location, callback);
+        QuickSQLite.asyncLoadSqlFile(options.name, location, callback);
       },
     };
 

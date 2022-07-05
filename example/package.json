@@ -15,7 +15,6 @@
     "buffer": "^6.0.3",
     "react": "17.0.2",
     "react-native": "0.67.3",
-    "react-native-quick-sqlite": "./..",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.3.6"
   },
