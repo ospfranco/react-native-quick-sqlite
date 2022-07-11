@@ -1,5 +1,3 @@
-/* eslint-disable no-shadow */
-/* eslint-disable no-undef */
 import { NativeModules } from 'react-native';
 
 declare global {
@@ -129,6 +127,15 @@ export interface Transaction {
   executeSql: (query: string, params?: any[]) => QueryResult;
 }
 
+export interface AsyncTransaction {
+  executeSql: (query: string, params?: any[]) => QueryResult;
+  asyncExecuteSql: (
+    query: string,
+    params: any[] | undefined,
+    cb: (res: QueryResult) => void
+  ) => void;
+}
+
 export interface PendingTransaction {
   start: () => void;
 }
@@ -141,9 +148,7 @@ interface ISQLite {
     status: 0 | 1;
     message?: string;
   };
-  close: (
-    dbName: string
-  ) => {
+  close: (dbName: string) => {
     status: 0 | 1;
     message?: string;
   };
@@ -156,6 +161,10 @@ interface ISQLite {
   ) => StatementResult;
   detach: (mainDbName: string, alias: string) => StatementResult;
   transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
+  asyncTransaction: (
+    dbName: string,
+    fn: (tx: AsyncTransaction) => Promise<boolean>
+  ) => void;
   executeSql: (
     dbName: string,
     query: string,
@@ -279,6 +288,51 @@ QuickSQLite.transaction = (
       try {
         QuickSQLite.executeSql(dbName, 'BEGIN TRANSACTION', null);
         const result = callback({ executeSql });
+        if (result === true) {
+          QuickSQLite.executeSql(dbName, 'COMMIT', null);
+        } else {
+          QuickSQLite.executeSql(dbName, 'ROLLBACK', null);
+        }
+      } catch (e: any) {
+        QuickSQLite.executeSql(dbName, 'ROLLBACK', null);
+        throw e;
+      } finally {
+        locks[dbName].inProgress = false;
+        startNextTransaction(dbName);
+      }
+    },
+  };
+
+  locks[dbName].queue.push(tx);
+  startNextTransaction(dbName);
+};
+
+QuickSQLite.asyncTransaction = (
+  dbName: string,
+  callback: (tx: AsyncTransaction) => Promise<boolean>
+) => {
+  if (!locks[dbName]) {
+    throw Error(`Quick SQLite Error: No lock found on db: ${dbName}`);
+  }
+
+  // Local transaction context object implementation
+  const executeSql = (query: string, params?: any[]): QueryResult => {
+    return QuickSQLite.executeSql(dbName, query, params);
+  };
+
+  const asyncExecuteSql = (
+    query: string,
+    params: any[] | undefined,
+    cb: (res: QueryResult) => void
+  ) => {
+    return QuickSQLite.asyncExecuteSql(dbName, query, params, cb);
+  };
+
+  const tx: PendingTransaction = {
+    start: async () => {
+      try {
+        QuickSQLite.executeSql(dbName, 'BEGIN TRANSACTION', null);
+        const result = await callback({ executeSql, asyncExecuteSql });
         if (result === true) {
           QuickSQLite.executeSql(dbName, 'COMMIT', null);
         } else {
