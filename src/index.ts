@@ -134,6 +134,10 @@ export interface AsyncTransaction {
     params: any[] | undefined,
     cb: (res: QueryResult) => void
   ) => void;
+  promiseExecuteSql: (
+    query: string,
+    params: any[] | undefined
+  ) => Promise<QueryResult>;
 }
 
 export interface PendingTransaction {
@@ -328,11 +332,30 @@ QuickSQLite.asyncTransaction = (
     return QuickSQLite.asyncExecuteSql(dbName, query, params, cb);
   };
 
+  const promiseExecuteSql = (
+    query: string,
+    params: any[] | undefined
+  ): Promise<QueryResult> => {
+    return new Promise((resolve, reject) => {
+      QuickSQLite.asyncExecuteSql(dbName, query, params, (res) => {
+        if (res.status) {
+          reject(res);
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  };
+
   const tx: PendingTransaction = {
     start: async () => {
       try {
         QuickSQLite.executeSql(dbName, 'BEGIN TRANSACTION', null);
-        const result = await callback({ executeSql, asyncExecuteSql });
+        const result = await callback({
+          executeSql,
+          asyncExecuteSql,
+          promiseExecuteSql,
+        });
         if (result === true) {
           QuickSQLite.executeSql(dbName, 'COMMIT', null);
         } else {
