@@ -435,6 +435,7 @@ interface IDBConnection {
   ) => void;
   detach: (alias: string, callback: (result: StatementResult) => void) => void;
   transaction: (fn: (tx: Transaction) => boolean) => void;
+  asyncTransaction: (fn: (tx: AsyncTransaction) => Promise<boolean>) => void
   loadSqlFile: (
     location: string,
     callback: (result: FileLoadResult) => void
@@ -506,6 +507,9 @@ export const openDatabase = (
       },
       transaction: (fn: (tx: Transaction) => boolean): void => {
         QuickSQLite.transaction(options.name, fn);
+      },
+      asyncTransaction: (fn: (tx: AsyncTransaction) => Promise<boolean>): void => {
+        return QuickSQLite.asyncTransaction(options.name, fn);
       },
       close: (ok: any, fail: any) => {
         try {
