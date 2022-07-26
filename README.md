@@ -195,6 +195,20 @@ QuickSQLite.transaction('myDatabase', (tx) => {
 });
 ```
 
+Async transactions are also possible, but the API is based on promises and/or a boolean response:
+
+```ts
+QuickSQLite.asyncTransaction('myDatabase', async (tx) => {
+  // If the function throws (rejects) the transaction will be rolled back
+  const res = tx.promiseExecuteSql(
+    'UPDATE sometable SET somecolumn = ? where somekey = ?',
+    [0, 1]
+  );
+  // You must also return true to signal a correct transaction
+  return true;
+});
+```
+
 ### Batch operation
 
 Batch execution allows transactional execution of a set of commands
