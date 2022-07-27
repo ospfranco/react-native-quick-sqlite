@@ -154,7 +154,8 @@ jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult sta
           QuickValue value = entry.second;
           if (value.dataType == TEXT)
           {
-            rowObject.setProperty(rt, columnName.c_str(), jsi::String::createFromUtf8(rt, value.textValue.c_str()));
+            // using value.textValue (std::string) directly allows jsi::String to use length property of std::string (allowing strings with NULLs in them like SQLite does)
+            rowObject.setProperty(rt, columnName.c_str(), jsi::String::createFromUtf8(rt, value.textValue));
           }
           else if (value.dataType == INTEGER)
           {
