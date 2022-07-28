@@ -21,11 +21,15 @@ import {
 } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
+import { QuickSQLite } from 'react-native-quick-sqlite';
 
 export default function App() {
   let [users, setUsers] = React.useState<User[]>([]);
 
   React.useEffect(() => {
+    QuickSQLite.nativeStorage.asyncBar().then((res) => {
+      console.warn('async result', res);
+    });
     lowLevelInit();
     const users = queryUsers();
     // console.warn('db users', users);
