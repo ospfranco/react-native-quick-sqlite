@@ -329,7 +329,9 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
         case SQLITE_TEXT:
         {
           const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
-          row[column_name] = createTextQuickValue(string(column_value));
+          int byteLen = sqlite3_column_bytes(statement, i);
+          // Specify length too; in case string contains NULL in the middle (which SQLite supports!)
+          row[column_name] = createTextQuickValue(string(column_value, byteLen));
           break;
         }
 
