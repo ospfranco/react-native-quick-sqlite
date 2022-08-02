@@ -405,7 +405,7 @@ interface IConnectionOptions {
   location?: string; // not used, we are storing everything on the documents folder
 }
 
-interface IDBConnection {
+export interface IDBConnection {
   executeSql: (
     sql: string,
     args: any[],
