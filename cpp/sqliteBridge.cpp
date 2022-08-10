@@ -84,7 +84,7 @@ SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath)
 {
   string dbPath = get_db_path(dbName, docPath);
 
-  int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+  int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
 
   sqlite3 *db;
   int exit = 0;
