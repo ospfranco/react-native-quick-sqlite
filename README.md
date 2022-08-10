@@ -306,6 +306,16 @@ if (!detachResult.status) {
 }
 ```
 
+### Opening an existing .sqlite DB file
+
+By default in iOS the library looks intro [`NSDocumentDirectory`](https://github.com/ospfranco/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and in Android it looks into `files` directory
+
+You can either copy your database file into these location using [react-native-file-access](https://github.com/alpha0010/react-native-file-access) or use `../` to change the default directory.
+
+```js
+QuickSQLite.open('prpop.db', '../databases`) 
+```
+
 ## Use built-in SQLite
 
 App size is a real concern for some teams.
