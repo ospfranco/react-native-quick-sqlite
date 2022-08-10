@@ -312,6 +312,8 @@ By default in iOS the library looks intro [`NSDocumentDirectory`](https://github
 
 You can either copy your database file into these location using [react-native-file-access](https://github.com/alpha0010/react-native-file-access) or use `../` to change the default directory.
 
+**Note: In iOS you can't navigate out, you will have to copy the DB file in the DocumentDirectory**
+
 ```js
 QuickSQLite.open('prpop.db', '../databases`) 
 ```
