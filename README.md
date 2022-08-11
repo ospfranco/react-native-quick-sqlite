@@ -16,7 +16,7 @@
 
 Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries. By using an embedded SQLite you get access the latest security patches and latest features.
 
-Compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2). Performance metrics are intentionally not posted, [annecdotical testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
+Compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2). Performance metrics are intentionally not posted, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
 ## Gotchas
 
@@ -28,7 +28,7 @@ Compatible with [react-native-sqlite-storage](https://github.com/andpor/react-na
 ```typescript
 /**
  * All SQLite command results will have at least this status definition:
- * Specific statments or actions can bring more data, relative to its context
+ * Specific statements or actions can bring more data, relative to its context
  * status: 0 or undefined for correct execution, 1 for error
  *  message: if status === 1, here you will find error description
  */
@@ -287,7 +287,7 @@ const result = QuickSQLite.attach(
   '../databases'
 );
 
-// Database is attached sucefully
+// Database is attached successfully
 if (!result.status) {
   const data = QuickSQLite.executeSql(
     'mainDatabase',
@@ -301,21 +301,19 @@ if (!result.status) {
 // You can detach databases at any moment
 const detachResult = QuickSQLite.detach('mainDatabase', 'stats');
 if (!detachResult.status) {
-  // Database dettached
+  // Database de-attached
 }
 ```
 
 ## Use built-in SQLite
 
-App size is a real concern for some teams.
-
-On iOS you can use the OS embedded SQLite instance, when running `pod-install` add an environment flag:
+On iOS you can use the embedded SQLite, when running `pod-install` add an environment flag:
 
 ```
 QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
-On Android it is not possible to link using C++ to the phone's embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. The recommended way is to embed your own version of SQLite anyways. Unfortunately this means this library will add some mbs to your app size.
+On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately this means this library will add some mbs to your app size.
 
 ## Use TypeORM
 
@@ -336,11 +334,15 @@ If you are using Node 14+, TypeORM is currently broken with React Native. You ca
 
 # Loading existing DBs
 
-The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/ospfranco/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/android/src/main/java/com/reactnativequicksqlite/QuickSQLiteBridge.java#L16), this might differ from other SQL libraries (some place it in a `www` folder). If you have an existing database file you want to load you can navigate from this directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories. You can place/move your database file using the many react-native fs libraries.
+The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/ospfranco/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/android/src/main/java/com/reactnativequicksqlite/QuickSQLiteBridge.java#L16), this differs from other SQL libraries (some place it in a `www` folder, some in androids `databases` folder, etc.).
+
+If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories.
+
+You can place/move your database file using the one of the many react-native fs libraries.
 
 ## More
 
-If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/).
+If you want to learn how to make your own JSI module buy my [JSI/C++ cheat sheet](http://ospfranco.gumroad.com/).
 
 ## License
 
