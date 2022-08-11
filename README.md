@@ -14,21 +14,20 @@
 </div>
 <br />
 
-Quick SQLite embeds the latest version of SQLite and provides a low-level API to execute SQL queries, uses fast bindings via [JSI](https://formidable.com/blog/2019/jsi-jsc-part-2). By using an embedded SQLite you get access the latest security patches and latest features.
+Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries. By using an embedded SQLite you get access the latest security patches and latest features.
 
-Inspired/compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2). Performance metrics are intentionally not posted, [annecdotical testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
+Compatible with [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) and [react-native-sqlite2](https://github.com/craftzdog/react-native-sqlite-2). Performance metrics are intentionally not posted, [annecdotical testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
 ## Gotchas
 
 - **Javascript cannot represent integers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
 - **It's not possible to use a browser to debug a JSI app**, use [Flipper](https://github.com/facebook/flipper) (for android Flipper also has SQLite Database explorer).
-- Install the NDK on your machine for android.
 
 ## API
 
 ```typescript
 /**
- * All SQLIte command results will have at least this status definition:
+ * All SQLite command results will have at least this status definition:
  * Specific statments or actions can bring more data, relative to its context
  * status: 0 or undefined for correct execution, 1 for error
  *  message: if status === 1, here you will find error description
@@ -316,11 +315,11 @@ On iOS you can use the OS embedded SQLite instance, when running `pod-install` a
 QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
-On Android unfortunately it is not possible to link from C++ to the phone's embedded SQLite. It is also very buggy (vendor changes, old android bugs, etc). The recommended way is to embed your own version of SQLite anyways. Unfortunately this means we are stuck and this library will add some mbs to your app size.
+On Android it is not possible to link using C++ to the phone's embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. The recommended way is to embed your own version of SQLite anyways. Unfortunately this means this library will add some mbs to your app size.
 
 ## Use TypeORM
 
-You can use this driver with [TypeORM](https://github.com/typeorm/typeorm), when initializing the connection use:
+You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm), when initializing the connection use:
 
 ```ts
 datasource = new DataSource({
@@ -335,10 +334,14 @@ datasource = new DataSource({
 
 If you are using Node 14+, TypeORM is currently broken with React Native. You can patch your node-modules installation and apply the fix [in this issue](https://github.com/typeorm/typeorm/issues/9178).
 
+# Loading existing DBs
+
+The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/ospfranco/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/android/src/main/java/com/reactnativequicksqlite/QuickSQLiteBridge.java#L16), this might differ from other SQL libraries (some place it in a `www` folder). If you have an existing database file you want to load you can navigate from this directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories. You can place/move your database file using the many react-native fs libraries.
+
 ## More
 
-If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/), I'm also available for [freelance work](mailto:ospfranco@protonmail.com?subject=Freelance).
+If you want to learn how to make your own JSI module buy my [JSI/C++ Cheatsheet](http://ospfranco.gumroad.com/).
 
 ## License
 
-react-native-quick-sqlite is licensed under MIT.
+MIT License.
