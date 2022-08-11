@@ -338,7 +338,7 @@ The library creates/opens databases by appending the passed name plus, the [docu
 
 If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories.
 
-You can place/move your database file using the one of the many react-native fs libraries.
+Alternatively you can place/move your database file using the one of the many react-native fs libraries.
 
 ## More
 
