@@ -85,7 +85,13 @@ void ThreadPool::doWork()
       task = workQueue.front();
       workQueue.pop();
     }
-
+    ++busy;
     task();
+    --busy;
   }
+}
+
+void ThreadPool::waitFinished() {
+  std::unique_lock<std::mutex> g(workQueueMutex);
+  workQueueConditionVariable.wait(g, [&]{ return workQueue.empty() && (busy == 0); });
 }
