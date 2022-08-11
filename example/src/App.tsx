@@ -30,12 +30,12 @@ export default function App() {
     const users = queryUsers();
     // console.warn('db users', users);
     setUsers(users);
-    typeORMInit().then(() => {
-      console.warn('typeorm initialized!');
-      typeORMGetBooks().then((books) => {
-        console.warn('typeORM books', books);
-      });
-    });
+    // typeORMInit().then(() => {
+    //   console.warn('typeorm initialized!');
+    //   typeORMGetBooks().then((books) => {
+    //     console.warn('typeORM books', books);
+    //   });
+    // });
   }, []);
 
   return (
