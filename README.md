@@ -215,9 +215,9 @@ Batch execution allows transactional execution of a set of commands
 ```typescript
 const commands = [
   ['CREATE TABLE TEST (id integer)'],
-  ['INSERT INTO TABLE TEST (id) VALUES (?)', [1]][
-    ('INSERT INTO TABLE TEST (id) VALUES (?)', [2])
-  ][('INSERT INTO TABLE TEST (id) VALUES (?)', [[3], [4], [5], [6]])],
+  ['INSERT INTO TEST (id) VALUES (?)', [1]][
+    ('INSERT INTO TEST (id) VALUES (?)', [2])
+  ][('INSERT INTO TEST (id) VALUES (?)', [[3], [4], [5], [6]])],
 ];
 const result = QuickSQLite.executeSqlBatch('myDatabase', commands);
 if (!result.status) {
