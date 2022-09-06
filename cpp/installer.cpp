@@ -95,7 +95,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           }
           if (!args[0].isString() || !args[1].isString() || !args[2].isString())
           {
-              jsi::detail::throwJSError(rt, "dbName, databaseToAttach and alias must be a strings");
+              throw jsi::JSError(rt, "dbName, databaseToAttach and alias must be a strings");
               return {};
           }
           
@@ -133,7 +133,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           }
           if (!args[0].isString() || !args[1].isString())
           {
-              jsi::detail::throwJSError(rt, "dbName, databaseToAttach and alias must be a strings");
+              throw jsi::JSError(rt, "dbName, databaseToAttach and alias must be a strings");
               return {};
           }
 
@@ -288,7 +288,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         if (sizeof(args) < 3)
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] Incorrect parameter count");
+          throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] Incorrect parameter count");
           return {};
         }
 
@@ -296,13 +296,13 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         const jsi::Value &callbackHolder = args[2];
         if (!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt))
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] The callback argument must be a function");
+          throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] The callback argument must be a function");
           return {};
         }
 
         if (params.isNull() || params.isUndefined())
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] - An array of SQL commands or parameters is needed");
+          throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncExecuteSqlBatch] - An array of SQL commands or parameters is needed");
           return {};
         }
 
@@ -377,14 +377,14 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         if (sizeof(args) < 3)
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncLoadSqlFile] Incorrect parameter count");
+          throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncLoadSqlFile] Incorrect parameter count");
           return {};
         }
 
         const jsi::Value &callbackHolder = args[2];
         if (!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt))
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncLoadSqlFile] The callback argument must be a function");
+          throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncLoadSqlFile] The callback argument must be a function");
           return {};
         }
 
@@ -434,14 +434,14 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         if (count < 4)
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSql] Incorrect arguments for asyncExecuteSQL");
+          throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncExecuteSql] Incorrect arguments for asyncExecuteSQL");
           return {};
         }
 
         const jsi::Value &callbackHolder = args[3];
         if (!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt))
         {
-          jsi::detail::throwJSError(rt, "[react-native-quick-sqlite][asyncExecuteSql] The callback argument must be a function");
+          throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncExecuteSql] The callback argument must be a function");
           return {};
         }
 
