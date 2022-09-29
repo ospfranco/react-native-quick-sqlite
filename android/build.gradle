@@ -54,6 +54,7 @@ def rnMinorVersion = Integer.parseInt(minor)
 def reactProperties = new Properties()
 file("$nodeModules/react-native/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
 def REACT_NATIVE_VERSION = reactProperties.getProperty("VERSION_NAME").split("\\.")[1].toInteger()
+def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
 
 android {
   
@@ -72,7 +73,8 @@ android {
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
             arguments '-DANDROID_STL=c++_shared',
               "-DREACT_NATIVE_VERSION=${REACT_NATIVE_VERSION}",
-              "-DNODE_MODULES_DIR=${nodeModules}"
+              "-DNODE_MODULES_DIR=${nodeModules}",
+              "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'"
         }
     }
     

@@ -56,6 +56,10 @@ add_library(
   cpp-adapter.cpp
 )
 
+add_definitions(
+  ${SQLITE_FLAGS}
+)
+
 # find fbjni package
 file (GLOB LIBFBJNI_INCLUDE_DIR "${BUILD_DIR}/fbjni-*-headers.jar/")
 

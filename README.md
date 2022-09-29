@@ -340,6 +340,37 @@ If you have an existing database file you want to load you can navigate from the
 
 Alternatively you can place/move your database file using the one of the many react-native fs libraries.
 
+## Enable compile-time options
+
+By specifying pre-processor flags, you can enable optional features like FTS5, Geopoly, etc.
+
+### iOS
+
+Add a `post_install` block to your `<PROJECT_ROOT>/ios/Podfile` like so:
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    if target.name == "react-native-quick-sqlite" then
+      target.build_configurations.each do |config|
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', '<SQLITE_FLAGS>']
+      end
+    end
+  end
+end
+```
+
+Replace the `<SQLITE_FLAGS>` part with flags you want to add.
+For example, you could add `SQLITE_ENABLE_FTS5=1` to `GCC_PREPROCESSOR_DEFINITIONS` to enable FTS5 in the iOS project.
+
+### Android
+
+You can specify flags via `<PROJECT_ROOT>/android/gradle.properties` like so:
+
+```
+quickSqliteFlags="<SQLITE_FLAGS>"
+```
+
 ## More
 
 If you want to learn how to make your own JSI module buy my [JSI/C++ cheat sheet](http://ospfranco.gumroad.com/).
