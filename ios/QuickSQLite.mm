@@ -6,7 +6,7 @@
 #import <ReactCommon/RCTTurboModule.h>
 #import <jsi/jsi.h>
 
-#import "../cpp/installer.h"
+#import "../cpp/bindings.h"
 
 @implementation QuickSQLite
 
@@ -35,7 +35,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
   NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
   NSString *documentPath = [paths objectAtIndex:0];
 
-  install(runtime, callInvoker,[documentPath UTF8String]);
+  osp::install(runtime, callInvoker,[documentPath UTF8String]);
   return @true;
 }
 
