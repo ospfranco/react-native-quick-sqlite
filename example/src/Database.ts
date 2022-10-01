@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { QuickSQLite as sqlite, openDatabase } from 'react-native-quick-sqlite';
+import { QuickSQLite as sqlite } from 'react-native-quick-sqlite';
 import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
@@ -15,10 +15,9 @@ export const lowLevelInit = () => {
   }
 
   // Creates a table in db
-  const { status: createTableStatus } = sqlite.executeSql(
+  const { status: createTableStatus } = sqlite.execute(
     'test',
-    'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);',
-    undefined
+    'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);'
   );
 
   // Handle table creation error
@@ -28,20 +27,20 @@ export const lowLevelInit = () => {
 };
 
 export const testTransaction = () => {
-  sqlite.transaction('test', (tx) => {
-    tx.executeSql(
-      'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-      [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
-    );
-    console.warn('committing transaction');
-    // return true to commit transaction, false to revert
-    return true;
-  });
+  // sqlite.transaction('test', (tx) => {
+  //   tx.executeSql(
+  //     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
+  //     [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
+  //   );
+  //   console.warn('committing transaction');
+  //   // return true to commit transaction, false to revert
+  //   return true;
+  // });
 };
 
 export const testInsert = () => {
   // Basic request
-  const { status: createUserStatus, message } = sqlite.executeSql(
+  const { status: createUserStatus, message } = sqlite.execute(
     'test',
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
     [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
@@ -58,7 +57,7 @@ export const testInsert = () => {
 };
 
 export const queryUsers = () => {
-  const queryResult = sqlite.executeSql('test', `SELECT * FROM "User"`, []);
+  const queryResult = sqlite.execute('test', `SELECT * FROM "User"`);
 
   return queryResult.rows?._array;
 

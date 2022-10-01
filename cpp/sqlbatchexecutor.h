@@ -21,4 +21,4 @@ void jsiBatchParametersToQuickArguments(jsi::Runtime &rt, jsi::Array const &batc
 /**
  * Execute a batch of commands in a exclusive transaction 
 */
-SequelBatchOperationResult executeBatch(std::string dbName, vector<QuickQueryArguments> *commands);
+SequelBatchOperationResult sqliteExecuteBatch(std::string dbName, vector<QuickQueryArguments> *commands);

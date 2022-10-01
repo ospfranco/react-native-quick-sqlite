@@ -42,7 +42,7 @@ void jsiBatchParametersToQuickArguments(jsi::Runtime &rt, jsi::Array const &batc
   }
 }
 
-SequelBatchOperationResult executeBatch(std::string dbName, vector<QuickQueryArguments> *commands)
+SequelBatchOperationResult sqliteExecuteBatch(std::string dbName, vector<QuickQueryArguments> *commands)
 {
   size_t commandCount = commands->size();
   if(commandCount <= 0)
