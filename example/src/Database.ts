@@ -51,7 +51,20 @@ export const testInsert = () => {
     console.error('Failed to insert user:', message);
   }
 
-  console.warn('user inserted', createUserStatus);
+  return queryUsers();
+};
+
+export const testAsyncExecute = async () => {
+  const { status: createUserStatus, message } = await sqlite.executeAsync(
+    'test',
+    'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
+    [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
+  );
+
+  // handle error
+  if (createUserStatus) {
+    console.error('Failed to insert user:', message);
+  }
 
   return queryUsers();
 };

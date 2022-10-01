@@ -163,11 +163,11 @@ interface ISQLite {
     location?: string
   ) => StatementResult;
   detach: (mainDbName: string, alias: string) => StatementResult;
-  transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
   asyncTransaction: (
     dbName: string,
     fn: (tx: AsyncTransaction) => Promise<boolean>
   ) => void;
+  transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
   execute: (dbName: string, query: string, params?: any[]) => QueryResult;
   executeAsync: (
     dbName: string,

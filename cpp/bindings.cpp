@@ -208,32 +208,6 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
     return jsiResult;
   });
 
-  auto transaction = HOSTFN("transaction", 3)
-  {
-    const string dbName = args[0].asString(rt).utf8(rt);
-    const string query = args[1].asString(rt).utf8(rt);
-    vector<QuickValue> params;
-    if(count == 3) {
-      const jsi::Value &originalParams = args[2];
-      jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
-    }
-
-    sqliteExecuteLiteral(dbName, "BEGIN EXCLUSIVE TRANSACTION");
-
-    vector<map<string, QuickValue>> results;
-    vector<QuickColumnMetadata> metadata;
-    auto status = sqliteExecute(dbName, query, &params, &results, &metadata);
-
-    if(status.type == SQLiteError) {
-      sqliteExecuteLiteral(dbName, "ROLLBACK");
-      return error(rt, status.errorMessage);
-    }
-
-    // Converting results into a JSI Response
-    auto jsiResult = createSequelQueryExecutionResult(rt, status, &results, &metadata);
-    return jsiResult;
-  });
-
   auto executeAsync = HOSTFN("executeAsync", 3)
   {
     if (count < 3)
@@ -456,7 +430,6 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   module.setProperty(rt, "detach", move(detach));
   module.setProperty(rt, "delete", move(remove));
   module.setProperty(rt, "execute", move(execute));
-  module.setProperty(rt, "transaction", move(transaction));
   module.setProperty(rt, "executeAsync", move(executeAsync));
   module.setProperty(rt, "executeBatch", move(executeBatch));
   module.setProperty(rt, "executeBatchAsync", move(executeBatchAsync));

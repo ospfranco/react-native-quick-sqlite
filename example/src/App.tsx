@@ -18,6 +18,8 @@ import {
   typeORMGetBooks,
   typeORMInit,
   executeFailingTypeORMQuery,
+  testFailedTransaction,
+  testAsyncExecute,
 } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
@@ -48,7 +50,7 @@ export default function App() {
           setUsers(users);
         }}
       />
-      <Button
+      {/* <Button
         title="Create user (without transaction)"
         onPress={() => {
           testInsert();
@@ -64,6 +66,13 @@ export default function App() {
             const users = queryUsers();
             setUsers(users);
           }, 1000);
+        }}
+      /> */}
+      <Button
+        title="Test async execute (transaction)"
+        onPress={async () => {
+          const users = await testAsyncExecute();
+          setUsers(users);
         }}
       />
       <Button
