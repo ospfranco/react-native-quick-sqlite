@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { QuickSQLite as sqlite } from 'react-native-quick-sqlite';
 import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
@@ -6,23 +5,20 @@ import { User } from './model/User';
 // import { Buffer } from 'buffer';
 let datasource: DataSource;
 
+const DB_NAME = 'test';
+
 export const lowLevelInit = () => {
-  // Start by opening a connection
-  const { status: dbOpenStatus, message } = sqlite.open('test');
+  try {
+    // Start by opening a connection
+    sqlite.open(DB_NAME);
 
-  if (dbOpenStatus) {
-    console.error('Failed to open the Database', message);
-  }
-
-  // Creates a table in db
-  const { status: createTableStatus } = sqlite.execute(
-    'test',
-    'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);'
-  );
-
-  // Handle table creation error
-  if (createTableStatus) {
-    console.error('Failed to create table');
+    // Creates a table in db
+    sqlite.execute(
+      DB_NAME,
+      'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);'
+    );
+  } catch (e) {
+    console.warn('Error opening db:', e);
   }
 };
 
@@ -40,31 +36,21 @@ export const testTransaction = () => {
 
 export const testInsert = () => {
   // Basic request
-  const { status: createUserStatus, message } = sqlite.execute(
+  sqlite.execute(
     'test',
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
     [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
   );
-
-  // handle error
-  if (createUserStatus) {
-    console.error('Failed to insert user:', message);
-  }
 
   return queryUsers();
 };
 
 export const testAsyncExecute = async () => {
-  const { status: createUserStatus, message } = await sqlite.executeAsync(
+  await sqlite.executeAsync(
     'test',
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
     [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
   );
-
-  // handle error
-  if (createUserStatus) {
-    console.error('Failed to insert user:', message);
-  }
 
   return queryUsers();
 };
