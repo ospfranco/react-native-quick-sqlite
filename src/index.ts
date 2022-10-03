@@ -23,28 +23,25 @@ if (global.__QuickSQLiteProxy == null) {
 
   // Call the synchronous blocking install() function
   const result = QuickSQLiteModule.install();
-  if (result !== true)
+  if (result !== true) {
     throw new Error(
       `Failed to install react-native-quick-sqlite: The native QuickSQLite Module could not be installed! Looks like something went wrong when installing JSI bindings: ${result}`
     );
+  }
 
   // Check again if the constructor now exists. If not, throw an error.
-  if (global.__QuickSQLiteProxy == null)
+  if (global.__QuickSQLiteProxy == null) {
     throw new Error(
       'Failed to install react-native-quick-sqlite, the native initializer function does not exist. Are you trying to use QuickSQLite from different JS Runtimes?'
     );
+  }
 }
 
 const proxy = global.__QuickSQLiteProxy;
 export const QuickSQLite = proxy as ISQLite;
-/**
- * JSI BINDINGS DO NOT WORK WHEN CONNECTED TO THE CHROME DEBUGGER
- * Use flipper to debug your RN apps from now on
- */
 
 /**
  * Object returned by SQL Query executions {
- *  status: 0 or undefined for correct execution, 1 for error
  *  insertId: Represent the auto-generated row id if applicable
  *  rowsAffected: Number of affected rows if result of a update query
  *  message: if status === 1, here you will find error description
@@ -116,13 +113,9 @@ export interface Transaction {
   execute: (query: string, params?: any[]) => QueryResult;
 }
 
-export interface AsyncTransaction {
+export interface TransactionAsync {
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (
-    query: string,
-    params: any[] | undefined
-  ) => Promise<QueryResult>;
-  promiseexecute: (
     query: string,
     params: any[] | undefined
   ) => Promise<QueryResult>;
@@ -143,9 +136,9 @@ interface ISQLite {
     location?: string
   ) => void;
   detach: (mainDbName: string, alias: string) => void;
-  asyncTransaction: (
+  transactionAsync: (
     dbName: string,
-    fn: (tx: AsyncTransaction) => Promise<boolean>
+    fn: (tx: TransactionAsync) => Promise<boolean>
   ) => void;
   transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
   execute: (dbName: string, query: string, params?: any[]) => QueryResult;
@@ -271,9 +264,9 @@ QuickSQLite.transaction = (
   startNextTransaction(dbName);
 };
 
-QuickSQLite.asyncTransaction = (
+QuickSQLite.transactionAsync = (
   dbName: string,
-  callback: (tx: AsyncTransaction) => Promise<boolean>
+  callback: (tx: TransactionAsync) => Promise<boolean>
 ) => {
   if (!locks[dbName]) {
     throw Error(`Quick SQLite Error: No lock found on db: ${dbName}`);
@@ -295,7 +288,6 @@ QuickSQLite.asyncTransaction = (
         const result = await callback({
           execute,
           executeAsync,
-          promiseexecute,
         });
         if (result === true) {
           QuickSQLite.execute(dbName, 'COMMIT', null);
@@ -334,173 +326,120 @@ const startNextTransaction = (dbName: string) => {
   });
 };
 
-// //   _________     _______  ______ ____  _____  __  __            _____ _____
-// //  |__   __\ \   / /  __ \|  ____/ __ \|  __ \|  \/  |     /\   |  __ \_   _|
-// //     | |   \ \_/ /| |__) | |__ | |  | | |__) | \  / |    /  \  | |__) || |
-// //     | |    \   / |  ___/|  __|| |  | |  _  /| |\/| |   / /\ \ |  ___/ | |
-// //     | |     | |  | |    | |___| |__| | | \ \| |  | |  / ____ \| |    _| |_
-// //     |_|     |_|  |_|    |______\____/|_|  \_\_|  |_| /_/    \_\_|   |_____|
+//   _________     _______  ______ ____  _____  __  __            _____ _____
+//  |__   __\ \   / /  __ \|  ____/ __ \|  __ \|  \/  |     /\   |  __ \_   _|
+//     | |   \ \_/ /| |__) | |__ | |  | | |__) | \  / |    /  \  | |__) || |
+//     | |    \   / |  ___/|  __|| |  | |  _  /| |\/| |   / /\ \ |  ___/ | |
+//     | |     | |  | |    | |___| |__| | | \ \| |  | |  / ____ \| |    _| |_
+//     |_|     |_|  |_|    |______\____/|_|  \_\_|  |_| /_/    \_\_|   |_____|
 
-// interface IConnectionOptions {
-//   name: string;
-//   location?: string; // not used, we are storing everything on the documents folder
-// }
+export interface IDBConnection {
+  execute: (
+    sql: string,
+    args: any[],
+    ok: (res: QueryResult) => void,
+    fail: (msg: string) => void
+  ) => void;
 
-// export interface IDBConnection {
-//   execute: (
-//     sql: string,
-//     args: any[],
-//     ok: (res: QueryResult) => void,
-//     fail: (msg: string) => void
-//   ) => void;
-//   executeAsync: (
-//     query: string,
-//     params: any[] | undefined,
-//     cb: (res: QueryResult) => void,
-//     fail: (msg: string) => void
-//   ) => void;
-//   executeBatch: (
-//     commands: SQLBatchParams[],
-//     callback?: (res: BatchQueryResult) => void
-//   ) => void;
-//   executeBatchAsync: (
-//     commands: SQLBatchParams[],
-//     cb: (res: BatchQueryResult) => void
-//   ) => void;
-//   close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
-//   attach: (
-//     dbNameToAttach: string,
-//     alias: string,
-//     location: string | undefined,
-//     callback: (result: StatementResult) => void
-//   ) => void;
-//   detach: (alias: string, callback: (result: StatementResult) => void) => void;
-//   transaction: (fn: (tx: Transaction) => boolean) => void;
-//   asyncTransaction: (fn: (tx: AsyncTransaction) => Promise<boolean>) => void;
-//   loadFile: (
-//     location: string,
-//     callback: (result: FileLoadResult) => void
-//   ) => void;
-//   loadFileAsync: (
-//     location: string,
-//     callback: (res: FileLoadResult) => void
-//   ) => void;
-// }
+  close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
+  attach: (
+    dbNameToAttach: string,
+    alias: string,
+    location: string | undefined,
+    callback: () => void
+  ) => void;
+  detach: (alias: string, callback: () => void) => void;
+  transaction: (fn: (tx: Transaction) => boolean) => void;
+}
 
-// export const openDatabase = (
-//   options: IConnectionOptions,
-//   ok: (db: IDBConnection) => void,
-//   fail: (msg: string) => void
-// ): IDBConnection => {
-//   try {
-//     QuickSQLite.open(options.name, options.location);
+/**
+ * DO NOT USE THIS! THIS IS MEANT FOR TYPEORM
+ * If you are looking for a convenience wrapper use `connect`
+ */
+export const openDatabase = (
+  options: {
+    name: string;
+    location?: string;
+  },
+  ok: (db: IDBConnection) => void,
+  fail: (msg: string) => void
+): IDBConnection => {
+  try {
+    QuickSQLite.open(options.name, options.location);
 
-//     const connection: IDBConnection = {
-//       execute: (
-//         sql: string,
-//         params: any[] | undefined,
-//         ok: (res: QueryResult) => void,
-//         fail: (msg: string) => void
-//       ) => {
-//         try {
-//           let response = QuickSQLite.execute(options.name, sql, params);
-//           enhanceQueryResult(response);
+    const connection: IDBConnection = {
+      execute: (
+        sql: string,
+        params: any[] | undefined,
+        ok: (res: QueryResult) => void,
+        fail: (msg: string) => void
+      ) => {
+        try {
+          let response = QuickSQLite.execute(options.name, sql, params);
+          enhanceQueryResult(response);
+          ok(response);
+        } catch (e) {
+          fail(e);
+        }
+      },
+      transaction: (fn: (tx: Transaction) => boolean): void => {
+        QuickSQLite.transaction(options.name, fn);
+      },
+      close: (ok: any, fail: any) => {
+        try {
+          QuickSQLite.close(options.name);
+          ok();
+        } catch (e) {
+          fail(e);
+        }
+      },
+      attach: (
+        dbNameToAttach: string,
+        alias: string,
+        location: string | undefined,
+        callback: () => void
+      ) => {
+        QuickSQLite.attach(options.name, dbNameToAttach, alias, location);
 
-//           if (response.status === 1) {
-//             fail(response.message);
-//           } else {
-//             ok(response);
-//           }
-//         } catch (e) {
-//           fail(e);
-//         }
-//       },
-//       executeAsync: (
-//         sql: string,
-//         params: any[] | undefined,
-//         cb: (res: QueryResult) => void,
-//         fail: (msg: string) => void
-//       ) => {
-//         try {
-//           QuickSQLite.executeAsync(options.name, sql, params, (response) => {
-//             if (response.status === 1) {
-//               fail(response.message);
-//             }
-//             enhanceQueryResult(response);
-//             cb(response);
-//           });
-//         } catch (e) {
-//           fail(e);
-//         }
-//       },
-//       executeBatch: (
-//         commands: SQLBatchParams[],
-//         callback?: (res: BatchQueryResult) => void
-//       ) => {
-//         const response = QuickSQLite.executeBatch(options.name, commands);
-//         if (callback) callback(response);
-//       },
-//       executeBatchAsync: (
-//         commands: SQLBatchParams[],
-//         cb: (res: BatchQueryResult) => void
-//       ) => {
-//         QuickSQLite.executeBatchAsync(options.name, commands, cb);
-//       },
-//       transaction: (fn: (tx: Transaction) => boolean): void => {
-//         QuickSQLite.transaction(options.name, fn);
-//       },
-//       asyncTransaction: (
-//         fn: (tx: AsyncTransaction) => Promise<boolean>
-//       ): void => {
-//         return QuickSQLite.asyncTransaction(options.name, fn);
-//       },
-//       close: (ok: any, fail: any) => {
-//         try {
-//           QuickSQLite.close(options.name);
-//           ok();
-//         } catch (e) {
-//           fail(e);
-//         }
-//       },
-//       attach: (
-//         dbNameToAttach: string,
-//         alias: string,
-//         location: string | undefined,
-//         callback: (result: StatementResult) => void
-//       ) => {
-//         const result = QuickSQLite.attach(
-//           options.name,
-//           dbNameToAttach,
-//           alias,
-//           location
-//         );
-//         callback(result);
-//       },
-//       detach: (alias, callback: (result: StatementResult) => void) => {
-//         const result = QuickSQLite.detach(options.name, alias);
-//         callback(result);
-//       },
-//       loadFile: (
-//         location: string,
-//         callback: (result: FileLoadResult) => void
-//       ) => {
-//         const result = QuickSQLite.loadFile(options.name, location);
-//         if (callback) {
-//           callback(result);
-//         }
-//       },
-//       loadFileAsync: (
-//         location: string,
-//         callback: (result: FileLoadResult) => void
-//       ) => {
-//         QuickSQLite.loadFileAsync(options.name, location, callback);
-//       },
-//     };
+        callback();
+      },
+      detach: (alias, callback: () => void) => {
+        QuickSQLite.detach(options.name, alias);
+        callback();
+      },
+    };
 
-//     ok(connection);
+    ok(connection);
 
-//     return connection;
-//   } catch (e) {
-//     fail(e);
-//   }
-// };
+    return connection;
+  } catch (e) {
+    fail(e);
+  }
+};
+
+export const open = (options: { name: string; location?: string }) => {
+  QuickSQLite.open(options.name, options.location);
+
+  return {
+    close: () => QuickSQLite.close(options.name),
+    delete: () => QuickSQLite.delete(options.name, options.location),
+    attach: (dbNameToAttach: string, alias: string, location?: string) =>
+      QuickSQLite.attach(options.name, dbNameToAttach, alias, location),
+    detach: (alias: string) => QuickSQLite.detach(options.name, alias),
+    transactionAsync: (fn: (tx: TransactionAsync) => Promise<boolean>) =>
+      QuickSQLite.transactionAsync(options.name, fn),
+    transaction: (fn: (tx: Transaction) => boolean) =>
+      QuickSQLite.transaction(options.name, fn),
+    execute: (query: string, params: any[] | undefined): QueryResult =>
+      QuickSQLite.execute(options.name, query, params),
+    executeAsync: (
+      query: string,
+      params: any[] | undefined
+    ): Promise<QueryResult> =>
+      QuickSQLite.executeAsync(options.name, query, params),
+    executeBatch: (commands: SQLBatchParams[]) =>
+      QuickSQLite.executeBatch(options.name, commands),
+    executeBatchAsync: (commands: SQLBatchParams[]) =>
+      QuickSQLite.executeBatchAsync(options.name, commands),
+  };
+};
