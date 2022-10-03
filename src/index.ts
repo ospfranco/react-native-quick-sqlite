@@ -43,17 +43,6 @@ export const QuickSQLite = proxy as ISQLite;
  */
 
 /**
- * All SQLIte command results will have at least this status definition:
- * Specific statments or actions can bring more data, relative to its context
- * status: 0 or undefined for correct execution, 1 for error
- *  message: if status === 1, here you will find error description
- */
-export interface StatementResult {
-  status?: 0 | 1;
-  message?: string;
-}
-
-/**
  * Object returned by SQL Query executions {
  *  status: 0 or undefined for correct execution, 1 for error
  *  insertId: Represent the auto-generated row id if applicable
@@ -64,7 +53,7 @@ export interface StatementResult {
  *
  * @interface QueryResult
  */
-export interface QueryResult extends StatementResult {
+export interface QueryResult {
   insertId?: number;
   rowsAffected: number;
   rows?: {
@@ -111,7 +100,7 @@ type SQLBatchParams = [string] | [string, Array<any> | Array<Array<any>>];
  * message: if status === 1, here you will find error description
  * rowsAffected: Number of affected rows if status == 0
  */
-export interface BatchQueryResult extends StatementResult {
+export interface BatchQueryResult {
   rowsAffected?: number;
 }
 
@@ -144,25 +133,16 @@ export interface PendingTransaction {
 }
 
 interface ISQLite {
-  open: (
-    dbName: string,
-    location?: string
-  ) => {
-    status: 0 | 1;
-    message?: string;
-  };
-  close: (dbName: string) => {
-    status: 0 | 1;
-    message?: string;
-  };
-  delete: (dbName: string, location?: string) => StatementResult;
+  open: (dbName: string, location?: string) => void;
+  close: (dbName: string) => void;
+  delete: (dbName: string, location?: string) => void;
   attach: (
     mainDbName: string,
     dbNameToAttach: string,
     alias: string,
     location?: string
-  ) => StatementResult;
-  detach: (mainDbName: string, alias: string) => StatementResult;
+  ) => void;
+  detach: (mainDbName: string, alias: string) => void;
   asyncTransaction: (
     dbName: string,
     fn: (tx: AsyncTransaction) => Promise<boolean>
@@ -180,15 +160,10 @@ interface ISQLite {
   ) => BatchQueryResult;
   executeBatchAsync: (
     dbName: string,
-    commands: SQLBatchParams[],
-    cb: (res: BatchQueryResult) => void
-  ) => void;
+    commands: SQLBatchParams[]
+  ) => Promise<BatchQueryResult>;
   loadFile: (dbName: string, location: string) => FileLoadResult;
-  loadFileAsync: (
-    dbName: string,
-    location: string,
-    cb: (res: FileLoadResult) => void
-  ) => void;
+  loadFileAsync: (dbName: string, location: string) => Promise<FileLoadResult>;
 }
 
 //   _______ _____            _   _  _____         _____ _______ _____ ____  _   _  _____
@@ -221,26 +196,20 @@ const enhanceQueryResult = (result: QueryResult): void => {
 
 const _open = QuickSQLite.open;
 QuickSQLite.open = (dbName: string, location?: string) => {
-  const res = _open(dbName, location);
-  if (res.status === 0) {
-    locks[dbName] = {
-      queue: [],
-      inProgress: false,
-    };
-  }
+  _open(dbName, location);
 
-  return res;
+  locks[dbName] = {
+    queue: [],
+    inProgress: false,
+  };
 };
 
 const _close = QuickSQLite.close;
 QuickSQLite.close = (dbName: string) => {
-  const res = _close(dbName);
-  if (res.status === 0) {
-    setImmediate(() => {
-      delete locks[dbName];
-    });
-  }
-  return res;
+  _close(dbName);
+  setImmediate(() => {
+    delete locks[dbName];
+  });
 };
 
 const _execute = QuickSQLite.execute;
