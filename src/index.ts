@@ -138,9 +138,9 @@ interface ISQLite {
   detach: (mainDbName: string, alias: string) => void;
   transactionAsync: (
     dbName: string,
-    fn: (tx: TransactionAsync) => Promise<boolean>
+    fn: (tx: TransactionAsync) => Promise<void>
   ) => void;
-  transaction: (dbName: string, fn: (tx: Transaction) => boolean) => void;
+  transaction: (dbName: string, fn: (tx: Transaction) => void) => void;
   execute: (dbName: string, query: string, params?: any[]) => QueryResult;
   executeAsync: (
     dbName: string,
@@ -229,7 +229,7 @@ QuickSQLite.executeAsync = async (
 
 QuickSQLite.transaction = (
   dbName: string,
-  callback: (tx: Transaction) => boolean
+  callback: (tx: Transaction) => void
 ) => {
   if (!locks[dbName]) {
     throw Error(`No lock found on db: ${dbName}`);
@@ -244,12 +244,9 @@ QuickSQLite.transaction = (
     start: () => {
       try {
         QuickSQLite.execute(dbName, 'BEGIN TRANSACTION', null);
-        const result = callback({ execute });
-        if (result === true) {
-          QuickSQLite.execute(dbName, 'COMMIT', null);
-        } else {
-          QuickSQLite.execute(dbName, 'ROLLBACK', null);
-        }
+        callback({ execute });
+
+        QuickSQLite.execute(dbName, 'COMMIT', null);
       } catch (e: any) {
         QuickSQLite.execute(dbName, 'ROLLBACK', null);
         throw e;
@@ -266,7 +263,7 @@ QuickSQLite.transaction = (
 
 QuickSQLite.transactionAsync = (
   dbName: string,
-  callback: (tx: TransactionAsync) => Promise<boolean>
+  callback: (tx: TransactionAsync) => Promise<void>
 ) => {
   if (!locks[dbName]) {
     throw Error(`Quick SQLite Error: No lock found on db: ${dbName}`);
@@ -285,15 +282,12 @@ QuickSQLite.transactionAsync = (
     start: async () => {
       try {
         QuickSQLite.execute(dbName, 'BEGIN TRANSACTION', null);
-        const result = await callback({
+        await callback({
           execute,
           executeAsync,
         });
-        if (result === true) {
-          QuickSQLite.execute(dbName, 'COMMIT', null);
-        } else {
-          QuickSQLite.execute(dbName, 'ROLLBACK', null);
-        }
+
+        QuickSQLite.execute(dbName, 'COMMIT', null);
       } catch (e: any) {
         QuickSQLite.execute(dbName, 'ROLLBACK', null);
         throw e;
@@ -333,7 +327,7 @@ const startNextTransaction = (dbName: string) => {
 //     | |     | |  | |    | |___| |__| | | \ \| |  | |  / ____ \| |    _| |_
 //     |_|     |_|  |_|    |______\____/|_|  \_\_|  |_| /_/    \_\_|   |_____|
 
-export interface IDBConnection {
+export interface TypeOrmDBConnection {
   execute: (
     sql: string,
     args: any[],
@@ -361,13 +355,13 @@ export const openDatabase = (
     name: string;
     location?: string;
   },
-  ok: (db: IDBConnection) => void,
+  ok: (db: TypeOrmDBConnection) => void,
   fail: (msg: string) => void
-): IDBConnection => {
+): TypeOrmDBConnection => {
   try {
     QuickSQLite.open(options.name, options.location);
 
-    const connection: IDBConnection = {
+    const connection: TypeOrmDBConnection = {
       execute: (
         sql: string,
         params: any[] | undefined,
@@ -417,7 +411,23 @@ export const openDatabase = (
   }
 };
 
-export const open = (options: { name: string; location?: string }) => {
+export interface QuickSQLiteConnection {
+  close: () => void;
+  delete: () => void;
+  attach: (dbNameToAttach: string, alias: string, location?: string) => void;
+  detach: (alias: string) => void;
+  transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void;
+  transaction: (fn: (tx: Transaction) => boolean) => void;
+  execute: (query: string, params?: any[]) => QueryResult;
+  executeAsync: (query: string, params?: any[]) => Promise<QueryResult>;
+  executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult;
+  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>;
+}
+
+export const open = (options: {
+  name: string;
+  location?: string;
+}): QuickSQLiteConnection => {
   QuickSQLite.open(options.name, options.location);
 
   return {
@@ -426,9 +436,9 @@ export const open = (options: { name: string; location?: string }) => {
     attach: (dbNameToAttach: string, alias: string, location?: string) =>
       QuickSQLite.attach(options.name, dbNameToAttach, alias, location),
     detach: (alias: string) => QuickSQLite.detach(options.name, alias),
-    transactionAsync: (fn: (tx: TransactionAsync) => Promise<boolean>) =>
+    transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) =>
       QuickSQLite.transactionAsync(options.name, fn),
-    transaction: (fn: (tx: Transaction) => boolean) =>
+    transaction: (fn: (tx: Transaction) => void) =>
       QuickSQLite.transaction(options.name, fn),
     execute: (query: string, params: any[] | undefined): QueryResult =>
       QuickSQLite.execute(options.name, query, params),

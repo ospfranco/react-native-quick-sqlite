@@ -30,14 +30,7 @@ export default function App() {
   React.useEffect(() => {
     lowLevelInit();
     const users = queryUsers();
-    // console.warn('db users', users);
     setUsers(users);
-    // typeORMInit().then(() => {
-    //   console.warn('typeorm initialized!');
-    //   typeORMGetBooks().then((books) => {
-    //     console.warn('typeORM books', books);
-    //   });
-    // });
   }, []);
 
   return (
@@ -50,7 +43,7 @@ export default function App() {
           setUsers(users);
         }}
       />
-      {/* <Button
+      <Button
         title="Create user (without transaction)"
         onPress={() => {
           testInsert();
@@ -58,6 +51,7 @@ export default function App() {
           setUsers(users);
         }}
       />
+      {/*
       <Button
         title="Create user (with transaction)"
         onPress={() => {
