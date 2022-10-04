@@ -1,4 +1,8 @@
-import { QuickSQLite as sqlite } from 'react-native-quick-sqlite';
+import {
+  QuickSQLite as sqlite,
+  open,
+  QuickSQLiteConnection,
+} from 'react-native-quick-sqlite';
 import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
@@ -6,15 +10,15 @@ import { User } from './model/User';
 let datasource: DataSource;
 
 const DB_NAME = 'test';
+let db: QuickSQLiteConnection;
 
 export const lowLevelInit = () => {
   try {
     // Start by opening a connection
-    sqlite.open(DB_NAME);
+    db = open({ name: DB_NAME });
 
     // Creates a table in db
-    sqlite.execute(
-      DB_NAME,
+    db.execute(
       'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);'
     );
   } catch (e) {
@@ -36,8 +40,7 @@ export const testTransaction = () => {
 
 export const testInsert = () => {
   // Basic request
-  sqlite.execute(
-    'test',
+  db.execute(
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
     [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
   );
@@ -46,8 +49,7 @@ export const testInsert = () => {
 };
 
 export const testAsyncExecute = async () => {
-  await sqlite.executeAsync(
-    'test',
+  await db.executeAsync(
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
     [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
   );
@@ -56,19 +58,12 @@ export const testAsyncExecute = async () => {
 };
 
 export const queryUsers = () => {
-  const queryResult = sqlite.execute('test', `SELECT * FROM "User"`);
+  const queryResult = db.execute(`SELECT * FROM "User"`);
 
   return queryResult.rows?._array;
-
-  // If you don't want to block the UI thread use async methods
-  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
-  //   console.warn('asyncRes2', asyncRes);
-  // });
 };
 
 export async function typeORMInit() {
-  // const driver = require('react-native-quick-sqlite').QuickSQLite;
-  // console.warn('driver', driver);
   datasource = new DataSource({
     type: 'react-native',
     database: 'typeormdb',
