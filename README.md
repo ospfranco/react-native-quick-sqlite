@@ -36,12 +36,12 @@ close: () => void,
 delete: () => void,
 attach: (dbNameToAttach: string, alias: string, location?: string) => void,
 detach: (alias: string) => void,
-transactionAsync: (fn: (tx: TransactionAsync)) => void,
-transaction: (fn: (tx: Transaction) => boolean) => void,
-execute: (query: string, params: any[] | undefined) => QueryResult,
+transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void,
+transaction: (fn: (tx: Transaction) => void) => void,
+execute: (query: string, params?: any[]) => QueryResult,
 executeAsync: (
   query: string,
-  params: any[] | undefined
+  params?: any[]
 ) => Promise<QueryResult>,
 executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult,
 executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>,
