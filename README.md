@@ -63,7 +63,7 @@ try {
     console.log(row);
   });
 
-  let { rowsAffected } = db.executeAsync(
+  let { rowsAffected } = await db.executeAsync(
     'UPDATE sometable SET somecolumn = ? where somekey = ?',
     [0, 1]
   );
