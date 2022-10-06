@@ -14,7 +14,7 @@
 </div>
 <br />
 
-Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries. By using an embedded SQLite you get access the latest security patches and latest features.
+Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries. By using an embedded SQLite you get access to the latest security patches and latest features.
 
 Performance metrics are intentionally not posted, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
@@ -122,7 +122,7 @@ interface ISQLite {
 
 ### WebSQL wrapper
 
-You can get a WebSQL wrapper (meant to be used with TypeORM or other drivers) with a different global call. It's a simple wrapper around the low level API.
+You can get a WebSQL wrapper (meant to be used with TypeORM or other drivers) with a different global call. It's a simple wrapper around the low-level API.
 
 ```ts
 openDatabase(
@@ -231,7 +231,7 @@ if (!result.status) {
 
 In some scenarios, dynamic applications may need to get some metadata information about the returned result set.
 
-This can be done testing the returned data directly, but in some cases may not be enough, for example when data is stored outside
+This can be done by testing the returned data directly, but in some cases may not be enough, for example when data is stored outside
 sqlite datatypes. When fetching data directly from tables or views linked to table columns, SQLite is able
 to identify the table declared types:
 
@@ -267,16 +267,16 @@ QuickSQLite.asyncExecuteSql(
 );
 ```
 
-### Attach or Detach another databases
+### Attach or Detach other databases
 
-SQLite supports to attach or detach another database files into your main database connection through an alias.
-You can do any operation you like on this attached databases like JOIN results across tables in different schemas, or update data or objects.
-This databases can have different configurations, like journal modes, cache settings.
+SQLite supports attaching or detaching other database files into your main database connection through an alias.
+You can do any operation you like on this attached database like JOIN results across tables in different schemas, or update data or objects.
+The databases can have different configurations, like journal modes or cache settings.
 
-You can, at any moment detach a database that you don't need anymore.
+You can, at any moment, detach a database that you don't need anymore.
 Note: You don't need to detach an attached database before closing your connection. Closing the main connection
-will dettach any dettached databases.
-SQLite have a limit for attached databases: A default of 10, and a global max of 125
+will dettach any attached databases.
+SQLite has a limit for attached databases: A default of 10, and a global max of 125
 
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
 
@@ -314,7 +314,7 @@ On iOS you can use the embedded SQLite, when running `pod-install` add an enviro
 QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
-On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately this means this library will add some mbs to your app size.
+On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some MBs to your app size.
 
 ## Use TypeORM
 
@@ -339,7 +339,7 @@ The library creates/opens databases by appending the passed name plus, the [docu
 
 If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories.
 
-Alternatively you can place/move your database file using the one of the many react-native fs libraries.
+Alternatively you can place/move your database file using one of the many react-native fs libraries.
 
 ## Enable compile-time options
 
