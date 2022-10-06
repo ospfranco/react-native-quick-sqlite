@@ -41,8 +41,8 @@ add_library(
   SHARED
   ../cpp/sqliteBridge.cpp
   ../cpp/sqliteBridge.h
-  ../cpp/installer.cpp
-  ../cpp/installer.h
+  ../cpp/bindings.cpp
+  ../cpp/bindings.h
   ../cpp/sqlite3.h
   ../cpp/sqlite3.c
   ../cpp/JSIHelper.h
@@ -53,6 +53,7 @@ add_library(
   ../cpp/sqlfileloader.cpp
   ../cpp/sqlbatchexecutor.h
   ../cpp/sqlbatchexecutor.cpp
+  ../cpp/macros.h
   cpp-adapter.cpp
 )
 
