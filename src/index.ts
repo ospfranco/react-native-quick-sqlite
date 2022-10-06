@@ -422,6 +422,8 @@ export interface QuickSQLiteConnection {
   executeAsync: (query: string, params?: any[]) => Promise<QueryResult>;
   executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult;
   executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>;
+  loadFile: (location: string) => FileLoadResult;
+  loadFileAsync: (location: string) => Promise<FileLoadResult>;
 }
 
 export const open = (options: {
@@ -451,5 +453,9 @@ export const open = (options: {
       QuickSQLite.executeBatch(options.name, commands),
     executeBatchAsync: (commands: SQLBatchParams[]) =>
       QuickSQLite.executeBatchAsync(options.name, commands),
+    loadFile: (location: string) =>
+      QuickSQLite.loadFile(options.name, location),
+    loadFileAsync: (location: string) =>
+      QuickSQLite.loadFileAsync(options.name, location)
   };
 };
