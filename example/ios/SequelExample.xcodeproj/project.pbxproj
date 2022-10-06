@@ -120,7 +120,7 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				C1D60D28B925C94BD88E79D7 /* [CP] Copy Pods Resources */,
-				FB968CE8063F07AD87DB7D06 /* [CP] Embed Pods Frameworks */,
+				F3B52BAEE1A4D3412D7D1930 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -230,7 +230,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SequelExample/Pods-SequelExample-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		FB968CE8063F07AD87DB7D06 /* [CP] Embed Pods Frameworks */ = {
+		F3B52BAEE1A4D3412D7D1930 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (

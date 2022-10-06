@@ -322,7 +322,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
-  - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
+  - react-native-quick-sqlite (from `../..`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -381,7 +381,7 @@ EXTERNAL SOURCES:
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
   react-native-quick-sqlite:
-    :path: "../node_modules/react-native-quick-sqlite"
+    :path: "../.."
   React-perflogger:
     :path: "../node_modules/react-native/ReactCommon/reactperflogger"
   React-RCTActionSheet:
@@ -446,6 +446,6 @@ SPEC CHECKSUMS:
   ReactCommon: 07d0c460b9ba9af3eaf1b8f5abe7daaad28c9c4e
   Yoga: d6b6a80659aa3e91aaba01d0012e7edcbedcbecd
 
-PODFILE CHECKSUM: d17e982a36a0c00f901deed42f61b5a036acbc9f
+PODFILE CHECKSUM: 23fbb34cc9cd3db2810e5bb10e37bce3ce025dee
 
 COCOAPODS: 1.11.3

@@ -14,10 +14,8 @@ import {
   lowLevelInit,
   queryUsers,
   testInsert,
-  testTransaction,
-  typeORMGetBooks,
-  typeORMInit,
   executeFailingTypeORMQuery,
+  testAsyncExecute,
 } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
@@ -28,14 +26,7 @@ export default function App() {
   React.useEffect(() => {
     lowLevelInit();
     const users = queryUsers();
-    // console.warn('db users', users);
     setUsers(users);
-    // typeORMInit().then(() => {
-    //   console.warn('typeorm initialized!');
-    //   typeORMGetBooks().then((books) => {
-    //     console.warn('typeORM books', books);
-    //   });
-    // });
   }, []);
 
   return (
@@ -56,6 +47,7 @@ export default function App() {
           setUsers(users);
         }}
       />
+      {/*
       <Button
         title="Create user (with transaction)"
         onPress={() => {
@@ -64,6 +56,13 @@ export default function App() {
             const users = queryUsers();
             setUsers(users);
           }, 1000);
+        }}
+      /> */}
+      <Button
+        title="Test async execute (transaction)"
+        onPress={async () => {
+          const users = await testAsyncExecute();
+          setUsers(users);
         }}
       />
       <Button
@@ -94,8 +93,8 @@ export default function App() {
                 />
               )}
               <Text style={styles.name}>{item.name}</Text>
-              <Text>{item.age}</Text>
-              <Text>{item.networth}</Text>
+              <Text style={styles.text}>{item.age}</Text>
+              <Text style={styles.text}>{item.networth}</Text>
               {/* <Text>{item.metadata.nickname}</Text> */}
               {/* <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
                 Favorite Book
@@ -128,5 +127,9 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
+    color: 'black'
   },
+  text: {
+    color: 'black'
+  }
 });

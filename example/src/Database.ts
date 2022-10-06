@@ -1,76 +1,69 @@
-/* eslint-disable no-undef */
-import { QuickSQLite as sqlite, openDatabase } from 'react-native-quick-sqlite';
+import {
+  QuickSQLite as sqlite,
+  open,
+  QuickSQLiteConnection,
+} from 'react-native-quick-sqlite';
 import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
 // import { Buffer } from 'buffer';
 let datasource: DataSource;
 
+const DB_NAME = 'test';
+let db: QuickSQLiteConnection;
+
 export const lowLevelInit = () => {
-  // Start by opening a connection
-  const { status: dbOpenStatus, message } = sqlite.open('test');
+  try {
+    // Start by opening a connection
+    db = open({ name: DB_NAME });
 
-  if (dbOpenStatus) {
-    console.error('Failed to open the Database', message);
-  }
-
-  // Creates a table in db
-  const { status: createTableStatus } = sqlite.executeSql(
-    'test',
-    'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);',
-    undefined
-  );
-
-  // Handle table creation error
-  if (createTableStatus) {
-    console.error('Failed to create table');
+    // Creates a table in db
+    db.execute(
+      'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);'
+    );
+  } catch (e) {
+    console.warn('Error opening db:', e);
   }
 };
 
 export const testTransaction = () => {
-  sqlite.transaction('test', (tx) => {
-    tx.executeSql(
-      'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-      [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
-    );
-    console.warn('committing transaction');
-    // return true to commit transaction, false to revert
-    return true;
-  });
+  // sqlite.transaction('test', (tx) => {
+  //   tx.executeSql(
+  //     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
+  //     [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
+  //   );
+  //   console.warn('committing transaction');
+  //   // return true to commit transaction, false to revert
+  //   return true;
+  // });
 };
 
 export const testInsert = () => {
   // Basic request
-  const { status: createUserStatus, message } = sqlite.executeSql(
-    'test',
+  db.execute(
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
     [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
   );
 
-  // handle error
-  if (createUserStatus) {
-    console.error('Failed to insert user:', message);
-  }
+  return queryUsers();
+};
 
-  console.warn('user inserted', createUserStatus);
+export const testAsyncExecute = async () => {
+  await db.executeAsync(
+    'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
+    [new Date().getMilliseconds(), `Async TOM`, 32, 3000.23]
+  );
 
   return queryUsers();
 };
 
 export const queryUsers = () => {
-  const queryResult = sqlite.executeSql('test', `SELECT * FROM "User"`, []);
+  const queryResult = db.execute(`SELECT * FROM "User"`);
 
   return queryResult.rows?._array;
-
-  // If you don't want to block the UI thread use async methods
-  // sqlite.asyncExecuteSql('test', 'SELECT * FROM "User";', [], (asyncRes) => {
-  //   console.warn('asyncRes2', asyncRes);
-  // });
 };
 
 export async function typeORMInit() {
-  // const driver = require('react-native-quick-sqlite').QuickSQLite;
-  // console.warn('driver', driver);
   datasource = new DataSource({
     type: 'react-native',
     database: 'typeormdb',

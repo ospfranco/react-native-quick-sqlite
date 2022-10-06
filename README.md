@@ -14,197 +14,90 @@
 </div>
 <br />
 
-Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries. By using an embedded SQLite you get access the latest security patches and latest features.
+Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries. By using an embedded SQLite you get access to the latest security patches and features.
 
-Performance metrics are intentionally not posted, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
-
-## Gotchas
+Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
 - **Javascript cannot represent integers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
-- **It's not possible to use a browser to debug a JSI app**, use [Flipper](https://github.com/facebook/flipper) (for android Flipper also has SQLite Database explorer).
 
 ## API
 
 ```typescript
-/**
- * All SQLite command results will have at least this status definition:
- * Specific statements or actions can bring more data, relative to its context
- * status: 0 or undefined for correct execution, 1 for error
- *  message: if status === 1, here you will find error description
- */
-export interface StatementResult {
-  status?: 0 | 1;
-  message?: string;
-}
+import {open} from 'react-native-quick-sqlite'
 
-interface QueryResult extends StatementResult {
-  insertId?: number;
-  rowsAffected: number;
-  rows?: {
-    /** Raw array with all dataset */
-    _array: any[];
-    /** The length of the dataset */
-    length: number;
-  };
-  /**
-   * Query metadata, available only for select query results
-   */
-  metadata?: ColumnMetadata[];
-}
+const db = open('myDb.sqlite')
 
-/**
- * Column metadata
- * Describes some information about columns fetched by the query
- * columnDeclaredType - declared column type for this column, when fetched directly from a table or a View resulting from a table column. "UNKNOWN" for dynamic values, like function returned ones.
- */
-interface ColumnMetadata = {
-  columnName: string;
-  columnDeclaredType: string;
-  columnIndex: number;
-};
+// The db object now contains the following methods:
 
-/**
- * status: 0 or undefined for correct execution, 1 for error
- * message: if status === 1, here you will find error description
- * rowsAffected: Number of affected rows if status == 0
- */
-export interface BatchQueryResult extends StatementResult {
-  rowsAffected?: number;
-}
-
-/**
- * Result of loading a file and executing every line as a SQL command
- * Similar to BatchQueryResult
- */
-export interface FileLoadResult extends BatchQueryResult {
-  commands?: number;
-}
-
-interface ISQLite {
-  open: (dbName: string, location?: string) => StatementResult;
-  close: (dbName: string) => StatementResult;
-  delete: (dbName: string, location?: string) => StatementResult;
-  attach: (
-    mainDbName: string,
-    dbNameToAttach: string,
-    alias: string,
-    location?: string
-  ) => StatementResult;
-  detach: (mainDbName: string, alias: string) => StatementResult;
-  executeSql: (
-    dbName: string,
-    query: string,
-    params: any[] | undefined
-  ) => QueryResult;
-  asyncExecuteSql: (
-    dbName: string,
-    query: string,
-    params: any[] | undefined,
-    cb: (res: QueryResult) => void
-  ) => void;
-  executeSqlBatch: (
-    dbName: string,
-    commands: SQLBatchParams[]
-  ) => BatchQueryResult;
-  asyncExecuteSqlBatch: (
-    dbName: string,
-    commands: SQLBatchParams[],
-    cb: (res: BatchQueryResult) => void
-  ) => void;
-  loadSqlFile: (dbName: string, location: string) => FileLoadResult;
-  asyncLoadSqlFile: (
-    dbName: string,
-    location: string,
-    cb: (res: FileLoadResult) => void
-  ) => void;
-}
-```
-
-### WebSQL wrapper
-
-You can get a WebSQL wrapper (meant to be used with TypeORM or other drivers) with a different global call. It's a simple wrapper around the low level API.
-
-```ts
-openDatabase(
-  options: IConnectionOptions,
-  ok: (db: IDBConnection) => void,
-  fail: (msg: string) => void
-): IDBConnection
-```
-
-# Usage
-
-Just import the package and fire away
-
-```typescript
-// Thanks to @mrousavy for this installation method, see one example: https://github.com/mrousavy/react-native-mmkv/blob/75b425db530e26cf10c7054308583d03ff01851f/src/createMMKV.ts#L56
-import { QuickSQLite } from 'react-native-quick-sqlite';
-
-const dbOpenResult = QuickSQLite.open('myDatabase', 'databases');
-
-// status === 1, operation failed
-if (dbOpenResult.status) {
-  console.error('Database could not be opened');
-}
+close: () => void,
+delete: () => void,
+attach: (dbNameToAttach: string, alias: string, location?: string) => void,
+detach: (alias: string) => void,
+transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void,
+transaction: (fn: (tx: Transaction) => void) => void,
+execute: (query: string, params?: any[]) => QueryResult,
+executeAsync: (
+  query: string,
+  params?: any[]
+) => Promise<QueryResult>,
+executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult,
+executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>,
 ```
 
 ### Simple queries
 
-The basic query is **synchronous**, it will block rendering on large operations, below there are async versions.
+The basic query is **synchronous**, it will block rendering on large operations, further below you will find async versions.
 
 ```typescript
-let { status, rows } = QuickSQLite.executeSql(
-  'myDatabase',
-  'SELECT somevalue FROM sometable'
-);
-if (!status) {
+import { open } from 'react-native-quick-sqlite';
+
+try {
+  const db = open('myDb.sqlite');
+
+  let { rows } = db.execute('SELECT somevalue FROM sometable');
+
   rows.forEach((row) => {
     console.log(row);
   });
-}
 
-let { status, rowsAffected } = QuickSQLite.executeSql(
-  'myDatabase',
-  'UPDATE sometable SET somecolumn = ? where somekey = ?',
-  [0, 1]
-);
-if (!status) {
+  let { rowsAffected } = await db.executeAsync(
+    'UPDATE sometable SET somecolumn = ? where somekey = ?',
+    [0, 1]
+  );
+
   console.log(`Update affected ${rowsAffected} rows`);
+} catch (e) {
+  console.error('Something went wrong executing SQL commands:', e.message);
 }
 ```
 
 ### Transactions
 
-Transactions are supported. However, due to the library being opinionated and mostly not throwing errors you need to return a boolean (true for correct execution, false for incorrect execution) to either commit or rollback the transaction.
+Transactions are supported. Throwing an error inside the callback will ROLLBACK the transaction.
 
-JSI bindings are fast but there is still some overhead calling `executeSql` for single queries, if you want to execute a large set of commands as fast as possible you should use the `executeSqlBatch` method below, it still uses transactions, but only transmits data between JS and native once.
+JSI bindings are fast but there is still some overhead calling `execute` for single queries, if you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction, but has less overhead.
 
 ```typescript
 QuickSQLite.transaction('myDatabase', (tx) => {
-  const { status } = tx.executeSql(
+  const { status } = tx.execute(
     'UPDATE sometable SET somecolumn = ? where somekey = ?',
     [0, 1]
   );
 
-  if (status) {
-    return false;
-  }
-
-  return true;
+  throw new Error('Random Error!'); // Will ROLLBACK transaction
 });
 ```
 
-Async transactions are also possible, but the API is based on promises and/or a boolean response:
+Async transactions are also possible:
 
 ```ts
-QuickSQLite.asyncTransaction('myDatabase', async (tx) => {
-  // If the function throws (rejects) the transaction will be rolled back
-  const res = tx.promiseExecuteSql(
+QuickSQLite.transactionAsync('myDatabase', async (tx) => {
+  tx.execute('UPDATE sometable SET somecolumn = ? where somekey = ?', [0, 1]);
+
+  await tx.executeAsync(
     'UPDATE sometable SET somecolumn = ? where somekey = ?',
     [0, 1]
   );
-  // You must also return true to signal a correct transaction
-  return true;
 });
 ```
 
@@ -220,34 +113,31 @@ const commands = [
   [('INSERT INTO TEST (id) VALUES (?)', [[3], [4], [5], [6]])],
 ];
 
-const result = QuickSQLite.executeSqlBatch('myDatabase', commands);
-if (!result.status) {
-  // result.status undefined or 0 === success
-  console.log(`Batch affected ${result.rowsAffected} rows`);
-}
+const res = QuickSQLite.executeSqlBatch('myDatabase', commands);
+
+console.log(`Batch affected ${result.rowsAffected} rows`);
 ```
 
 ### Dynamic Column Metadata
 
 In some scenarios, dynamic applications may need to get some metadata information about the returned result set.
 
-This can be done testing the returned data directly, but in some cases may not be enough, for example when data is stored outside
+This can be done by testing the returned data directly, but in some cases may not be enough, for example when data is stored outside
 sqlite datatypes. When fetching data directly from tables or views linked to table columns, SQLite is able
 to identify the table declared types:
 
 ```typescript
-let { status, metadata } = QuickSQLite.executeSql(
+let { metadata } = QuickSQLite.executeSql(
   'myDatabase',
   'SELECT int_column_1, bol_column_2 FROM sometable'
 );
-if (!status) {
-  metadata.forEach((column) => {
-    // Output:
-    // int_column_1 - INTEGER
-    // bol_column_2 - BOOLEAN
-    console.log(`${column.columnName} - ${column.columnDeclaredType}`);
-  });
-}
+
+metadata.forEach((column) => {
+  // Output:
+  // int_column_1 - INTEGER
+  // bol_column_2 - BOOLEAN
+  console.log(`${column.columnName} - ${column.columnDeclaredType}`);
+});
 ```
 
 ### Async operations
@@ -255,52 +145,38 @@ if (!status) {
 You might have too much SQL to process and it will cause your application to freeze. There are async versions for some of the operations. This will offload the SQLite processing to a different thread.
 
 ```ts
-QuickSQLite.asyncExecuteSql(
+QuickSQLite.executeAsync(
   'myDatabase',
   'SELECT * FROM "User";',
-  [],
-  ({ status, rows }) => {
-    if (status === 0) {
-      console.log('users', rows);
-    }
-  }
+  []).then(({rows}) => {
+    console.log('users', rows);
+  })
 );
 ```
 
-### Attach or Detach another databases
+### Attach or Detach other databases
 
-SQLite supports to attach or detach another database files into your main database connection through an alias.
-You can do any operation you like on this attached databases like JOIN results across tables in different schemas, or update data or objects.
+SQLite supports to attaching or detaching other database files into your main database connection through an alias.
+You can do any operation you like on this attached database like JOIN results across tables in different schemas, or update data or objects.
 This databases can have different configurations, like journal modes, cache settings.
 
-You can, at any moment detach a database that you don't need anymore.
+You can, at any moment, detach a database that you don't need anymore.
 Note: You don't need to detach an attached database before closing your connection. Closing the main connection
-will dettach any dettached databases.
-SQLite have a limit for attached databases: A default of 10, and a global max of 125
+will dettach any attached databases.
+SQLite has a limit for attached databases: A default of 10, and a global max of 125
 
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
 
 ```ts
-const result = QuickSQLite.attach(
+QuickSQLite.attach('mainDatabase', 'statistics', 'stats', '../databases');
+
+const res = QuickSQLite.executeSql(
   'mainDatabase',
-  'statistics',
-  'stats',
-  '../databases'
+  'SELECT * FROM some_table_from_mainschema a INNER JOIN stats.some_table b on a.id_column = b.id_column'
 );
 
-// Database is attached successfully
-if (!result.status) {
-  const data = QuickSQLite.executeSql(
-    'mainDatabase',
-    'SELECT * FROM some_table_from_mainschema a INNER JOIN stats.some_table b on a.id_column = b.id_column'
-  );
-  // Consume the results
-  if (!data.status) {
-  }
-}
-
 // You can detach databases at any moment
-const detachResult = QuickSQLite.detach('mainDatabase', 'stats');
+QuickSQLite.detach('mainDatabase', 'stats');
 if (!detachResult.status) {
   // Database de-attached
 }
@@ -314,7 +190,7 @@ On iOS you can use the embedded SQLite, when running `pod-install` add an enviro
 QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
-On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately this means this library will add some mbs to your app size.
+On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some mbs to your app size.
 
 ## Use TypeORM
 
@@ -339,7 +215,7 @@ The library creates/opens databases by appending the passed name plus, the [docu
 
 If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories.
 
-Alternatively you can place/move your database file using the one of the many react-native fs libraries.
+Alternatively you can place/move your database file using one of the many react-native fs libraries.
 
 ## Enable compile-time options
 
