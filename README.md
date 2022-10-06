@@ -18,7 +18,7 @@ Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-ba
 
 Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
-- **Javascript cannot represent integers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
+**Javascript cannot represent integers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
 
 ## API
 
@@ -29,19 +29,21 @@ const db = open('myDb.sqlite')
 
 // The db object now contains the following methods:
 
-close: () => void,
-delete: () => void,
-attach: (dbNameToAttach: string, alias: string, location?: string) => void,
-detach: (alias: string) => void,
-transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void,
-transaction: (fn: (tx: Transaction) => void) => void,
-execute: (query: string, params?: any[]) => QueryResult,
-executeAsync: (
-  query: string,
-  params?: any[]
-) => Promise<QueryResult>,
-executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult,
-executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>,
+db = {
+  close: () => void,
+  delete: () => void,
+  attach: (dbNameToAttach: string, alias: string, location?: string) => void,
+  detach: (alias: string) => void,
+  transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void,
+  transaction: (fn: (tx: Transaction) => void) => void,
+  execute: (query: string, params?: any[]) => QueryResult,
+  executeAsync: (
+    query: string,
+    params?: any[]
+  ) => Promise<QueryResult>,
+  executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult,
+  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>
+}
 ```
 
 ### Simple queries
