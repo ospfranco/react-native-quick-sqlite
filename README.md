@@ -1,4 +1,4 @@
-![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header.png)
+![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header2.png)
 
 <div align="center">
   <pre align="center">
