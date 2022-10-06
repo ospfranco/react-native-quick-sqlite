@@ -361,7 +361,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   {
     if (sizeof(args) < 2)
     {
-      throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncloadFile] Incorrect parameter count");
+      throw jsi::JSError(rt, "[react-native-quick-sqlite][loadFileAsync] Incorrect parameter count");
       return {};
     }
 
