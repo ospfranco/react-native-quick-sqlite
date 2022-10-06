@@ -51,7 +51,7 @@ export const testInsert = () => {
 export const testAsyncExecute = async () => {
   await db.executeAsync(
     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-    [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
+    [new Date().getMilliseconds(), `Async TOM`, 32, 3000.23]
   );
 
   return queryUsers();

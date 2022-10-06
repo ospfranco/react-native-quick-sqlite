@@ -365,13 +365,6 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       return {};
     }
 
-    const jsi::Value &callbackHolder = args[2];
-    if (!callbackHolder.isObject() || !callbackHolder.asObject(rt).isFunction(rt))
-    {
-      throw jsi::JSError(rt, "[react-native-quick-sqlite][asyncloadFile] The callback argument must be a function");
-      return {};
-    }
-
     const string dbName = args[0].asString(rt).utf8(rt);
     const string sqlFileName = args[1].asString(rt).utf8(rt);
 
@@ -385,10 +378,8 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         try
         {
-          // Running the import operation in another thread
           const auto importResult = importSQLFile(dbName, sqlFileName);
 
-          // Executing the callback invoke inside the JavaScript thread in order to safe build JSI objects that depends on jsi::Runtime and must be synchronized.
           invoker->invokeAsync([&rt, result = move(importResult), resolve, reject]
                                {
             if(result.type == SQLiteOk)

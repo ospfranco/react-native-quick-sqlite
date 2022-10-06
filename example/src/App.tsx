@@ -14,11 +14,7 @@ import {
   lowLevelInit,
   queryUsers,
   testInsert,
-  testTransaction,
-  typeORMGetBooks,
-  typeORMInit,
   executeFailingTypeORMQuery,
-  testFailedTransaction,
   testAsyncExecute,
 } from './Database';
 import type { User } from './model/User';
@@ -97,8 +93,8 @@ export default function App() {
                 />
               )}
               <Text style={styles.name}>{item.name}</Text>
-              <Text>{item.age}</Text>
-              <Text>{item.networth}</Text>
+              <Text style={styles.text}>{item.age}</Text>
+              <Text style={styles.text}>{item.networth}</Text>
               {/* <Text>{item.metadata.nickname}</Text> */}
               {/* <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
                 Favorite Book
@@ -131,5 +127,9 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
+    color: 'black'
   },
+  text: {
+    color: 'black'
+  }
 });
