@@ -42,7 +42,9 @@ db = {
     params?: any[]
   ) => Promise<QueryResult>,
   executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult,
-  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>
+  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>,
+  loadFile: (location: string) => FileLoadResult;,
+  loadFileAsync: (location: string) => Promise<FileLoadResult>
 }
 ```
 
@@ -182,6 +184,21 @@ QuickSQLite.detach('mainDatabase', 'stats');
 if (!detachResult.status) {
   // Database de-attached
 }
+```
+
+### Loading SQL Dump Files
+For large operations, there is an alternative to batch execution of commands. Batch execution is fast, but you will need to load the whole set of commands
+in memory to dispatch them to SQLite.
+If possible, you can fetch or ship a plain sql file, with your operations, with DDL or DML commands, and call this API to load them:
+
+```typescript
+const { rowsAffected, commands } = QuickSQLite.loadFile('myDatabase','/absolute/path/to/file.sql');
+```
+Or, for the async version, that will dispatch the work to another thread, not freezing your UI.
+```typescript
+QuickSQLite.loadFileAsync('myDatabase','/absolute/path/to/file.sql').then((res) => {
+  const { rowsAffected, commands } = res;
+});
 ```
 
 ## Use built-in SQLite
