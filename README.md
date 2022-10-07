@@ -189,7 +189,7 @@ if (!detachResult.status) {
 ### Loading SQL Dump Files
 For large operations, there is an alternative to batch execution of commands. Batch execution is fast, but you will need to load the whole set of commands
 in memory to dispatch them to SQLite.
-If possible, you can fetch or ship a plain sql file, with your operations, with DDL or DML commands, and call this API to load them:
+If possible, you can fetch or ship a plain sql file with your operations, like DDL or DML commands, and call this API to load them:
 
 ```typescript
 const { rowsAffected, commands } = QuickSQLite.loadFile('myDatabase','/absolute/path/to/file.sql');
