@@ -57,6 +57,17 @@ export const testAsyncExecute = async () => {
   return queryUsers();
 };
 
+export const testFailedAsync = async () => {
+  try {
+    await db.executeAsync(
+      'INSERT INTO "BLAH" (id, name, age, networth) VALUES(?, ?, ?, ?);',
+      [new Date().getMilliseconds(), `Async TOM`, 32, 3000.23]
+    );
+  } catch (e) {
+    console.warn('ROPO failed execute Async', e);
+  }
+};
+
 export const queryUsers = () => {
   const queryResult = db.execute(`SELECT * FROM "User"`);
 

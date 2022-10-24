@@ -15,8 +15,7 @@
     "react": "17.0.2",
     "react-native": "0.67.4",
     "reflect-metadata": "^0.1.13",
-    "typeorm": "^0.3.10",
-    "react-native-quick-sqlite": ".."
+    "typeorm": "^0.3.10"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

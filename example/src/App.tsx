@@ -16,6 +16,7 @@ import {
   testInsert,
   executeFailingTypeORMQuery,
   testAsyncExecute,
+  testFailedAsync,
 } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
@@ -45,6 +46,12 @@ export default function App() {
           testInsert();
           const users = queryUsers();
           setUsers(users);
+        }}
+      />
+      <Button
+        title="Failed transaction"
+        onPress={() => {
+          testFailedAsync();
         }}
       />
       {/*
@@ -127,9 +134,9 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
-    color: 'black'
+    color: 'black',
   },
   text: {
-    color: 'black'
-  }
+    color: 'black',
+  },
 });

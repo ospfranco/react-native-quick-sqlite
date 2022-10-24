@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include "macros.h"
+#include <iostream>
 
 using namespace std;
 using namespace facebook;
@@ -222,10 +223,18 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           vector<map<string, QuickValue>> results;
           vector<QuickColumnMetadata> metadata;
           auto status = sqliteExecute(dbName, query, params.get(), &results, &metadata);
-          invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), metadata = make_shared<vector<QuickColumnMetadata>>(metadata), status_copy = move(status), resolve]
+          invoker->invokeAsync([&rt, results = make_shared<vector<map<string, QuickValue>>>(results), metadata = make_shared<vector<QuickColumnMetadata>>(metadata), status_copy = move(status), resolve, reject]
                                {
-            auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, results.get(), metadata.get());
-            resolve->asObject(rt).asFunction(rt).call(rt, move(jsiResult)); });
+            if(status_copy.type == SQLiteOk) {
+              auto jsiResult = createSequelQueryExecutionResult(rt, status_copy, results.get(), metadata.get());
+              resolve->asObject(rt).asFunction(rt).call(rt, move(jsiResult));
+            } else {
+              auto errorCtr = rt.global().getPropertyAsFunction(rt, "Error");
+              auto error = errorCtr.callAsConstructor(rt, jsi::String::createFromUtf8(rt, status_copy.errorMessage));
+              reject->asObject(rt).asFunction(rt).call(rt, error);
+            }
+          });
+
         }
         catch (std::exception &exc)
         {
@@ -242,7 +251,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
     return promise;
   });
-  
+
   // Execute a batch of SQL queries in a transaction
   // Parameters can be: [[sql: string, arguments: any[] | arguments: any[][] ]]
   auto executeBatch = HOSTFN("executeBatch", 2)
@@ -274,7 +283,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       throw jsi::JSError(rt, batchResult.message);
     }
   });
-  
+
   auto executeBatchAsync = HOSTFN("executeBatchAsync", 2)
   {
     if (sizeof(args) < 2)
@@ -355,7 +364,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       throw jsi::JSError(rt, "[react-native-quick-sqlite][loadFile] Could not open file");
     }
   });
-  
+
   // Load SQL File from disk in another thread
   auto loadFileAsync = HOSTFN("loadFileAsync", 2)
   {
@@ -423,7 +432,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   module.setProperty(rt, "executeBatchAsync", move(executeBatchAsync));
   module.setProperty(rt, "loadFile", move(loadFile));
   module.setProperty(rt, "loadFileAsync", move(loadFileAsync));
-  
+
   rt.global().setProperty(rt, "__QuickSQLiteProxy", move(module));
 }
 

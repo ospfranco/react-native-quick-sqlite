@@ -240,12 +240,12 @@ QuickSQLite.transaction = (
   const tx: PendingTransaction = {
     start: () => {
       try {
-        QuickSQLite.execute(dbName, 'BEGIN TRANSACTION', null);
+        QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
         callback({ execute });
 
-        QuickSQLite.execute(dbName, 'COMMIT', null);
+        QuickSQLite.execute(dbName, 'COMMIT');
       } catch (e: any) {
-        QuickSQLite.execute(dbName, 'ROLLBACK', null);
+        QuickSQLite.execute(dbName, 'ROLLBACK');
         throw e;
       } finally {
         locks[dbName].inProgress = false;
@@ -278,15 +278,15 @@ QuickSQLite.transactionAsync = (
   const tx: PendingTransaction = {
     start: async () => {
       try {
-        QuickSQLite.execute(dbName, 'BEGIN TRANSACTION', null);
+        QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
         await callback({
           execute,
           executeAsync,
         });
 
-        QuickSQLite.execute(dbName, 'COMMIT', null);
+        QuickSQLite.execute(dbName, 'COMMIT');
       } catch (e: any) {
-        QuickSQLite.execute(dbName, 'ROLLBACK', null);
+        QuickSQLite.execute(dbName, 'ROLLBACK');
         throw e;
       } finally {
         locks[dbName].inProgress = false;
