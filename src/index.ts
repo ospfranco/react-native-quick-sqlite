@@ -115,7 +115,7 @@ export interface Transaction {
 
 export interface TransactionAsync {
   execute: (query: string, params?: any[]) => QueryResult;
-  executeAsync: (query: string, params: any[] | undefined) => Promise<any>;
+  executeAsync: (query: string, params?: any[] | undefined) => Promise<any>;
 }
 
 export interface PendingTransaction {
@@ -206,7 +206,7 @@ const _execute = QuickSQLite.execute;
 QuickSQLite.execute = (
   dbName: string,
   query: string,
-  params: any[] | undefined
+  params?: any[] | undefined
 ): QueryResult => {
   const result = _execute(dbName, query, params);
   enhanceQueryResult(result);
@@ -217,7 +217,7 @@ const _executeAsync = QuickSQLite.executeAsync;
 QuickSQLite.executeAsync = async (
   dbName: string,
   query: string,
-  params: any[] | undefined
+  params?: any[] | undefined
 ): Promise<QueryResult> => {
   const res = await _executeAsync(dbName, query, params);
   enhanceQueryResult(res);
@@ -271,7 +271,7 @@ QuickSQLite.transactionAsync = (
     return QuickSQLite.execute(dbName, query, params);
   };
 
-  const executeAsync = (query: string, params: any[] | undefined) => {
+  const executeAsync = (query: string, params?: any[] | undefined) => {
     return QuickSQLite.executeAsync(dbName, query, params);
   };
 
@@ -439,11 +439,11 @@ export const open = (options: {
       QuickSQLite.transactionAsync(options.name, fn),
     transaction: (fn: (tx: Transaction) => void) =>
       QuickSQLite.transaction(options.name, fn),
-    execute: (query: string, params: any[] | undefined): QueryResult =>
+    execute: (query: string, params?: any[] | undefined): QueryResult =>
       QuickSQLite.execute(options.name, query, params),
     executeAsync: (
       query: string,
-      params: any[] | undefined
+      params?: any[] | undefined
     ): Promise<QueryResult> =>
       QuickSQLite.executeAsync(options.name, query, params),
     executeBatch: (commands: SQLBatchParams[]) =>
