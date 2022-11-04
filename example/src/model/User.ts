@@ -1,27 +1,33 @@
 // import { Book } from './Book'
-import {Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm/browser"
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm/browser';
 
 @Entity('user')
 export class User {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column("text")
+  @Column('text')
   name!: string;
 
-  @Column("int")
+  @Column('int')
   age!: number;
 
-  @Column("float")
+  @Column('float')
   networth!: number;
 
   // @OneToOne(type => Book)
   // @JoinColumn()
   // favoriteBook!: Book;
 
-  @Column("simple-json")
+  @Column('simple-json')
   metadata: { nickname: string };
 
-  @Column("blob")
+  @Column('blob')
   avatar: ArrayBuffer;
 }

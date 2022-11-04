@@ -187,17 +187,24 @@ if (!detachResult.status) {
 ```
 
 ### Loading SQL Dump Files
+
 If you have a plain SQL file, you can load it directly, with low memory consumption.
 
 ```typescript
-const { rowsAffected, commands } = QuickSQLite.loadFile('myDatabase','/absolute/path/to/file.sql');
+const { rowsAffected, commands } = QuickSQLite.loadFile(
+  'myDatabase',
+  '/absolute/path/to/file.sql'
+);
 ```
 
 Or use the async version which will load the file in another native thread
+
 ```typescript
-QuickSQLite.loadFileAsync('myDatabase','/absolute/path/to/file.sql').then((res) => {
-  const { rowsAffected, commands } = res;
-});
+QuickSQLite.loadFileAsync('myDatabase', '/absolute/path/to/file.sql').then(
+  (res) => {
+    const { rowsAffected, commands } = res;
+  }
+);
 ```
 
 ## Use built-in SQLite
