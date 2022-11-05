@@ -11,12 +11,17 @@ import {
 } from 'react-native';
 // Swap imports to test the typeORM version
 import {
+  deleteUsers,
   lowLevelInit,
   queryUsers,
   testInsert,
   executeFailingTypeORMQuery,
   testAsyncExecute,
+  testAsyncTransactionFailure,
+  testAsyncTransactionSuccess,
   testFailedAsync,
+  testTransactionFailure,
+  testTransactionSuccess,
 } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
@@ -34,14 +39,23 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.header}>Quick-SQLite Tester</Text>
       <Button
+        title="Clear database"
+        color="red"
+        onPress={() => {
+          deleteUsers();
+          setUsers([]);
+        }}
+      />
+      <Button
         title="Refresh"
         onPress={() => {
           const users = queryUsers();
           setUsers(users);
         }}
       />
+      <HR />
       <Button
-        title="Create user (without transaction)"
+        title="Create user"
         onPress={() => {
           testInsert();
           const users = queryUsers();
@@ -49,29 +63,61 @@ export default function App() {
         }}
       />
       <Button
-        title="Failed transaction"
-        onPress={() => {
-          testFailedAsync();
-        }}
-      />
-      {/*
-      <Button
-        title="Create user (with transaction)"
-        onPress={() => {
-          testTransaction();
-          setTimeout(() => {
-            const users = queryUsers();
-            setUsers(users);
-          }, 1000);
-        }}
-      /> */}
-      <Button
-        title="Test async execute (transaction)"
+        title="Create user async"
         onPress={async () => {
           const users = await testAsyncExecute();
           setUsers(users);
         }}
       />
+      <Button
+        title="Create user async failure"
+        onPress={() => {
+          testFailedAsync();
+        }}
+      />
+      <HR />
+      <Text style={styles.sectionHeader}>Transactions</Text>
+      <Button
+        title="Create users"
+        onPress={() => {
+          testTransactionSuccess();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
+        }}
+      />
+      <Button
+        title="Create users failure"
+        onPress={() => {
+          testTransactionFailure();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
+        }}
+      />
+      <Button
+        title="Create users async"
+        onPress={() => {
+          testAsyncTransactionSuccess();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
+        }}
+      />
+      <Button
+        title="Create users async failure"
+        onPress={() => {
+          testAsyncTransactionFailure();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
+        }}
+      />
+      <HR />
       <Button
         title="Execute typeORM failing query"
         onPress={executeFailingTypeORMQuery}
@@ -102,17 +148,25 @@ export default function App() {
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.text}>{item.age}</Text>
               <Text style={styles.text}>{item.networth}</Text>
-              {/* <Text>{item.metadata.nickname}</Text> */}
-              {/* <Text style={{ fontWeight: 'bold', marginTop: 10 }}>
-                Favorite Book
-              </Text>
-              <Text>{info.item.favoriteBook.title}</Text> */}
             </View>
           );
         }}
         keyExtractor={(item: any) => item.id}
       />
     </View>
+  );
+}
+
+function HR() {
+  return (
+    <View
+      style={{
+        borderBottomColor: '#333',
+        borderBottomWidth: 1,
+        marginHorizontal: 10,
+        marginVertical: 4,
+      }}
+    />
   );
 }
 
@@ -131,10 +185,17 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     fontWeight: '500',
     fontSize: 20,
+    marginVertical: 10,
   },
   name: {
     fontSize: 20,
     color: 'black',
+  },
+  sectionHeader: {
+    alignSelf: 'center',
+    fontWeight: '400',
+    fontSize: 18,
+    marginVertical: 10,
   },
   text: {
     color: 'black',

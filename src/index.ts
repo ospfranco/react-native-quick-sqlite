@@ -110,12 +110,16 @@ export interface FileLoadResult extends BatchQueryResult {
 }
 
 export interface Transaction {
+  commit: () => QueryResult;
   execute: (query: string, params?: any[]) => QueryResult;
+  rollback: () => QueryResult;
 }
 
 export interface TransactionAsync {
+  commit: () => QueryResult;
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (query: string, params?: any[] | undefined) => Promise<any>;
+  rollback: () => QueryResult;
 }
 
 export interface PendingTransaction {
@@ -190,7 +194,7 @@ QuickSQLite.open = (dbName: string, location?: string) => {
 
   locks[dbName] = {
     queue: [],
-    inProgress: false,
+    inProgress: false
   };
 };
 
@@ -232,20 +236,44 @@ QuickSQLite.transaction = (
     throw Error(`No lock found on db: ${dbName}`);
   }
 
+  let isFinalized = false
+
   // Local transaction context object implementation
   const execute = (query: string, params?: any[]): QueryResult => {
+    if (isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+      );
+    }
+
     return QuickSQLite.execute(dbName, query, params);
+  };
+
+  const commit = () => {
+    const result = QuickSQLite.execute(dbName, 'COMMIT');
+    isFinalized = true;
+    return result;
+  };
+
+  const rollback = () => {
+    const result = QuickSQLite.execute(dbName, 'ROLLBACK');
+    isFinalized = true;
+    return result;
   };
 
   const tx: PendingTransaction = {
     start: () => {
       try {
         QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
-        callback({ execute });
+        callback({ commit, execute, rollback });
 
-        QuickSQLite.execute(dbName, 'COMMIT');
+        if (!isFinalized) {
+          commit();
+        }
       } catch (e: any) {
-        QuickSQLite.execute(dbName, 'ROLLBACK');
+        if (!isFinalized) {
+          rollback();
+        }
         throw e;
       } finally {
         locks[dbName].inProgress = false;
@@ -266,13 +294,37 @@ QuickSQLite.transactionAsync = (
     throw Error(`Quick SQLite Error: No lock found on db: ${dbName}`);
   }
 
+  let isFinalized = false;
+
   // Local transaction context object implementation
   const execute = (query: string, params?: any[]): QueryResult => {
+    if (isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+      );
+    }
     return QuickSQLite.execute(dbName, query, params);
   };
 
   const executeAsync = (query: string, params?: any[] | undefined) => {
+    if (isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+      );
+    }
     return QuickSQLite.executeAsync(dbName, query, params);
+  };
+
+  const commit = () => {
+    const result = QuickSQLite.execute(dbName, 'COMMIT');
+    isFinalized = true;
+    return result;
+  };
+
+  const rollback = () => {
+    const result = QuickSQLite.execute(dbName, 'ROLLBACK');
+    isFinalized = true;
+    return result;
   };
 
   const tx: PendingTransaction = {
@@ -280,16 +332,23 @@ QuickSQLite.transactionAsync = (
       try {
         QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
         await callback({
+          commit,
           execute,
           executeAsync,
+          rollback,
         });
 
-        QuickSQLite.execute(dbName, 'COMMIT');
+        if (!isFinalized) {
+          commit();
+        }
       } catch (e: any) {
-        QuickSQLite.execute(dbName, 'ROLLBACK');
+        if (!isFinalized) {
+          rollback();
+        }
         throw e;
       } finally {
         locks[dbName].inProgress = false;
+        isFinalized = false;
         startNextTransaction(dbName);
       }
     },
