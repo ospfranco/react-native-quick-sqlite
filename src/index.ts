@@ -165,7 +165,7 @@ interface ISQLite {
 
 const locks: Record<
   string,
-  { queue: PendingTransaction[]; inProgress: boolean }
+  { queue: PendingTransaction[]; inProgress: boolean; isFinalized: boolean }
 > = {};
 
 // Enhance some host functions
@@ -191,6 +191,7 @@ QuickSQLite.open = (dbName: string, location?: string) => {
   locks[dbName] = {
     queue: [],
     inProgress: false,
+    isFinalized: false,
   };
 };
 
@@ -238,11 +239,15 @@ QuickSQLite.transaction = (
   };
 
   const commit = () => {
-    return QuickSQLite.execute(dbName, 'COMMIT');
+    const result = QuickSQLite.execute(dbName, 'COMMIT');
+    locks[dbName].isFinalized = true;
+    return result;
   };
 
   const rollback = () => {
-    return QuickSQLite.execute(dbName, 'ROLLBACK');
+    const result = QuickSQLite.execute(dbName, 'ROLLBACK');
+    locks[dbName].isFinalized = true;
+    return result;
   };
 
   const tx: PendingTransaction = {
@@ -251,12 +256,17 @@ QuickSQLite.transaction = (
         QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
         callback({ execute });
 
-        commit();
+        if (!locks[dbName].isFinalized) {
+          commit();
+        }
       } catch (e: any) {
-        rollback();
+        if (!locks[dbName].isFinalized) {
+          rollback();
+        }
         throw e;
       } finally {
         locks[dbName].inProgress = false;
+        locks[dbName].isFinalized = true;
         startNextTransaction(dbName);
       }
     },
@@ -284,11 +294,15 @@ QuickSQLite.transactionAsync = (
   };
 
   const commit = () => {
-    return QuickSQLite.execute(dbName, 'COMMIT');
+    const result = QuickSQLite.execute(dbName, 'COMMIT');
+    locks[dbName].isFinalized = true;
+    return result;
   };
 
   const rollback = () => {
-    return QuickSQLite.execute(dbName, 'ROLLBACK');
+    const result = QuickSQLite.execute(dbName, 'ROLLBACK');
+    locks[dbName].isFinalized = true;
+    return result;
   };
 
   const tx: PendingTransaction = {
@@ -300,12 +314,17 @@ QuickSQLite.transactionAsync = (
           executeAsync,
         });
 
-        commit();
+        if (!locks[dbName].isFinalized) {
+          commit();
+        }
       } catch (e: any) {
-        rollback();
+        if (!locks[dbName].isFinalized) {
+          rollback();
+        }
         throw e;
       } finally {
         locks[dbName].inProgress = false;
+        locks[dbName].isFinalized = true;
         startNextTransaction(dbName);
       }
     },
