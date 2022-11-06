@@ -110,12 +110,16 @@ export interface FileLoadResult extends BatchQueryResult {
 }
 
 export interface Transaction {
+  commit: () => QueryResult;
   execute: (query: string, params?: any[]) => QueryResult;
+  rollback: () => QueryResult;
 }
 
 export interface TransactionAsync {
+  commit: () => QueryResult;
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (query: string, params?: any[] | undefined) => Promise<any>;
+  rollback: () => QueryResult;
 }
 
 export interface PendingTransaction {
@@ -259,7 +263,7 @@ QuickSQLite.transaction = (
     start: () => {
       try {
         QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
-        callback({ execute });
+        callback({ commit, execute, rollback });
 
         if (!locks[dbName].isFinalized) {
           commit();
@@ -325,8 +329,10 @@ QuickSQLite.transactionAsync = (
       try {
         QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
         await callback({
+          commit,
           execute,
           executeAsync,
+          rollback,
         });
 
         if (!locks[dbName].isFinalized) {
