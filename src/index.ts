@@ -235,6 +235,11 @@ QuickSQLite.transaction = (
 
   // Local transaction context object implementation
   const execute = (query: string, params?: any[]): QueryResult => {
+    if (locks[dbName].isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+      );
+    }
     return QuickSQLite.execute(dbName, query, params);
   };
 
@@ -286,10 +291,20 @@ QuickSQLite.transactionAsync = (
 
   // Local transaction context object implementation
   const execute = (query: string, params?: any[]): QueryResult => {
+    if (locks[dbName].isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+      );
+    }
     return QuickSQLite.execute(dbName, query, params);
   };
 
   const executeAsync = (query: string, params?: any[] | undefined) => {
+    if (locks[dbName].isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+      );
+    }
     return QuickSQLite.executeAsync(dbName, query, params);
   };
 
