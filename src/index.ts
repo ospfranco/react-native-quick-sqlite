@@ -275,7 +275,7 @@ QuickSQLite.transaction = (
         throw e;
       } finally {
         locks[dbName].inProgress = false;
-        locks[dbName].isFinalized = true;
+        locks[dbName].isFinalized = false;
         startNextTransaction(dbName);
       }
     },
@@ -345,7 +345,7 @@ QuickSQLite.transactionAsync = (
         throw e;
       } finally {
         locks[dbName].inProgress = false;
-        locks[dbName].isFinalized = true;
+        locks[dbName].isFinalized = false;
         startNextTransaction(dbName);
       }
     },
