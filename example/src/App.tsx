@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 // Swap imports to test the typeORM version
 import {
+  deleteUsers,
   lowLevelInit,
   queryUsers,
   testInsert,
@@ -33,6 +34,14 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Quick-SQLite Tester</Text>
+      <Button
+        title="Clear database"
+        color="red"
+        onPress={() => {
+          deleteUsers();
+          setUsers([]);
+        }}
+      />
       <Button
         title="Refresh"
         onPress={() => {

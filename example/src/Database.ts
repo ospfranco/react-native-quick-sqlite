@@ -26,6 +26,10 @@ export const lowLevelInit = () => {
   }
 };
 
+export const deleteUsers = () => {
+  db.execute('delete from User');
+};
+
 export const testInsert = () => {
   // Basic request
   db.execute(
