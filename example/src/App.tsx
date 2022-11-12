@@ -17,7 +17,11 @@ import {
   testInsert,
   executeFailingTypeORMQuery,
   testAsyncExecute,
+  testAsyncTransactionFailure,
+  testAsyncTransactionSuccess,
   testFailedAsync,
+  testTransactionFailure,
+  testTransactionSuccess,
 } from './Database';
 import type { User } from './model/User';
 import { Buffer } from 'buffer';
@@ -69,6 +73,48 @@ export default function App() {
         title="Create user async failure"
         onPress={() => {
           testFailedAsync();
+        }}
+      />
+      <HR />
+      <Text style={styles.sectionHeader}>Transactions</Text>
+      <Button
+        title="Create users"
+        onPress={() => {
+          testTransactionSuccess();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
+        }}
+      />
+      <Button
+        title="Create users failure"
+        onPress={() => {
+          testTransactionFailure();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
+        }}
+      />
+      <Button
+        title="Create users async"
+        onPress={() => {
+          testAsyncTransactionSuccess();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
+        }}
+      />
+      <Button
+        title="Create users async failure"
+        onPress={() => {
+          testAsyncTransactionFailure();
+          setTimeout(() => {
+            const users = queryUsers();
+            setUsers(users);
+          }, 1000);
         }}
       />
       <HR />
@@ -144,6 +190,12 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     color: 'black',
+  },
+  sectionHeader: {
+    alignSelf: 'center',
+    fontWeight: '400',
+    fontSize: 18,
+    marginVertical: 10,
   },
   text: {
     color: 'black',

@@ -30,6 +30,83 @@ export const deleteUsers = () => {
   db.execute('delete from User');
 };
 
+export const testAsyncTransactionSuccess = () => {
+  db.transactionAsync((tx) =>
+    tx
+      .executeAsync(
+        'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+        [new Date().getMilliseconds(), 'Jerry', 45, 20.23]
+      )
+      .then((res) =>
+        tx.executeAsync(
+          'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [res.insertId + 1, 'Tom', 45, 20.23]
+        )
+      )
+  );
+};
+
+export const testAsyncTransactionFailure = () => {
+  db.transactionAsync((tx) =>
+    tx
+      .executeAsync(
+        'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+        [new Date().getMilliseconds(), 'Jerry', 45, 20.23]
+      )
+      .then((res) =>
+        tx.executeAsync(
+          'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [res.insertId + 1, 'Tom', 45, 20.23]
+        )
+      )
+      .then((res) =>
+        tx.executeAsync(
+          'insert into this_table_does_not_exist (id) values (?)',
+          [res.insertId]
+        )
+      )
+      .catch((e) => {
+        console.warn(e);
+        tx.rollback();
+      })
+  );
+};
+
+export const testTransactionSuccess = () => {
+  db.transaction((tx) => {
+    const result = tx.execute(
+      'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+      [new Date().getMilliseconds(), 'Jerry', 45, 20.23]
+    );
+    tx.execute(
+      'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+      [result.insertId + 1, 'Tom', 45, 20.23]
+    );
+    return true;
+  });
+};
+
+export const testTransactionFailure = () => {
+  db.transaction((tx) => {
+    try {
+      const result = tx.execute(
+        'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+        [new Date().getMilliseconds(), 'Jerry', 45, 20.23]
+      );
+      tx.execute(
+        'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+        [result.insertId + 1, 'Tom', 45, 20.23]
+      );
+      tx.execute('insert into blah (id) values (?)', [result.insertId]);
+      return true;
+    } catch (e) {
+      console.warn(e);
+      tx.rollback();
+      return false;
+    }
+  });
+};
+
 export const testInsert = () => {
   // Basic request
   db.execute(
