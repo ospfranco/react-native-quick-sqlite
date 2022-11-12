@@ -26,18 +26,6 @@ export const lowLevelInit = () => {
   }
 };
 
-export const testTransaction = () => {
-  // sqlite.transaction('test', (tx) => {
-  //   tx.executeSql(
-  //     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-  //     [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
-  //   );
-  //   console.warn('committing transaction');
-  //   // return true to commit transaction, false to revert
-  //   return true;
-  // });
-};
-
 export const testInsert = () => {
   // Basic request
   db.execute(
