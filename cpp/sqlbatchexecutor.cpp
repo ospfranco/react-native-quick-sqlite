@@ -63,6 +63,7 @@ SequelBatchOperationResult sqliteExecuteBatch(std::string dbName, vector<QuickQu
       auto result = sqliteExecute(dbName, command.sql, command.params.get(), NULL, NULL);
       if(result.type == SQLiteError)
       {
+        sqliteExecuteLiteral(dbName, "ROLLBACK");
         return SequelBatchOperationResult {
           .type = SQLiteError,
           .message = result.errorMessage,
