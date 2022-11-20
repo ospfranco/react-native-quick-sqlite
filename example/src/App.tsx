@@ -1,4 +1,4 @@
-import { runTests } from './tests/index';
+import { registerBaseTests, runTests } from './tests/index';
 import 'reflect-metadata';
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,6 +10,7 @@ import {
   ListRenderItemInfo,
   Button,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
 // Swap imports to test the typeORM version
 import {
@@ -32,23 +33,32 @@ export default function App() {
   const [results, setResults] = useState([]);
 
   useEffect(() => {
-    // const tempResults = [];
-    runTests().then((r) => {
-      console.warn('setting results', r);
-      setResults(r);
-    });
+    setResults([]);
+    runTests(registerBaseTests).then(setResults);
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Text>RN Quick SQLite Test Suite</Text>
-      {results.map((r, i) => {
-        return (
-          <Text key={i}>
-            {r.description}: {r.type}
-          </Text>
-        );
-      })}
+    <SafeAreaView className="flex-1">
+      <ScrollView className="p-4">
+        <Text className="font-bold text-purple-500">
+          RN Quick SQLite Test Suite
+        </Text>
+        {results.map((r, i) => {
+          if (r.type === 'grouping') {
+            return (
+              <Text key={i} className="mt-3 font-bold">
+                {r.description}
+              </Text>
+            );
+          }
+
+          return (
+            <Text key={i}>
+              {r.type === 'incorrect' ? '🔴' : '🟩'} {r.description}
+            </Text>
+          );
+        })}
+      </ScrollView>
     </SafeAreaView>
   );
   // let [users, setUsers] = React.useState<User[]>([]);

@@ -3,7 +3,7 @@ import type * as MochaTypes from 'mocha';
 // import type { RowItemType } from '../navigators/children/TestingScreen/RowItemType';
 import { clearTests, rootSuite } from './MochaRNAdapter';
 
-export async function runTests() {
+export async function runTests(...registrators: Array<() => void>) {
   // testRegistrators: Array<() => void> = []
   // console.log('setting up mocha');
 
@@ -17,7 +17,7 @@ export async function runTests() {
       EVENT_SUITE_END,
     } = Mocha.Runner.constants;
 
-    // clearTests();
+    clearTests();
     const results = [];
     var runner = new Mocha.Runner(rootSuite) as MochaTypes.Runner;
 
@@ -26,7 +26,7 @@ export async function runTests() {
     runner
       .once(EVENT_RUN_BEGIN, () => {})
       .on(EVENT_SUITE_BEGIN, (suite: MochaTypes.Suite) => {
-        const name = suite.fullTitle();
+        const name = suite.title;
         if (name !== '') {
           results.push({
             indentation: indents,
@@ -43,31 +43,31 @@ export async function runTests() {
       .on(EVENT_TEST_PASS, (test: MochaTypes.Runnable) => {
         results.push({
           indentation: indents,
-          description: test.fullTitle(),
+          description: test.title,
           key: Math.random().toString(),
           type: 'correct',
         });
-        console.log(`${indent()}pass: ${test.fullTitle()}`);
+        // console.log(`${indent()}pass: ${test.fullTitle()}`);
       })
       .on(EVENT_TEST_FAIL, (test: MochaTypes.Runnable, err: Error) => {
         results.push({
           indentation: indents,
-          description: test.fullTitle(),
+          description: test.title,
           key: Math.random().toString(),
           type: 'incorrect',
           errorMsg: err.message,
         });
-        console.log(
-          `${indent()}fail: ${test.fullTitle()} - error: ${err.message}`
-        );
+        // console.log(
+        // `${indent()}fail: ${test.fullTitle()} - error: ${err.message}`
+        // );
       })
       .once(EVENT_RUN_END, () => {
         resolve(results);
       });
 
-    // testRegistrators.forEach((register) => {
-    //   register();
-    // });
+    registrators.forEach((register) => {
+      register();
+    });
     runner.run();
   });
 
