@@ -194,16 +194,16 @@ QuickSQLite.open = (dbName: string, location?: string) => {
 
   locks[dbName] = {
     queue: [],
-    inProgress: false
+    inProgress: false,
   };
 };
 
 const _close = QuickSQLite.close;
 QuickSQLite.close = (dbName: string) => {
   _close(dbName);
-  setImmediate(() => {
-    delete locks[dbName];
-  });
+  // setImmediate(() => {
+  delete locks[dbName];
+  // });
 };
 
 const _execute = QuickSQLite.execute;
@@ -236,7 +236,7 @@ QuickSQLite.transaction = (
     throw Error(`No lock found on db: ${dbName}`);
   }
 
-  let isFinalized = false
+  let isFinalized = false;
 
   // Local transaction context object implementation
   const execute = (query: string, params?: any[]): QueryResult => {
@@ -274,7 +274,6 @@ QuickSQLite.transaction = (
         if (!isFinalized) {
           rollback();
         }
-        throw e;
       } finally {
         locks[dbName].inProgress = false;
         startNextTransaction(dbName);
@@ -366,7 +365,7 @@ const startNextTransaction = (dbName: string) => {
 
   setImmediate(() => {
     if (!locks[dbName]) {
-      throw Error(`Lock not found for db ${dbName}`);
+      throw Error(`Lock not found for db: ${dbName}`);
     }
 
     if (locks[dbName].queue.length) {
