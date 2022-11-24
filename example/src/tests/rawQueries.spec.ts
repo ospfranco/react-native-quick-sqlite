@@ -114,7 +114,7 @@ export function registerBaseTests() {
       }
     });
 
-    it('Correct transaction', (done) => {
+    it('Transaction, auto commit', (done) => {
       const id = chance.integer();
       const name = chance.name();
       const age = chance.integer();
@@ -148,7 +148,43 @@ export function registerBaseTests() {
       }, 200);
     });
 
-    it('Incorrect transaction with manual rollback', (done) => {
+    it('Transaction, manual commit', (done) => {
+      const id = chance.integer();
+      const name = chance.name();
+      const age = chance.integer();
+      const networth = chance.floating();
+
+      db.transaction((tx) => {
+        const res = tx.execute(
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id, name, age, networth]
+        );
+
+        expect(res.rowsAffected).to.equal(1);
+        expect(res.insertId).to.equal(1);
+        expect(res.metadata).to.eql([]);
+        expect(res.rows._array).to.eql([]);
+        expect(res.rows.length).to.equal(0);
+        expect(res.rows.item).to.be.a('function');
+
+        tx.commit();
+      });
+
+      setTimeout(() => {
+        const res = db.execute('SELECT * FROM User');
+        expect(res.rows._array).to.eql([
+          {
+            id,
+            name,
+            age,
+            networth,
+          },
+        ]);
+        done();
+      }, 200);
+    });
+
+    it('Incorrect transaction, manual rollback', (done) => {
       const id = chance.string();
       const name = chance.name();
       const age = chance.integer();
@@ -172,7 +208,7 @@ export function registerBaseTests() {
       }, 200);
     });
 
-    it('Incorrect transaction with auto rollback', (done) => {
+    it('Incorrect transaction, auto rollback', (done) => {
       const id = chance.string();
       const name = chance.name();
       const age = chance.integer();
