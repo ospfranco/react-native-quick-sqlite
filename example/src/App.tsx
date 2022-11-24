@@ -1,33 +1,8 @@
-import { registerBaseTests, runTests } from './tests/index';
-import 'reflect-metadata';
 import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  Image,
-  View,
-  Text,
-  FlatList,
-  ListRenderItemInfo,
-  Button,
-  SafeAreaView,
-  ScrollView,
-} from 'react-native';
+import { SafeAreaView, ScrollView, Text } from 'react-native';
+import 'reflect-metadata';
+import { registerBaseTests, runTests } from './tests/index';
 // Swap imports to test the typeORM version
-import {
-  deleteUsers,
-  lowLevelInit,
-  queryUsers,
-  testInsert,
-  executeFailingTypeORMQuery,
-  testAsyncExecute,
-  testAsyncTransactionFailure,
-  testAsyncTransactionSuccess,
-  testFailedAsync,
-  testTransactionFailure,
-  testTransactionSuccess,
-} from './Database';
-import type { User } from './model/User';
-import { Buffer } from 'buffer';
 
 export default function App() {
   const [results, setResults] = useState([]);
@@ -38,23 +13,31 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-neutral-900">
       <ScrollView className="p-4">
-        <Text className="font-bold text-purple-500">
+        <Text className="font-bold text-blue-500 text-lg text-center">
           RN Quick SQLite Test Suite
         </Text>
         {results.map((r, i) => {
           if (r.type === 'grouping') {
             return (
-              <Text key={i} className="mt-3 font-bold">
+              <Text key={i} className="mt-3 font-bold text-white">
                 {r.description}
               </Text>
             );
           }
 
+          if (r.type === 'incorrect') {
+            return (
+              <Text key={i} className="mt-1 text-white">
+                🔴 {r.description}: {r.errorMsg}
+              </Text>
+            );
+          }
+
           return (
-            <Text key={i}>
-              {r.type === 'incorrect' ? '🔴' : '🟩'} {r.description}
+            <Text key={i} className="mt-1 text-white">
+              🟢 {r.description}
             </Text>
           );
         })}
