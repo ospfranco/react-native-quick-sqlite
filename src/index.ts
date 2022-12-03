@@ -472,7 +472,7 @@ export interface QuickSQLiteConnection {
   attach: (dbNameToAttach: string, alias: string, location?: string) => void;
   detach: (alias: string) => void;
   transactionAsync: (fn: (tx: TransactionAsync) => Promise<any>) => void;
-  transaction: (fn: (tx: Transaction) => boolean) => void;
+  transaction: (fn: (tx: Transaction) => void) => void;
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (query: string, params?: any[]) => Promise<QueryResult>;
   executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult;
