@@ -21,28 +21,20 @@ export async function runTests(...registrators: Array<() => void>) {
     const results = [];
     var runner = new Mocha.Runner(rootSuite) as MochaTypes.Runner;
 
-    let indents = -1;
-    const indent = () => Array(indents).join('  ');
     runner
       .once(EVENT_RUN_BEGIN, () => {})
       .on(EVENT_SUITE_BEGIN, (suite: MochaTypes.Suite) => {
         const name = suite.title;
         if (name !== '') {
           results.push({
-            indentation: indents,
             description: name,
             key: Math.random().toString(),
             type: 'grouping',
           });
         }
-        indents++;
-      })
-      .on(EVENT_SUITE_END, () => {
-        indents--;
       })
       .on(EVENT_TEST_PASS, (test: MochaTypes.Runnable) => {
         results.push({
-          indentation: indents,
           description: test.title,
           key: Math.random().toString(),
           type: 'correct',
@@ -51,7 +43,6 @@ export async function runTests(...registrators: Array<() => void>) {
       })
       .on(EVENT_TEST_FAIL, (test: MochaTypes.Runnable, err: Error) => {
         results.push({
-          indentation: indents,
           description: test.title,
           key: Math.random().toString(),
           type: 'incorrect',

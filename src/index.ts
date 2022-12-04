@@ -274,6 +274,7 @@ QuickSQLite.transaction = (
         if (!isFinalized) {
           rollback();
         }
+        throw e;
       } finally {
         locks[dbName].inProgress = false;
         startNextTransaction(dbName);
