@@ -1,6 +1,6 @@
 import Chance from 'chance';
-import { open, QuickSQLiteConnection } from 'react-native-quick-sqlite';
-import { beforeEach, describe, it } from './MochaRNAdapter';
+import {open, QuickSQLiteConnection} from 'react-native-quick-sqlite';
+import {beforeEach, describe, it} from './MochaRNAdapter';
 
 const chance = new Chance();
 let db: QuickSQLiteConnection;
@@ -19,7 +19,7 @@ export function registerBaseTests() {
 
       db.execute('DROP TABLE IF EXISTS User;');
       db.execute(
-        'CREATE TABLE User ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth REAL) STRICT;'
+        'CREATE TABLE User ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth REAL) STRICT;',
       );
     } catch (e) {
       console.warn('error on before each', e);
@@ -249,26 +249,41 @@ export function registerBaseTests() {
     //   }, 200);
     // });
 
-    it('Incorrect transaction, auto rollback', (done) => {
+    it('catches an error', () => {
       const id = chance.string();
       const name = chance.name();
       const age = chance.integer();
       const networth = chance.floating();
-
       try {
-        db.transaction((tx) => {
-          tx.execute(
-            'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-            [id, name, age, networth]
-          );
-        });
-      } catch (e) {
-        console.warn('catched error!');
-        // const res = db.execute('SELECT * FROM User');
-        // expect(res.rows._array).to.eql([]);
-        // done();
+        db.execute(
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id, name, age, networth],
+        );
+      } catch (e: any) {
+        console.warn('ERROR CATCHED!', e);
       }
     });
+
+    // it('Incorrect transaction, auto rollback', done => {
+    //   const id = chance.string();
+    //   const name = chance.name();
+    //   const age = chance.integer();
+    //   const networth = chance.floating();
+
+    //   try {
+    //     db.transaction(tx => {
+    //       tx.execute(
+    //         'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+    //         [id, name, age, networth],
+    //       );
+    //     });
+    //   } catch (e) {
+    //     console.warn('catched error!', e);
+    //     // const res = db.execute('SELECT * FROM User');
+    //     // expect(res.rows._array).to.eql([]);
+    //     done();
+    //   }
+    // });
 
     // it('Async transaction, auto commit', (done) => {
     //   const id = chance.integer();

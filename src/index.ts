@@ -399,7 +399,7 @@ export interface TypeOrmDBConnection {
     callback: () => void
   ) => void;
   detach: (alias: string, callback: () => void) => void;
-  transaction: (fn: (tx: Transaction) => boolean) => void;
+  transaction: (fn: (tx: Transaction) => void) => void;
 }
 
 /**
@@ -432,7 +432,7 @@ export const openDatabase = (
           fail(e);
         }
       },
-      transaction: (fn: (tx: Transaction) => boolean): void => {
+      transaction: (fn: (tx: Transaction) => void): void => {
         QuickSQLite.transaction(options.name, fn);
       },
       close: (ok: any, fail: any) => {

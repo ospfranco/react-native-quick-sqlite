@@ -5,15 +5,16 @@ module.exports = {
   presets: ['module:metro-react-native-babel-preset'],
   plugins: [
     'nativewind/babel',
-    ['module-resolver',
-    {
-      alias: {
-        [pak.name]: path.join(__dirname, '..', pak.source),
-        stream: 'stream-browserify'
-      }
-    }],
+    [
+      'module-resolver',
+      {
+        alias: {
+          [pak.name]: path.join(__dirname, '..', pak.source),
+          stream: 'stream-browserify',
+        },
+      },
+    ],
     'babel-plugin-transform-typescript-metadata',
-    ['@babel/plugin-proposal-decorators', { legacy: true }],
-    
+    ['@babel/plugin-proposal-decorators', {legacy: true}],
   ],
 };

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, Text } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {SafeAreaView, ScrollView, Text} from 'react-native';
 import 'reflect-metadata';
-import { registerBaseTests, runTests } from './tests/index';
+import {registerBaseTests, runTests} from './tests/index';
 
 export default function App() {
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<any>([]);
 
   useEffect(() => {
     setResults([]);
@@ -17,7 +17,7 @@ export default function App() {
         <Text className="font-bold text-blue-500 text-lg text-center">
           RN Quick SQLite Test Suite
         </Text>
-        {results.map((r, i) => {
+        {results.map((r: any, i: number) => {
           if (r.type === 'grouping') {
             return (
               <Text key={i} className="mt-3 font-bold text-white">

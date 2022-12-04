@@ -190,8 +190,8 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       auto status = sqliteExecute(dbName, query, &params, &results, &metadata);
 
       if(status.type == SQLiteError) {
-        throw std::runtime_error(status.errorMessage);
-//        throw jsi::JSError(rt, status.errorMessage);
+//        throw std::runtime_error(status.errorMessage);
+        throw jsi::JSError(rt, status.errorMessage);
 //        return {};
       }
 
@@ -199,9 +199,9 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       return jsiResult;
     } catch(std::exception &e) {
       auto error = rt.global().getPropertyAsFunction(rt, "Error");
-      
-      throw jsi::JSError("", rt, error.callAsConstructor(rt, jsi::String::createFromUtf8(rt, "test")));
-      return {};
+      throw jsi::JSError(rt, "ROPO");
+//      throw jsi::JSError("", rt, error.callAsConstructor(rt, jsi::String::createFromUtf8(rt, "test")));
+//      return {};
     }
   });
 

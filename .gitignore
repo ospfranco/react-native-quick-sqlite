@@ -36,10 +36,12 @@ project.xcworkspace
 local.properties
 *.iml
 *.hprof
+.cxx/
+example/.cxx/
 
-# Cocoapods
-#
+# Ruby / Cocoapods
 example/ios/Pods
+example/vendor/bundle
 
 # node.js
 #
