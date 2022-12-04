@@ -37,8 +37,27 @@ if (global.__QuickSQLiteProxy == null) {
   }
 }
 
-const proxy = global.__QuickSQLiteProxy;
-export const QuickSQLite = proxy as ISQLite;
+const proxy = global.__QuickSQLiteProxy as ISQLite;
+
+export const QuickSQLite = {
+  open: (dbName: string, location?: string) => {
+    proxy.open(dbName, location);
+
+    locks[dbName] = {
+      queue: [],
+      inProgress: false,
+    };
+  },
+  execute: (
+    dbName: string,
+    query: string,
+    params?: any[] | undefined
+  ): QueryResult => {
+    const result = proxy.execute(dbName, query, params);
+    enhanceQueryResult(result);
+    return result;
+  },
+};
 
 /**
  * Object returned by SQL Query executions {
@@ -160,13 +179,6 @@ interface ISQLite {
   loadFileAsync: (dbName: string, location: string) => Promise<FileLoadResult>;
 }
 
-//   _______ _____            _   _  _____         _____ _______ _____ ____  _   _  _____
-//  |__   __|  __ \     /\   | \ | |/ ____|  /\   / ____|__   __|_   _/ __ \| \ | |/ ____|
-//     | |  | |__) |   /  \  |  \| | (___   /  \ | |       | |    | || |  | |  \| | (___
-//     | |  |  _  /   / /\ \ | . ` |\___ \ / /\ \| |       | |    | || |  | | . ` |\___ \
-//     | |  | | \ \  / ____ \| |\  |____) / ____ \ |____   | |   _| || |__| | |\  |____) |
-//     |_|  |_|  \_\/_/    \_\_| \_|_____/_/    \_\_____|  |_|  |_____\____/|_| \_|_____/
-
 const locks: Record<
   string,
   { queue: PendingTransaction[]; inProgress: boolean }
@@ -188,33 +200,12 @@ const enhanceQueryResult = (result: QueryResult): void => {
   }
 };
 
-const _open = QuickSQLite.open;
-QuickSQLite.open = (dbName: string, location?: string) => {
-  _open(dbName, location);
-
-  locks[dbName] = {
-    queue: [],
-    inProgress: false,
-  };
-};
-
 const _close = QuickSQLite.close;
 QuickSQLite.close = (dbName: string) => {
   _close(dbName);
   // setImmediate(() => {
   delete locks[dbName];
   // });
-};
-
-const _execute = QuickSQLite.execute;
-QuickSQLite.execute = (
-  dbName: string,
-  query: string,
-  params?: any[] | undefined
-): QueryResult => {
-  const result = _execute(dbName, query, params);
-  enhanceQueryResult(result);
-  return result;
 };
 
 const _executeAsync = QuickSQLite.executeAsync;
@@ -232,6 +223,7 @@ QuickSQLite.transaction = (
   dbName: string,
   callback: (tx: Transaction) => void
 ) => {
+  console.warn('STARTING TRANSACTION');
   if (!locks[dbName]) {
     throw Error(`No lock found on db: ${dbName}`);
   }
