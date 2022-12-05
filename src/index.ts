@@ -37,27 +37,8 @@ if (global.__QuickSQLiteProxy == null) {
   }
 }
 
-const proxy = global.__QuickSQLiteProxy as ISQLite;
-
-export const QuickSQLite = {
-  open: (dbName: string, location?: string) => {
-    proxy.open(dbName, location);
-
-    locks[dbName] = {
-      queue: [],
-      inProgress: false,
-    };
-  },
-  execute: (
-    dbName: string,
-    query: string,
-    params?: any[] | undefined
-  ): QueryResult => {
-    const result = proxy.execute(dbName, query, params);
-    enhanceQueryResult(result);
-    return result;
-  },
-};
+const proxy = global.__QuickSQLiteProxy;
+export const QuickSQLite = proxy as ISQLite;
 
 /**
  * Object returned by SQL Query executions {
@@ -200,12 +181,39 @@ const enhanceQueryResult = (result: QueryResult): void => {
   }
 };
 
+const _open = QuickSQLite.open;
+QuickSQLite.open = (dbName: string, location?: string) => {
+  _open(dbName, location);
+
+  locks[dbName] = {
+    queue: [],
+    inProgress: false,
+  };
+};
+
 const _close = QuickSQLite.close;
 QuickSQLite.close = (dbName: string) => {
   _close(dbName);
   // setImmediate(() => {
   delete locks[dbName];
   // });
+};
+
+const _execute = QuickSQLite.execute;
+QuickSQLite.execute = (
+  dbName: string,
+  query: string,
+  params?: any[] | undefined
+): QueryResult => {
+  try {
+    const result = _execute(dbName, query, params);
+    enhanceQueryResult(result);
+    return result;
+  } catch (e) {
+    console.warn('CATCHED ERROR LOW', e);
+    // throw e;
+    throw new Error(`React native quick sqlite: ${e.message}`);
+  }
 };
 
 const _executeAsync = QuickSQLite.executeAsync;
@@ -223,7 +231,6 @@ QuickSQLite.transaction = (
   dbName: string,
   callback: (tx: Transaction) => void
 ) => {
-  console.warn('STARTING TRANSACTION');
   if (!locks[dbName]) {
     throw Error(`No lock found on db: ${dbName}`);
   }
@@ -337,7 +344,12 @@ QuickSQLite.transactionAsync = (
         if (!isFinalized) {
           rollback();
         }
-        throw e;
+
+        // Do not throw an error, because the transaction is executed with a setImmediate call
+        // This errors are uncatchable
+        // https://stackoverflow.com/questions/51081892/nodejs-asynchronous-exceptions-are-uncatchable
+
+        // throw e;
       } finally {
         locks[dbName].inProgress = false;
         isFinalized = false;

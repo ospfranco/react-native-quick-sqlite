@@ -1,7 +1,9 @@
 import Chance from 'chance';
 import {open, QuickSQLiteConnection} from 'react-native-quick-sqlite';
 import {beforeEach, describe, it} from './MochaRNAdapter';
+import chai from 'chai';
 
+let expect = chai.expect;
 const chance = new Chance();
 let db: QuickSQLiteConnection;
 
@@ -264,26 +266,26 @@ export function registerBaseTests() {
       }
     });
 
-    // it('Incorrect transaction, auto rollback', done => {
-    //   const id = chance.string();
-    //   const name = chance.name();
-    //   const age = chance.integer();
-    //   const networth = chance.floating();
+    it('Incorrect transaction, auto rollback', done => {
+      const id = chance.string();
+      const name = chance.name();
+      const age = chance.integer();
+      const networth = chance.floating();
 
-    //   try {
-    //     db.transaction(tx => {
-    //       tx.execute(
-    //         'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-    //         [id, name, age, networth],
-    //       );
-    //     });
-    //   } catch (e) {
-    //     console.warn('catched error!', e);
-    //     // const res = db.execute('SELECT * FROM User');
-    //     // expect(res.rows._array).to.eql([]);
-    //     done();
-    //   }
-    // });
+      db.transaction(tx => {
+        try {
+          tx.execute(
+            'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+            [id, name, age, networth],
+          );
+        } catch (e) {
+          console.warn('catched error!', e);
+          const res = db.execute('SELECT * FROM User');
+          expect(res.rows?._array).to.eql([]);
+          done();
+        }
+      });
+    });
 
     // it('Async transaction, auto commit', (done) => {
     //   const id = chance.integer();
