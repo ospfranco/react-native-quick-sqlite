@@ -198,10 +198,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       auto jsiResult = createSequelQueryExecutionResult(rt, status, &results, &metadata);
       return jsiResult;
     } catch(std::exception &e) {
-      auto error = rt.global().getPropertyAsFunction(rt, "Error");
-      throw jsi::JSError(rt, "ROPO");
-//      throw jsi::JSError("", rt, error.callAsConstructor(rt, jsi::String::createFromUtf8(rt, "test")));
-//      return {};
+      throw jsi::JSError(rt, e.what());
     }
   });
 

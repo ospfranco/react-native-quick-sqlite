@@ -205,15 +205,9 @@ QuickSQLite.execute = (
   query: string,
   params?: any[] | undefined
 ): QueryResult => {
-  try {
-    const result = _execute(dbName, query, params);
-    enhanceQueryResult(result);
-    return result;
-  } catch (e) {
-    console.warn('CATCHED ERROR LOW', e);
-    // throw e;
-    throw new Error(`React native quick sqlite: ${e.message}`);
-  }
+  const result = _execute(dbName, query, params);
+  enhanceQueryResult(result);
+  return result;
 };
 
 const _executeAsync = QuickSQLite.executeAsync;
