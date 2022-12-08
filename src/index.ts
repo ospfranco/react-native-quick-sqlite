@@ -50,7 +50,7 @@ export const QuickSQLite = proxy as ISQLite;
  *
  * @interface QueryResult
  */
-export interface QueryResult {
+export type QueryResult = {
   insertId?: number;
   rowsAffected: number;
   rows?: {
@@ -68,7 +68,7 @@ export interface QueryResult {
    * Query metadata, avaliable only for select query results
    */
   metadata?: ColumnMetadata[];
-}
+};
 
 /**
  * Column metadata
@@ -90,16 +90,16 @@ export type ColumnMetadata = {
  * If a single query must be executed many times with different arguments, its preferred
  * to declare it a single time, and use an array of array parameters.
  */
-type SQLBatchParams = [string] | [string, Array<any> | Array<Array<any>>];
+export type SQLBatchTuple = [string] | [string, Array<any> | Array<Array<any>>];
 
 /**
  * status: 0 or undefined for correct execution, 1 for error
  * message: if status === 1, here you will find error description
  * rowsAffected: Number of affected rows if status == 0
  */
-export interface BatchQueryResult {
+export type BatchQueryResult = {
   rowsAffected?: number;
-}
+};
 
 /**
  * Result of loading a file and executing every line as a SQL command
@@ -148,13 +148,10 @@ interface ISQLite {
     query: string,
     params?: any[]
   ) => Promise<QueryResult>;
-  executeBatch: (
-    dbName: string,
-    commands: SQLBatchParams[]
-  ) => BatchQueryResult;
+  executeBatch: (dbName: string, commands: SQLBatchTuple[]) => BatchQueryResult;
   executeBatchAsync: (
     dbName: string,
-    commands: SQLBatchParams[]
+    commands: SQLBatchTuple[]
   ) => Promise<BatchQueryResult>;
   loadFile: (dbName: string, location: string) => FileLoadResult;
   loadFileAsync: (dbName: string, location: string) => Promise<FileLoadResult>;
@@ -465,7 +462,7 @@ export const openDatabase = (
   }
 };
 
-export interface QuickSQLiteConnection {
+export type QuickSQLiteConnection = {
   close: () => void;
   delete: () => void;
   attach: (dbNameToAttach: string, alias: string, location?: string) => void;
@@ -474,11 +471,11 @@ export interface QuickSQLiteConnection {
   transaction: (fn: (tx: Transaction) => void) => void;
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (query: string, params?: any[]) => Promise<QueryResult>;
-  executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult;
-  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>;
+  executeBatch: (commands: SQLBatchTuple[]) => BatchQueryResult;
+  executeBatchAsync: (commands: SQLBatchTuple[]) => Promise<BatchQueryResult>;
   loadFile: (location: string) => FileLoadResult;
   loadFileAsync: (location: string) => Promise<FileLoadResult>;
-}
+};
 
 export const open = (options: {
   name: string;
@@ -503,9 +500,9 @@ export const open = (options: {
       params?: any[] | undefined
     ): Promise<QueryResult> =>
       QuickSQLite.executeAsync(options.name, query, params),
-    executeBatch: (commands: SQLBatchParams[]) =>
+    executeBatch: (commands: SQLBatchTuple[]) =>
       QuickSQLite.executeBatch(options.name, commands),
-    executeBatchAsync: (commands: SQLBatchParams[]) =>
+    executeBatchAsync: (commands: SQLBatchTuple[]) =>
       QuickSQLite.executeBatchAsync(options.name, commands),
     loadFile: (location: string) =>
       QuickSQLite.loadFile(options.name, location),

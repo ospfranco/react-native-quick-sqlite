@@ -1,5 +1,9 @@
 import Chance from 'chance';
-import {open, QuickSQLiteConnection} from 'react-native-quick-sqlite';
+import {
+  open,
+  QuickSQLiteConnection,
+  SQLBatchTuple,
+} from 'react-native-quick-sqlite';
 import {beforeEach, describe, it} from './MochaRNAdapter';
 import chai from 'chai';
 
@@ -338,6 +342,125 @@ export function registerBaseTests() {
       }, 200);
     });
 
-    // it('Async transaction, manual commit', async)
+    it('Async transaction, manual commit', done => {
+      const id = chance.integer();
+      const name = chance.name();
+      const age = chance.integer();
+      const networth = chance.floating();
+
+      db.transactionAsync(async tx => {
+        await tx.executeAsync(
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id, name, age, networth],
+        );
+        tx.commit();
+      });
+
+      setTimeout(() => {
+        const res = db.execute('SELECT * FROM User');
+        expect(res.rows?._array).to.eql([
+          {
+            id,
+            name,
+            age,
+            networth,
+          },
+        ]);
+        done();
+      }, 1000);
+    });
+
+    it('Async transaction, manual rollback', done => {
+      const id = chance.integer();
+      const name = chance.name();
+      const age = chance.integer();
+      const networth = chance.floating();
+
+      db.transactionAsync(async tx => {
+        await tx.executeAsync(
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id, name, age, networth],
+        );
+        tx.rollback();
+      });
+
+      setTimeout(() => {
+        const res = db.execute('SELECT * FROM User');
+        expect(res.rows?._array).to.eql([]);
+        done();
+      }, 1000);
+    });
+
+    it('Batch execute', () => {
+      const id1 = chance.integer();
+      const name1 = chance.name();
+      const age1 = chance.integer();
+      const networth1 = chance.floating();
+
+      const id2 = chance.integer();
+      const name2 = chance.name();
+      const age2 = chance.integer();
+      const networth2 = chance.floating();
+
+      const commands: SQLBatchTuple[] = [
+        [
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id1, name1, age1, networth1],
+        ],
+        [
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id2, name2, age2, networth2],
+        ],
+      ];
+
+      db.executeBatch(commands);
+
+      const res = db.execute('SELECT * FROM User');
+      expect(res.rows?._array).to.eql([
+        {id: id1, name: name1, age: age1, networth: networth1},
+        {
+          id: id2,
+          name: name2,
+          age: age2,
+          networth: networth2,
+        },
+      ]);
+    });
+
+    it('Async batch execute', async () => {
+      const id1 = chance.integer();
+      const name1 = chance.name();
+      const age1 = chance.integer();
+      const networth1 = chance.floating();
+
+      const id2 = chance.integer();
+      const name2 = chance.name();
+      const age2 = chance.integer();
+      const networth2 = chance.floating();
+
+      const commands: SQLBatchTuple[] = [
+        [
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id1, name1, age1, networth1],
+        ],
+        [
+          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id2, name2, age2, networth2],
+        ],
+      ];
+
+      await db.executeBatchAsync(commands);
+
+      const res = db.execute('SELECT * FROM User');
+      expect(res.rows?._array).to.eql([
+        {id: id1, name: name1, age: age1, networth: networth1},
+        {
+          id: id2,
+          name: name2,
+          age: age2,
+          networth: networth2,
+        },
+      ]);
+    });
   });
 }
