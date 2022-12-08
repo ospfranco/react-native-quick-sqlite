@@ -50,7 +50,7 @@ export const QuickSQLite = proxy as ISQLite;
  *
  * @interface QueryResult
  */
-export interface QueryResult {
+export type QueryResult = {
   insertId?: number;
   rowsAffected: number;
   rows?: {
@@ -68,7 +68,7 @@ export interface QueryResult {
    * Query metadata, avaliable only for select query results
    */
   metadata?: ColumnMetadata[];
-}
+};
 
 /**
  * Column metadata
@@ -90,16 +90,16 @@ export type ColumnMetadata = {
  * If a single query must be executed many times with different arguments, its preferred
  * to declare it a single time, and use an array of array parameters.
  */
-type SQLBatchParams = [string] | [string, Array<any> | Array<Array<any>>];
+export type SQLBatchTuple = [string] | [string, Array<any> | Array<Array<any>>];
 
 /**
  * status: 0 or undefined for correct execution, 1 for error
  * message: if status === 1, here you will find error description
  * rowsAffected: Number of affected rows if status == 0
  */
-export interface BatchQueryResult {
+export type BatchQueryResult = {
   rowsAffected?: number;
-}
+};
 
 /**
  * Result of loading a file and executing every line as a SQL command
@@ -148,24 +148,14 @@ interface ISQLite {
     query: string,
     params?: any[]
   ) => Promise<QueryResult>;
-  executeBatch: (
-    dbName: string,
-    commands: SQLBatchParams[]
-  ) => BatchQueryResult;
+  executeBatch: (dbName: string, commands: SQLBatchTuple[]) => BatchQueryResult;
   executeBatchAsync: (
     dbName: string,
-    commands: SQLBatchParams[]
+    commands: SQLBatchTuple[]
   ) => Promise<BatchQueryResult>;
   loadFile: (dbName: string, location: string) => FileLoadResult;
   loadFileAsync: (dbName: string, location: string) => Promise<FileLoadResult>;
 }
-
-//   _______ _____            _   _  _____         _____ _______ _____ ____  _   _  _____
-//  |__   __|  __ \     /\   | \ | |/ ____|  /\   / ____|__   __|_   _/ __ \| \ | |/ ____|
-//     | |  | |__) |   /  \  |  \| | (___   /  \ | |       | |    | || |  | |  \| | (___
-//     | |  |  _  /   / /\ \ | . ` |\___ \ / /\ \| |       | |    | || |  | | . ` |\___ \
-//     | |  | | \ \  / ____ \| |\  |____) / ____ \ |____   | |   _| || |__| | |\  |____) |
-//     |_|  |_|  \_\/_/    \_\_| \_|_____/_/    \_\_____|  |_|  |_____\____/|_| \_|_____/
 
 const locks: Record<
   string,
@@ -194,16 +184,16 @@ QuickSQLite.open = (dbName: string, location?: string) => {
 
   locks[dbName] = {
     queue: [],
-    inProgress: false
+    inProgress: false,
   };
 };
 
 const _close = QuickSQLite.close;
 QuickSQLite.close = (dbName: string) => {
   _close(dbName);
-  setImmediate(() => {
-    delete locks[dbName];
-  });
+  // setImmediate(() => {
+  delete locks[dbName];
+  // });
 };
 
 const _execute = QuickSQLite.execute;
@@ -236,7 +226,7 @@ QuickSQLite.transaction = (
     throw Error(`No lock found on db: ${dbName}`);
   }
 
-  let isFinalized = false
+  let isFinalized = false;
 
   // Local transaction context object implementation
   const execute = (query: string, params?: any[]): QueryResult => {
@@ -345,7 +335,12 @@ QuickSQLite.transactionAsync = (
         if (!isFinalized) {
           rollback();
         }
-        throw e;
+
+        // Do not throw an error, because the transaction is executed with a setImmediate call
+        // This errors are uncatchable
+        // https://stackoverflow.com/questions/51081892/nodejs-asynchronous-exceptions-are-uncatchable
+
+        // throw e;
       } finally {
         locks[dbName].inProgress = false;
         isFinalized = false;
@@ -366,7 +361,7 @@ const startNextTransaction = (dbName: string) => {
 
   setImmediate(() => {
     if (!locks[dbName]) {
-      throw Error(`Lock not found for db ${dbName}`);
+      throw Error(`Lock not found for db: ${dbName}`);
     }
 
     if (locks[dbName].queue.length) {
@@ -399,7 +394,7 @@ export interface TypeOrmDBConnection {
     callback: () => void
   ) => void;
   detach: (alias: string, callback: () => void) => void;
-  transaction: (fn: (tx: Transaction) => boolean) => void;
+  transaction: (fn: (tx: Transaction) => void) => void;
 }
 
 /**
@@ -432,7 +427,7 @@ export const openDatabase = (
           fail(e);
         }
       },
-      transaction: (fn: (tx: Transaction) => boolean): void => {
+      transaction: (fn: (tx: Transaction) => void): void => {
         QuickSQLite.transaction(options.name, fn);
       },
       close: (ok: any, fail: any) => {
@@ -467,20 +462,20 @@ export const openDatabase = (
   }
 };
 
-export interface QuickSQLiteConnection {
+export type QuickSQLiteConnection = {
   close: () => void;
   delete: () => void;
   attach: (dbNameToAttach: string, alias: string, location?: string) => void;
   detach: (alias: string) => void;
   transactionAsync: (fn: (tx: TransactionAsync) => Promise<any>) => void;
-  transaction: (fn: (tx: Transaction) => boolean) => void;
+  transaction: (fn: (tx: Transaction) => void) => void;
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (query: string, params?: any[]) => Promise<QueryResult>;
-  executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult;
-  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>;
+  executeBatch: (commands: SQLBatchTuple[]) => BatchQueryResult;
+  executeBatchAsync: (commands: SQLBatchTuple[]) => Promise<BatchQueryResult>;
   loadFile: (location: string) => FileLoadResult;
   loadFileAsync: (location: string) => Promise<FileLoadResult>;
-}
+};
 
 export const open = (options: {
   name: string;
@@ -505,9 +500,9 @@ export const open = (options: {
       params?: any[] | undefined
     ): Promise<QueryResult> =>
       QuickSQLite.executeAsync(options.name, query, params),
-    executeBatch: (commands: SQLBatchParams[]) =>
+    executeBatch: (commands: SQLBatchTuple[]) =>
       QuickSQLite.executeBatch(options.name, commands),
-    executeBatchAsync: (commands: SQLBatchParams[]) =>
+    executeBatchAsync: (commands: SQLBatchTuple[]) =>
       QuickSQLite.executeBatchAsync(options.name, commands),
     loadFile: (location: string) =>
       QuickSQLite.loadFile(options.name, location),

@@ -8,7 +8,6 @@ const root = path.resolve(__dirname, '..');
 const modules = Object.keys({
   ...pak.peerDependencies,
 });
-
 module.exports = {
   projectRoot: __dirname,
   watchFolders: [root],
@@ -18,9 +17,8 @@ module.exports = {
   resolver: {
     blockList: exclusionList(
       modules.map(
-        (m) =>
-          new RegExp(`^${escape(path.join(root, 'node_modules', m))}\\/.*$`)
-      )
+        m => new RegExp(`^${escape(path.join(root, 'node_modules', m))}\\/.*$`),
+      ),
     ),
 
     extraNodeModules: modules.reduce((acc, name) => {
@@ -28,7 +26,6 @@ module.exports = {
       return acc;
     }, {}),
   },
-
   transformer: {
     getTransformOptions: async () => ({
       transform: {

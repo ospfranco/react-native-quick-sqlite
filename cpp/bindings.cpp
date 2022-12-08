@@ -184,10 +184,17 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
     vector<map<string, QuickValue>> results;
     vector<QuickColumnMetadata> metadata;
-    auto status = sqliteExecute(dbName, query, &params, &results, &metadata);
 
     // Converting results into a JSI Response
     try {
+      auto status = sqliteExecute(dbName, query, &params, &results, &metadata);
+
+      if(status.type == SQLiteError) {
+//        throw std::runtime_error(status.errorMessage);
+        throw jsi::JSError(rt, status.errorMessage);
+//        return {};
+      }
+
       auto jsiResult = createSequelQueryExecutionResult(rt, status, &results, &metadata);
       return jsiResult;
     } catch(std::exception &e) {
