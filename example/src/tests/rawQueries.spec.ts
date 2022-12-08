@@ -42,9 +42,9 @@ export function registerBaseTests() {
       expect(res.rowsAffected).to.equal(1);
       expect(res.insertId).to.equal(1);
       expect(res.metadata).to.eql([]);
-      expect(res.rows._array).to.eql([]);
-      expect(res.rows.length).to.equal(0);
-      expect(res.rows.item).to.be.a('function');
+      expect(res.rows?._array).to.eql([]);
+      expect(res.rows?.length).to.equal(0);
+      expect(res.rows?.item).to.be.a('function');
     });
 
     it('Query without params', async () => {
@@ -61,7 +61,7 @@ export function registerBaseTests() {
 
       expect(res.rowsAffected).to.equal(1);
       expect(res.insertId).to.equal(1);
-      expect(res.rows._array).to.eql([
+      expect(res.rows?._array).to.eql([
         {
           id,
           name,
@@ -85,7 +85,7 @@ export function registerBaseTests() {
 
       expect(res.rowsAffected).to.equal(1);
       expect(res.insertId).to.equal(1);
-      expect(res.rows._array).to.eql([
+      expect(res.rows?._array).to.eql([
         {
           id,
           name,
@@ -106,7 +106,7 @@ export function registerBaseTests() {
           'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(typeof e).to.equal('object');
 
         expect(e.message).to.include(
@@ -130,14 +130,14 @@ export function registerBaseTests() {
         expect(res.rowsAffected).to.equal(1);
         expect(res.insertId).to.equal(1);
         expect(res.metadata).to.eql([]);
-        expect(res.rows._array).to.eql([]);
-        expect(res.rows.length).to.equal(0);
-        expect(res.rows.item).to.be.a('function');
+        expect(res.rows?._array).to.eql([]);
+        expect(res.rows?.length).to.equal(0);
+        expect(res.rows?.item).to.be.a('function');
       });
 
       setTimeout(() => {
         const res = db.execute('SELECT * FROM User');
-        expect(res.rows._array).to.eql([
+        expect(res.rows?._array).to.eql([
           {
             id,
             name,
@@ -164,16 +164,16 @@ export function registerBaseTests() {
         expect(res.rowsAffected).to.equal(1);
         expect(res.insertId).to.equal(1);
         expect(res.metadata).to.eql([]);
-        expect(res.rows._array).to.eql([]);
-        expect(res.rows.length).to.equal(0);
-        expect(res.rows.item).to.be.a('function');
+        expect(res.rows?._array).to.eql([]);
+        expect(res.rows?.length).to.equal(0);
+        expect(res.rows?.item).to.be.a('function');
 
         tx.commit();
       });
 
       setTimeout(() => {
         const res = db.execute('SELECT * FROM User');
-        expect(res.rows._array).to.eql([
+        expect(res.rows?._array).to.eql([
           {
             id,
             name,
@@ -200,9 +200,9 @@ export function registerBaseTests() {
         expect(res.rowsAffected).to.equal(1);
         expect(res.insertId).to.equal(1);
         expect(res.metadata).to.eql([]);
-        expect(res.rows._array).to.eql([]);
-        expect(res.rows.length).to.equal(0);
-        expect(res.rows.item).to.be.a('function');
+        expect(res.rows?._array).to.eql([]);
+        expect(res.rows?.length).to.equal(0);
+        expect(res.rows?.item).to.be.a('function');
 
         tx.commit();
 
@@ -215,7 +215,7 @@ export function registerBaseTests() {
 
       setTimeout(() => {
         const res = db.execute('SELECT * FROM User');
-        expect(res.rows._array).to.eql([
+        expect(res.rows?._array).to.eql([
           {
             id,
             name,
@@ -246,7 +246,7 @@ export function registerBaseTests() {
 
       setTimeout(() => {
         const res = db.execute('SELECT * FROM User');
-        expect(res.rows._array).to.eql([]);
+        expect(res.rows?._array).to.eql([]);
         done();
       }, 200);
     });
@@ -299,14 +299,14 @@ export function registerBaseTests() {
         expect(res.rowsAffected).to.equal(1);
         expect(res.insertId).to.equal(1);
         expect(res.metadata).to.eql([]);
-        expect(res.rows._array).to.eql([]);
+        expect(res.rows?._array).to.eql([]);
         expect(res.rows.length).to.equal(0);
         expect(res.rows.item).to.be.a('function');
       });
 
       setTimeout(() => {
         const res = db.execute('SELECT * FROM User');
-        expect(res.rows._array).to.eql([
+        expect(res.rows?._array).to.eql([
           {
             id,
             name,
@@ -333,9 +333,11 @@ export function registerBaseTests() {
 
       setTimeout(() => {
         const res = db.execute('SELECT * FROM User');
-        expect(res.rows._array).to.eql([]);
+        expect(res.rows?._array).to.eql([]);
         done();
       }, 200);
     });
+
+    // it('Async transaction, manual commit', async)
   });
 }
