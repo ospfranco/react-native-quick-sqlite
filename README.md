@@ -245,7 +245,7 @@ Starting on Node14 all files that need to be accessed by third party modules nee
 After you have applied that change, do:
 
 ```sh
-yarn patch-package typeorm
+yarn patch-package --exclude 'nothing' typeorm
 ```
 
 Now every time you install your node_modules that line will be added.
