@@ -231,7 +231,7 @@ This library is pretty barebones, you can write all your SQL queries manually bu
 
 You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm). However there are some incompatibilities you need to take care of first.
 
-Starting on Node14 all files that need to be accessed by third party modules need to be explicitly declared, for our use case it means you need to patch TypeORM package.json and make those changed "permanent" by using [patch-package](https://github.com/ds300/patch-package):
+Starting on Node14 all files that need to be accessed by third party modules need to be explicitly declared, typeorm does not export it's `package.json` which is needed by Metro, we need to expose it and make those changes "permanent" by using [patch-package](https://github.com/ds300/patch-package):
 
 ```json
 // package.json stuff up here
@@ -244,7 +244,7 @@ Starting on Node14 all files that need to be accessed by third party modules nee
 
 After you have applied that change, do:
 
-```
+```sh
 yarn patch-package typeorm
 ```
 
