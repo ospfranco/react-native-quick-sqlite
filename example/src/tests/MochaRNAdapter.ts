@@ -48,3 +48,7 @@ export const describe = (name: string, f: () => void): void => {
 export const beforeEach = (f: () => void): void => {
   mochaContext.beforeEach(f);
 };
+
+export const beforeAll = (f: any) => {
+  mochaContext.beforeAll(f);
+};

@@ -5,5 +5,8 @@
     "paths": {
       "react-native-quick-sqlite": ["../src/index"]
     },
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
   }
 }
