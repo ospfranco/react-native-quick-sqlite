@@ -378,88 +378,71 @@ const startNextTransaction = (dbName: string) => {
 //     | |     | |  | |    | |___| |__| | | \ \| |  | |  / ____ \| |    _| |_
 //     |_|     |_|  |_|    |______\____/|_|  \_\_|  |_| /_/    \_\_|   |_____|
 
-export interface TypeOrmDBConnection {
-  execute: (
-    sql: string,
-    args: any[],
-    ok: (res: QueryResult) => void,
-    fail: (msg: string) => void
-  ) => void;
-
-  close: (ok: (res: any) => void, fail: (msg: string) => void) => void;
-  attach: (
-    dbNameToAttach: string,
-    alias: string,
-    location: string | undefined,
-    callback: () => void
-  ) => void;
-  detach: (alias: string, callback: () => void) => void;
-  transaction: (fn: (tx: Transaction) => void) => void;
-}
-
 /**
  * DO NOT USE THIS! THIS IS MEANT FOR TYPEORM
  * If you are looking for a convenience wrapper use `connect`
  */
-export const openDatabase = (
-  options: {
-    name: string;
-    location?: string;
+export const typeORMDriver = {
+  openDatabase: (
+    options: {
+      name: string;
+      location?: string;
+    },
+    ok: (db: any) => void,
+    fail: (msg: string) => void
+  ): any => {
+    try {
+      QuickSQLite.open(options.name, options.location);
+
+      const connection = {
+        executeSql: (
+          sql: string,
+          params: any[] | undefined,
+          ok: (res: QueryResult) => void,
+          fail: (msg: string) => void
+        ) => {
+          try {
+            let response = QuickSQLite.execute(options.name, sql, params);
+            enhanceQueryResult(response);
+            ok(response);
+          } catch (e) {
+            fail(e);
+          }
+        },
+        transaction: (fn: (tx: Transaction) => void): void => {
+          QuickSQLite.transaction(options.name, fn);
+        },
+        close: (ok: any, fail: any) => {
+          try {
+            QuickSQLite.close(options.name);
+            ok();
+          } catch (e) {
+            fail(e);
+          }
+        },
+        attach: (
+          dbNameToAttach: string,
+          alias: string,
+          location: string | undefined,
+          callback: () => void
+        ) => {
+          QuickSQLite.attach(options.name, dbNameToAttach, alias, location);
+
+          callback();
+        },
+        detach: (alias, callback: () => void) => {
+          QuickSQLite.detach(options.name, alias);
+          callback();
+        },
+      };
+
+      ok(connection);
+
+      return connection;
+    } catch (e) {
+      fail(e);
+    }
   },
-  ok: (db: TypeOrmDBConnection) => void,
-  fail: (msg: string) => void
-): TypeOrmDBConnection => {
-  try {
-    QuickSQLite.open(options.name, options.location);
-
-    const connection: TypeOrmDBConnection = {
-      execute: (
-        sql: string,
-        params: any[] | undefined,
-        ok: (res: QueryResult) => void,
-        fail: (msg: string) => void
-      ) => {
-        try {
-          let response = QuickSQLite.execute(options.name, sql, params);
-          enhanceQueryResult(response);
-          ok(response);
-        } catch (e) {
-          fail(e);
-        }
-      },
-      transaction: (fn: (tx: Transaction) => void): void => {
-        QuickSQLite.transaction(options.name, fn);
-      },
-      close: (ok: any, fail: any) => {
-        try {
-          QuickSQLite.close(options.name);
-          ok();
-        } catch (e) {
-          fail(e);
-        }
-      },
-      attach: (
-        dbNameToAttach: string,
-        alias: string,
-        location: string | undefined,
-        callback: () => void
-      ) => {
-        QuickSQLite.attach(options.name, dbNameToAttach, alias, location);
-
-        callback();
-      },
-      detach: (alias, callback: () => void) => {
-        QuickSQLite.detach(options.name, alias);
-        callback();
-      },
-    };
-
-    ok(connection);
-
-    return connection;
-  } catch (e) {
-    fail(e);
-  }
 };
 
 export type QuickSQLiteConnection = {
