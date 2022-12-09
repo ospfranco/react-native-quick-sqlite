@@ -225,22 +225,68 @@ QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 
 On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some mbs to your app size.
 
-## Use TypeORM
+## TypeORM
 
-You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm), when initializing the connection use:
+This library is pretty barebones, you can write all your SQL queries manually but for any large application a ORM is **strongly** recommended.
+
+You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm). However there are some incompatibilities you need to take care of first.
+
+Starting on Node14 all files that need to be accessed by third party modules need to be explicitly declared, for our use case it means you need to patch TypeORM package.json and make those changed "permanent" by using [patch-package](https://github.com/ds300/patch-package):
+
+```json
+// package.json stuff up here
+"exports": {
+    "./package.json": "./package.json", // ADD THIS
+    ".": {
+      "types": "./index.d.ts",
+// The rest of the package json here
+```
+
+After you have applied that change, do:
+
+```
+yarn patch-package typeorm
+```
+
+Now every time you install your node_modules that line will be added.
+
+Next we need to trick typeorm to resolve the dependency of `react-native-sqlite-storage` to `react-native-quick-sqlite`, on your `babel.config.js` add the following:
+
+```js
+plugins: [
+  // w/e plugin you already have
+  ...,
+  [
+    'module-resolver',
+    {
+      alias: {
+        "react-native-sqlite-storage": "react-native-quick-sqlite"
+      },
+    },
+  ],
+]
+```
+
+You will need to install the babel `module-resolver` plugin:
+
+```sh
+yarn add babel-plugin-module-resolver
+```
+
+After all is done, you will now be able to start the app without any metro/babel errors (you will also need to follow the instructions on how to setup typeorm), now we can feed the driver into typeorm:
 
 ```ts
+import { typeORMDriver } from 'react-native-quick-sqlite'
+
 datasource = new DataSource({
   type: 'react-native',
   database: 'typeormdb',
   location: '.',
-  driver: require('react-native-quick-sqlite'),
-  entities: [Book, User],
+  driver: typeORMDriver,
+  entities: [...],
   synchronize: true,
 });
 ```
-
-If you are using Node 14+, TypeORM is currently broken with React Native. You can patch your node-modules installation and apply the fix [in this issue](https://github.com/typeorm/typeorm/issues/9178).
 
 # Loading existing DBs
 
