@@ -77,9 +77,11 @@ try {
 
 ### Transactions
 
-Transactions are supported. Throwing an error inside the callback will ROLLBACK the transaction.
+Throwing an error inside the callback will ROLLBACK the transaction.
 
-JSI bindings are fast but there is still some overhead calling `execute` for single queries, if you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction, but has less overhead.
+If you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction, and has less overhead.
+
+It is strongly recommended that you try/catch the code inside of the transactions since it will be internally catched if you don't handle it and nothing will be thrown into the parent application!
 
 ```typescript
 QuickSQLite.transaction('myDatabase', (tx) => {
@@ -88,7 +90,13 @@ QuickSQLite.transaction('myDatabase', (tx) => {
     [0, 1]
   );
 
-  throw new Error('Random Error!'); // Will ROLLBACK transaction
+  // Any uncatched error ROLLBACK transaction
+  throw new Error('Random Error!');
+
+  // You can manually commit or rollback
+  tx.commit();
+  // or
+  tx.rollback();
 });
 ```
 
