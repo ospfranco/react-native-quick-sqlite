@@ -290,7 +290,7 @@ datasource = new DataSource({
 
 # Loading existing DBs
 
-The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/ospfranco/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/android/src/main/java/com/reactnativequicksqlite/QuickSQLiteBridge.java#L16), this differs from other SQL libraries (some place it in a `www` folder, some in androids `databases` folder, etc.).
+The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/ospfranco/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/android/src/main/java/com/reactnativequicksqlite/QuickSQLiteBridge.java#L16), this differs from other SQL libraries (some place it in a `www` folder, some in androids `databases` folder, etc.). You can also use absolute path(paths prefixed with '"/" or "file://").
 
 If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories.
 

@@ -14,12 +14,16 @@ using namespace std;
 using namespace facebook;
 
 namespace osp {
-string docPathStr;
+string dbPathStr;
 std::shared_ptr<react::CallInvoker> invoker;
 
-void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
+bool isAbsolutePath(const std::string& str) {
+    return (str.rfind("/", 0) == 0) || (str.rfind("file://", 0) == 0);
+}
+
+void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker, const char *dbPath)
 {
-  docPathStr = std::string(docPath);
+  dbPathStr = std::string(dbPath);
   auto pool = std::make_shared<ThreadPool>();
   invoker = jsCallInvoker;
 
@@ -35,7 +39,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
     }
 
     string dbName = args[0].asString(rt).utf8(rt);
-    string tempDocPath = string(docPathStr);
+    string tempDBPath = string(dbPathStr);
     if (count > 1 && !args[1].isUndefined() && !args[1].isNull())
     {
       if (!args[1].isString())
@@ -43,10 +47,11 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database location must be a string");
       }
 
-      tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
+      string location = args[1].asString(rt).utf8(rt);
+      tempDBPath = isAbsolutePath(location) ? location : tempDBPath + "/" + location;
     }
 
-    SQLiteOPResult result = sqliteOpenDb(dbName, tempDocPath);
+    SQLiteOPResult result = sqliteOpenDb(dbName, tempDBPath);
 
     if (result.type == SQLiteError)
     {
@@ -66,21 +71,21 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       return {};
     }
 
-    string tempDocPath = string(docPathStr);
+    string tempDBPath = string(dbPathStr);
     if (count > 3 && !args[3].isUndefined() && !args[3].isNull())
     {
       if (!args[3].isString())
       {
         throw jsi::JSError(rt, "[react-native-quick-sqlite][attach] database location must be a string");
       }
-
-      tempDocPath = tempDocPath + "/" + args[3].asString(rt).utf8(rt);
+      string location = args[3].asString(rt).utf8(rt);
+      tempDBPath = isAbsolutePath(location) ? location : tempDBPath + "/" + location;
     }
 
     string dbName = args[0].asString(rt).utf8(rt);
     string databaseToAttach = args[1].asString(rt).utf8(rt);
     string alias = args[2].asString(rt).utf8(rt);
-    SQLiteOPResult result = sqliteAttachDb(dbName, tempDocPath, databaseToAttach, alias);
+    SQLiteOPResult result = sqliteAttachDb(dbName, tempDBPath, databaseToAttach, alias);
 
     if (result.type == SQLiteError)
     {
@@ -150,7 +155,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
 
     string dbName = args[0].asString(rt).utf8(rt);
 
-    string tempDocPath = string(docPathStr);
+    string tempDBPath = string(dbPathStr);
     if (count > 1 && !args[1].isUndefined() && !args[1].isNull())
     {
       if (!args[1].isString())
@@ -158,11 +163,12 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database location must be a string");
       }
 
-      tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
+      string location = args[1].asString(rt).utf8(rt);
+      tempDBPath = isAbsolutePath(location) ? location : tempDBPath + "/" + location;
     }
 
 
-    SQLiteOPResult result = sqliteRemoveDb(dbName, tempDocPath);
+    SQLiteOPResult result = sqliteRemoveDb(dbName, tempDBPath);
 
     if (result.type == SQLiteError)
     {
