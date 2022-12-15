@@ -395,22 +395,26 @@ export const typeORMDriver = {
       QuickSQLite.open(options.name, options.location);
 
       const connection = {
-        executeSql: (
+        executeSql: async (
           sql: string,
           params: any[] | undefined,
           ok: (res: QueryResult) => void,
           fail: (msg: string) => void
         ) => {
           try {
-            let response = QuickSQLite.execute(options.name, sql, params);
+            let response = await QuickSQLite.executeAsync(
+              options.name,
+              sql,
+              params
+            );
             enhanceQueryResult(response);
             ok(response);
           } catch (e) {
             fail(e);
           }
         },
-        transaction: (fn: (tx: Transaction) => void): void => {
-          QuickSQLite.transaction(options.name, fn);
+        transaction: (fn: (tx: Transaction) => Promise<void>): void => {
+          return QuickSQLite.transactionAsync(options.name, fn);
         },
         close: (ok: any, fail: any) => {
           try {
