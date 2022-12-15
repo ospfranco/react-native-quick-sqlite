@@ -165,7 +165,7 @@ const locks: Record<
 // Enhance some host functions
 
 // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
-const enhanceQueryResult = (result: QueryResult): void => {
+const enhanceQueryResult = (result: QueryResult): QueryResult => {
   // Add 'item' function to result object to allow the sqlite-storage typeorm driver to work
   if (result.rows == null) {
     result.rows = {
@@ -176,6 +176,7 @@ const enhanceQueryResult = (result: QueryResult): void => {
   } else {
     result.rows.item = (idx: number) => result.rows._array[idx];
   }
+  return result;
 };
 
 const _open = QuickSQLite.open;
@@ -401,16 +402,13 @@ export const typeORMDriver = {
           ok: (res: QueryResult) => void,
           fail: (msg: string) => void
         ) => {
-          try {
-            let response = QuickSQLite.execute(options.name, sql, params);
-            enhanceQueryResult(response);
-            ok(response);
-          } catch (e) {
-            fail(e);
-          }
+          QuickSQLite.executeAsync(options.name, sql, params)
+            .then(enhanceQueryResult)
+            .then(ok)
+            .catch(fail);
         },
-        transaction: (fn: (tx: Transaction) => void): void => {
-          QuickSQLite.transaction(options.name, fn);
+        transaction: (fn: (tx: TransactionAsync) => Promise<void>): void => {
+          QuickSQLite.transactionAsync(options.name, fn);
         },
         close: (ok: any, fail: any) => {
           try {
