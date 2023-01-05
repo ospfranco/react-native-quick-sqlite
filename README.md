@@ -26,7 +26,7 @@ This library is sponsored by:
 
 [<img src="https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/sponsors/stream.png">](https://getstream.io/try-for-free/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
 
-Stream -- Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30 day trial for free!
+*Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30 day trial for free!*
 
 If you want to sponsor the development of this library, [get in touch](mailto:ospfranco@protonmail.com).
 ## API
