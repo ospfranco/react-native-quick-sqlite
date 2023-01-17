@@ -51,12 +51,10 @@
     "@types/jest": "^26.0.0",
     "@types/mocha": "^10.0.1",
     "@types/react": "18.0.26",
-    "husky": "^6.0.0",
-    "prettier": "^2.7.1",
     "react": "18.2.0",
-    "react-native": "0.70.6",
+    "react-native": "0.71.0",
     "react-native-builder-bob": "^0.18.2",
-    "typescript": "^4.5.2"
+    "typescript": "^4.8.4"
   },
   "peerDependencies": {
     "react": "*",
@@ -82,5 +80,6 @@
         }
       ]
     ]
-  }
+  },
+  "dependencies": {}
 }
