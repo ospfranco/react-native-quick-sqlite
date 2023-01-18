@@ -438,8 +438,8 @@ export const typeORMDriver = {
             fail(e);
           }
         },
-        transaction: (fn: (tx: Transaction) => Promise<void>): void => {
-          return QuickSQLite.transaction(options.name, fn);
+        transaction: (fn: (tx: Transaction) => Promise<void>): Promise<void> => {
+          return QuickSQLite.transactionAsync(options.name, fn);
         },
         close: (ok: any, fail: any) => {
           try {
