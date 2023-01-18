@@ -391,6 +391,46 @@ export function registerBaseTests() {
       }, 1000);
     });
 
+    it('Async transaction, upsert and select', done => {
+      // ARRANGE: Setup for multiple transactions
+      const iterations = 10;
+      const actual = new Set();
+
+      // ARRANGE: Generate expected data
+      const id = chance.integer();
+      const name = chance.name();
+      const age = chance.integer();
+
+      // ACT: Start multiple async transactions to upsert and select the same record
+      for (let iteration = 1; iteration <= iterations; iteration++) {
+        db.transactionAsync(async (tx) => {
+          // ACT: Upsert statement to create record / increment the value
+          await tx.executeAsync(`
+            INSERT OR REPLACE INTO [User] ([id], [name], [age], [networth])
+            SELECT ?, ?, ?,
+              IFNULL((
+                SELECT [networth] + 1000
+                FROM [User]
+                WHERE [id] = ?
+              ), 1000)
+          `, [id, name, age, id]);
+
+          // ACT: Select statement to get incremented value and store it for checking later
+          const results = await tx.executeAsync('SELECT [networth] FROM [User] WHERE [id] = ?', [id]);
+
+          actual.add(results.rows._array[0].networth);
+        })
+      }
+
+      // ACT: Wait for all transactions to complete
+      setTimeout(() => {
+        // ASSERT: That the expected values where returned
+        expect(actual.size).to.equal(iterations, 'Each transaction should read a different value');
+
+        done();
+      }, 1000);
+    });
+
     it('Batch execute', () => {
       const id1 = chance.integer();
       const name1 = chance.name();

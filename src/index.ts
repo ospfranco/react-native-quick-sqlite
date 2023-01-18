@@ -354,21 +354,22 @@ QuickSQLite.transactionAsync = (
 };
 
 const startNextTransaction = (dbName: string) => {
+  if (!locks[dbName]) {
+    throw Error(`Lock not found for db: ${dbName}`);
+  }
+
   if (locks[dbName].inProgress) {
     // Transaction is already in process bail out
     return;
   }
 
-  setImmediate(() => {
-    if (!locks[dbName]) {
-      throw Error(`Lock not found for db: ${dbName}`);
-    }
-
     if (locks[dbName].queue.length) {
       locks[dbName].inProgress = true;
-      locks[dbName].queue.shift().start();
-    }
+    const tx = locks[dbName].queue.shift();
+    setImmediate(() => {
+      tx.start();
   });
+  }
 };
 
 //   _________     _______  ______ ____  _____  __  __            _____ _____
