@@ -553,4 +553,3 @@ export const open = (options: {
       QuickSQLite.loadFileAsync(options.name, location),
   };
 };
-///
