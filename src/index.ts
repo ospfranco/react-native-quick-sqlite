@@ -118,11 +118,23 @@ export interface Transaction {
 export interface TransactionAsync {
   commit: () => QueryResult;
   execute: (query: string, params?: any[]) => QueryResult;
-  executeAsync: (query: string, params?: any[] | undefined) => Promise<any>;
+  executeAsync: (
+    query: string,
+    params?: any[] | undefined
+  ) => Promise<QueryResult>;
   rollback: () => QueryResult;
 }
 
 export interface PendingTransaction {
+  /*
+   * The start function should not throw or return a promise because the
+   * queue just calls it and does not monitor for failures or completions.
+   *
+   * It should catch any errors and call the resolve or reject of the wrapping
+   * promise when complete.
+   *
+   * It should also automatically commit or rollback the transaction if needed
+   */
   start: () => void;
 }
 
@@ -141,7 +153,7 @@ interface ISQLite {
     dbName: string,
     fn: (tx: TransactionAsync) => Promise<any>
   ) => Promise<void>;
-  transaction: (dbName: string, fn: (tx: Transaction) => void) => void;
+  transaction: (dbName: string, fn: (tx: Transaction) => void) => Promise<void>;
   execute: (dbName: string, query: string, params?: any[]) => QueryResult;
   executeAsync: (
     dbName: string,
@@ -261,29 +273,42 @@ QuickSQLite.transaction = (
     return result;
   };
 
-  const tx: PendingTransaction = {
-    start: () => {
-      try {
-        QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
-        callback({ commit, execute, rollback });
+  async function run() {
+    try {
+      QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
 
-        if (!isFinalized) {
-          commit();
-        }
-      } catch (e: any) {
-        if (!isFinalized) {
-          rollback();
-        }
-        throw e;
-      } finally {
-        locks[dbName].inProgress = false;
-        startNextTransaction(dbName);
+      // Handle possible async callbacks
+      await callback({ commit, execute, rollback });
+
+      if (!isFinalized) {
+        commit();
       }
-    },
-  };
+    } catch (executionError) {
+      if (!isFinalized) {
+        try {
+          rollback();
+        } catch (rollbackError) {
+          throw rollbackError;
+        }
+      }
 
-  locks[dbName].queue.push(tx);
-  startNextTransaction(dbName);
+      throw executionError;
+    } finally {
+      locks[dbName].inProgress = false;
+      startNextTransaction(dbName);
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const tx: PendingTransaction = {
+      start: () => {
+        run().then(resolve).catch(reject);
+      },
+    };
+
+    locks[dbName].queue.push(tx);
+    startNextTransaction(dbName);
+  });
 };
 
 QuickSQLite.transactionAsync = async (
@@ -337,38 +362,41 @@ QuickSQLite.transactionAsync = async (
     return result;
   };
 
+  async function run() {
+    try {
+      await QuickSQLite.executeAsync(dbName, 'BEGIN TRANSACTION');
+
+      await callback({
+        commit,
+        execute,
+        executeAsync,
+        rollback,
+      });
+
+      if (!isFinalized) {
+        commit();
+      }
+    } catch (executionError) {
+      if (!isFinalized) {
+        try {
+          rollback();
+        } catch (rollbackError) {
+          throw rollbackError;
+        }
+      }
+
+      throw executionError;
+    } finally {
+      locks[dbName].inProgress = false;
+      isFinalized = false;
+      startNextTransaction(dbName);
+    }
+  }
+
   return await new Promise((resolve, reject) => {
     const tx: PendingTransaction = {
-      start: async () => {
-        try {
-          QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
-          await callback({
-            commit,
-            execute,
-            executeAsync,
-            rollback,
-          });
-
-          if (!isFinalized) {
-            commit();
-          }
-
-          resolve();
-        } catch (e) {
-          if (!isFinalized) {
-            try {
-              rollback();
-            } catch (rollbackError) {
-              reject(rollbackError);
-            }
-          }
-
-          reject(e);
-        } finally {
-          locks[dbName].inProgress = false;
-          isFinalized = false;
-          startNextTransaction(dbName);
-        }
+      start: () => {
+        run().then(resolve).catch(reject);
       },
     };
 
@@ -438,7 +466,9 @@ export const typeORMDriver = {
             fail(e);
           }
         },
-        transaction: (fn: (tx: Transaction) => Promise<void>): Promise<void> => {
+        transaction: (
+          fn: (tx: Transaction) => Promise<void>
+        ): Promise<void> => {
           return QuickSQLite.transactionAsync(options.name, fn);
         },
         close: (ok: any, fail: any) => {
@@ -461,6 +491,7 @@ export const typeORMDriver = {
         },
         detach: (alias, callback: () => void) => {
           QuickSQLite.detach(options.name, alias);
+
           callback();
         },
       };
@@ -480,7 +511,7 @@ export type QuickSQLiteConnection = {
   attach: (dbNameToAttach: string, alias: string, location?: string) => void;
   detach: (alias: string) => void;
   transactionAsync: (fn: (tx: TransactionAsync) => Promise<any>) => void;
-  transaction: (fn: (tx: Transaction) => void) => void;
+  transaction: (fn: (tx: Transaction) => void) => Promise<void>;
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (query: string, params?: any[]) => Promise<QueryResult>;
   executeBatch: (commands: SQLBatchTuple[]) => BatchQueryResult;
@@ -522,3 +553,4 @@ export const open = (options: {
       QuickSQLite.loadFileAsync(options.name, location),
   };
 };
+///
