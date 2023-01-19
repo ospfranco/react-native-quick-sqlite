@@ -140,7 +140,7 @@ interface ISQLite {
   transactionAsync: (
     dbName: string,
     fn: (tx: TransactionAsync) => Promise<any>
-  ) => void;
+  ) => Promise<void>;
   transaction: (dbName: string, fn: (tx: Transaction) => void) => void;
   execute: (dbName: string, query: string, params?: any[]) => QueryResult;
   executeAsync: (
@@ -240,12 +240,22 @@ QuickSQLite.transaction = (
   };
 
   const commit = () => {
+    if (isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute commit on finalized transaction: ${dbName}`
+      );
+    }
     const result = QuickSQLite.execute(dbName, 'COMMIT');
     isFinalized = true;
     return result;
   };
 
   const rollback = () => {
+    if (isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute rollback on finalized transaction: ${dbName}`
+      );
+    }
     const result = QuickSQLite.execute(dbName, 'ROLLBACK');
     isFinalized = true;
     return result;
@@ -276,7 +286,7 @@ QuickSQLite.transaction = (
   startNextTransaction(dbName);
 };
 
-QuickSQLite.transactionAsync = (
+QuickSQLite.transactionAsync = async (
   dbName: string,
   callback: (tx: TransactionAsync) => Promise<any>
 ) => {
@@ -306,69 +316,84 @@ QuickSQLite.transactionAsync = (
   };
 
   const commit = () => {
+    if (isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute commit on finalized transaction: ${dbName}`
+      );
+    }
     const result = QuickSQLite.execute(dbName, 'COMMIT');
     isFinalized = true;
     return result;
   };
 
   const rollback = () => {
+    if (isFinalized) {
+      throw Error(
+        `Quick SQLite Error: Cannot execute rollback on finalized transaction: ${dbName}`
+      );
+    }
     const result = QuickSQLite.execute(dbName, 'ROLLBACK');
     isFinalized = true;
     return result;
   };
 
-  const tx: PendingTransaction = {
-    start: async () => {
-      try {
-        QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
-        await callback({
-          commit,
-          execute,
-          executeAsync,
-          rollback,
-        });
+  return await new Promise((resolve, reject) => {
+    const tx: PendingTransaction = {
+      start: async () => {
+        try {
+          QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
+          await callback({
+            commit,
+            execute,
+            executeAsync,
+            rollback,
+          });
 
-        if (!isFinalized) {
-          commit();
+          if (!isFinalized) {
+            commit();
+          }
+
+          resolve();
+        } catch (e) {
+          if (!isFinalized) {
+            try {
+              rollback();
+            } catch (rollbackError) {
+              reject(rollbackError);
+            }
+          }
+
+          reject(e);
+        } finally {
+          locks[dbName].inProgress = false;
+          isFinalized = false;
+          startNextTransaction(dbName);
         }
-      } catch (e: any) {
-        if (!isFinalized) {
-          rollback();
-        }
+      },
+    };
 
-        // Do not throw an error, because the transaction is executed with a setImmediate call
-        // This errors are uncatchable
-        // https://stackoverflow.com/questions/51081892/nodejs-asynchronous-exceptions-are-uncatchable
-
-        // throw e;
-      } finally {
-        locks[dbName].inProgress = false;
-        isFinalized = false;
-        startNextTransaction(dbName);
-      }
-    },
-  };
-
-  locks[dbName].queue.push(tx);
-  startNextTransaction(dbName);
+    locks[dbName].queue.push(tx);
+    startNextTransaction(dbName);
+  });
 };
 
 const startNextTransaction = (dbName: string) => {
+  if (!locks[dbName]) {
+    throw Error(`Lock not found for db: ${dbName}`);
+  }
+
   if (locks[dbName].inProgress) {
     // Transaction is already in process bail out
     return;
   }
 
-  setImmediate(() => {
-    if (!locks[dbName]) {
-      throw Error(`Lock not found for db: ${dbName}`);
-    }
-
-    if (locks[dbName].queue.length) {
-      locks[dbName].inProgress = true;
-      locks[dbName].queue.shift().start();
-    }
-  });
+  if (locks[dbName].queue.length) {
+    locks[dbName].inProgress = true;
+    const tx = locks[dbName].queue.shift();
+    setImmediate(() => {
+      tx.start();
+    });
+  }
 };
 
 //   _________     _______  ______ ____  _____  __  __            _____ _____
@@ -413,7 +438,7 @@ export const typeORMDriver = {
             fail(e);
           }
         },
-        transaction: (fn: (tx: Transaction) => Promise<void>): void => {
+        transaction: (fn: (tx: Transaction) => Promise<void>): Promise<void> => {
           return QuickSQLite.transactionAsync(options.name, fn);
         },
         close: (ok: any, fail: any) => {
