@@ -45,8 +45,8 @@ db = {
   delete: () => void,
   attach: (dbNameToAttach: string, alias: string, location?: string) => void,
   detach: (alias: string) => void,
-  transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void,
-  transaction: (fn: (tx: Transaction) => void) => void,
+  transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => Promise<void>,
+  transaction: (fn: (tx: Transaction) => void) => Promise<void>,
   execute: (query: string, params?: any[]) => QueryResult,
   executeAsync: (
     query: string,
@@ -95,7 +95,7 @@ If you want to execute a large set of commands as fast as possible you should us
 It is strongly recommended that you try/catch the code inside of the transactions since it will be internally catched if you don't handle it and nothing will be thrown into the parent application!
 
 ```typescript
-QuickSQLite.transaction('myDatabase', (tx) => {
+await QuickSQLite.transaction('myDatabase', (tx) => {
   const { status } = tx.execute(
     'UPDATE sometable SET somecolumn = ? where somekey = ?',
     [0, 1]
@@ -114,7 +114,7 @@ QuickSQLite.transaction('myDatabase', (tx) => {
 Async transactions are also possible:
 
 ```ts
-QuickSQLite.transactionAsync('myDatabase', async (tx) => {
+await QuickSQLite.transactionAsync('myDatabase', async (tx) => {
   tx.execute('UPDATE sometable SET somecolumn = ? where somekey = ?', [0, 1]);
 
   await tx.executeAsync(
