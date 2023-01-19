@@ -39,7 +39,12 @@ local.properties
 .cxx/
 example/.cxx/
 
-# Ruby / Cocoapods
+# Bundle
+#
+vendor/
+
+# Cocoapods
+#
 example/ios/Pods
 example/vendor/bundle
 
