@@ -2,17 +2,14 @@ import React, {useEffect, useState} from 'react';
 import {SafeAreaView, ScrollView, Text} from 'react-native';
 import 'reflect-metadata';
 import {registerBaseTests, runTests} from './tests/index';
-// import {registerTypeORMTests} from './tests/typeorm.spec';
+import {registerTypeORMTests} from './tests/typeorm.spec';
 
 export default function App() {
   const [results, setResults] = useState<any>([]);
 
   useEffect(() => {
     setResults([]);
-    runTests(
-      registerBaseTests,
-      // registerTypeORMTests
-    ).then(setResults);
+    runTests(registerBaseTests, registerTypeORMTests).then(setResults);
   }, []);
 
   return (
