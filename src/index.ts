@@ -112,12 +112,6 @@ export interface FileLoadResult extends BatchQueryResult {
 export interface Transaction {
   commit: () => QueryResult;
   execute: (query: string, params?: any[]) => QueryResult;
-  rollback: () => QueryResult;
-}
-
-export interface TransactionAsync {
-  commit: () => QueryResult;
-  execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (
     query: string,
     params?: any[] | undefined
@@ -149,11 +143,10 @@ interface ISQLite {
     location?: string
   ) => void;
   detach: (mainDbName: string, alias: string) => void;
-  transactionAsync: (
+  transaction: (
     dbName: string,
-    fn: (tx: TransactionAsync) => Promise<any>
+    fn: (tx: Transaction) => Promise<void> | void
   ) => Promise<void>;
-  transaction: (dbName: string, fn: (tx: Transaction) => void) => Promise<void>;
   execute: (dbName: string, query: string, params?: any[]) => QueryResult;
   executeAsync: (
     dbName: string,
@@ -203,9 +196,7 @@ QuickSQLite.open = (dbName: string, location?: string) => {
 const _close = QuickSQLite.close;
 QuickSQLite.close = (dbName: string) => {
   _close(dbName);
-  // setImmediate(() => {
   delete locks[dbName];
-  // });
 };
 
 const _execute = QuickSQLite.execute;
@@ -230,91 +221,10 @@ QuickSQLite.executeAsync = async (
   return res;
 };
 
-QuickSQLite.transaction = (
+QuickSQLite.transaction = async (
   dbName: string,
-  callback: (tx: Transaction) => void
-) => {
-  if (!locks[dbName]) {
-    throw Error(`No lock found on db: ${dbName}`);
-  }
-
-  let isFinalized = false;
-
-  // Local transaction context object implementation
-  const execute = (query: string, params?: any[]): QueryResult => {
-    if (isFinalized) {
-      throw Error(
-        `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
-      );
-    }
-
-    return QuickSQLite.execute(dbName, query, params);
-  };
-
-  const commit = () => {
-    if (isFinalized) {
-      throw Error(
-        `Quick SQLite Error: Cannot execute commit on finalized transaction: ${dbName}`
-      );
-    }
-    const result = QuickSQLite.execute(dbName, 'COMMIT');
-    isFinalized = true;
-    return result;
-  };
-
-  const rollback = () => {
-    if (isFinalized) {
-      throw Error(
-        `Quick SQLite Error: Cannot execute rollback on finalized transaction: ${dbName}`
-      );
-    }
-    const result = QuickSQLite.execute(dbName, 'ROLLBACK');
-    isFinalized = true;
-    return result;
-  };
-
-  async function run() {
-    try {
-      QuickSQLite.execute(dbName, 'BEGIN TRANSACTION');
-
-      // Handle possible async callbacks
-      await callback({ commit, execute, rollback });
-
-      if (!isFinalized) {
-        commit();
-      }
-    } catch (executionError) {
-      if (!isFinalized) {
-        try {
-          rollback();
-        } catch (rollbackError) {
-          throw rollbackError;
-        }
-      }
-
-      throw executionError;
-    } finally {
-      locks[dbName].inProgress = false;
-      startNextTransaction(dbName);
-    }
-  }
-
-  return new Promise((resolve, reject) => {
-    const tx: PendingTransaction = {
-      start: () => {
-        run().then(resolve).catch(reject);
-      },
-    };
-
-    locks[dbName].queue.push(tx);
-    startNextTransaction(dbName);
-  });
-};
-
-QuickSQLite.transactionAsync = async (
-  dbName: string,
-  callback: (tx: TransactionAsync) => Promise<any>
-) => {
+  fn: (tx: Transaction) => Promise<void>
+): Promise<void> => {
   if (!locks[dbName]) {
     throw Error(`Quick SQLite Error: No lock found on db: ${dbName}`);
   }
@@ -366,7 +276,7 @@ QuickSQLite.transactionAsync = async (
     try {
       await QuickSQLite.executeAsync(dbName, 'BEGIN TRANSACTION');
 
-      await callback({
+      await fn({
         commit,
         execute,
         executeAsync,
@@ -469,7 +379,7 @@ export const typeORMDriver = {
         transaction: (
           fn: (tx: Transaction) => Promise<void>
         ): Promise<void> => {
-          return QuickSQLite.transactionAsync(options.name, fn);
+          return QuickSQLite.transaction(options.name, fn);
         },
         close: (ok: any, fail: any) => {
           try {
@@ -510,8 +420,7 @@ export type QuickSQLiteConnection = {
   delete: () => void;
   attach: (dbNameToAttach: string, alias: string, location?: string) => void;
   detach: (alias: string) => void;
-  transactionAsync: (fn: (tx: TransactionAsync) => Promise<any>) => void;
-  transaction: (fn: (tx: Transaction) => void) => Promise<void>;
+  transaction: (fn: (tx: Transaction) => Promise<void> | void) => Promise<void>;
   execute: (query: string, params?: any[]) => QueryResult;
   executeAsync: (query: string, params?: any[]) => Promise<QueryResult>;
   executeBatch: (commands: SQLBatchTuple[]) => BatchQueryResult;
@@ -532,9 +441,7 @@ export const open = (options: {
     attach: (dbNameToAttach: string, alias: string, location?: string) =>
       QuickSQLite.attach(options.name, dbNameToAttach, alias, location),
     detach: (alias: string) => QuickSQLite.detach(options.name, alias),
-    transactionAsync: (fn: (tx: TransactionAsync) => Promise<any>) =>
-      QuickSQLite.transactionAsync(options.name, fn),
-    transaction: (fn: (tx: Transaction) => void) =>
+    transaction: (fn: (tx: Transaction) => Promise<void> | void) =>
       QuickSQLite.transaction(options.name, fn),
     execute: (query: string, params?: any[] | undefined): QueryResult =>
       QuickSQLite.execute(options.name, query, params),

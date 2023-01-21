@@ -386,7 +386,7 @@ export function registerBaseTests() {
       const age = chance.integer();
       const networth = chance.floating();
 
-      await db.transactionAsync(async tx => {
+      await db.transaction(async tx => {
         const res = await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -418,7 +418,7 @@ export function registerBaseTests() {
       const networth = chance.floating();
 
       try {
-        await db.transactionAsync(async tx => {
+        await db.transaction(async tx => {
           await tx.executeAsync(
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
             [id, name, age, networth],
@@ -441,7 +441,7 @@ export function registerBaseTests() {
       const age = chance.integer();
       const networth = chance.floating();
 
-      await db.transactionAsync(async tx => {
+      await db.transaction(async tx => {
         await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -466,7 +466,7 @@ export function registerBaseTests() {
       const age = chance.integer();
       const networth = chance.floating();
 
-      await db.transactionAsync(async tx => {
+      await db.transaction(async tx => {
         await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -491,7 +491,7 @@ export function registerBaseTests() {
       // ACT: Start multiple async transactions to upsert and select the same record
       const promises = [];
       for (let iteration = 1; iteration <= iterations; iteration++) {
-        const promised = db.transactionAsync(async tx => {
+        const promised = db.transaction(async tx => {
           // ACT: Upsert statement to create record / increment the value
           await tx.executeAsync(
             `
@@ -532,7 +532,7 @@ export function registerBaseTests() {
     });
 
     it('Async transaction, rejects on callback error', async () => {
-      const promised = db.transactionAsync(async tx => {
+      const promised = db.transaction(async tx => {
         throw new Error('Error from callback');
       });
 
@@ -548,7 +548,7 @@ export function registerBaseTests() {
     });
 
     it('Async transaction, rejects on invalid query', async () => {
-      const promised = db.transactionAsync(async tx => {
+      const promised = db.transaction(async tx => {
         await tx.executeAsync('SELECT * FROM [tableThatDoesNotExist];');
       });
 

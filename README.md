@@ -26,11 +26,12 @@ This library is sponsored by:
 
 [<img src="https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/sponsors/stream.png">](https://getstream.io/try-for-free/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
 
-*Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30 day trial for free!*
+_Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30 day trial for free!_
 
-[*Try the React Native Chat Tutorial 💬*](https://getstream.io/chat/sdk/react-native/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
+[_Try the React Native Chat Tutorial 💬_](https://getstream.io/chat/sdk/react-native/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
 
 If you want to sponsor the development of this library, [get in touch](mailto:ospfranco@protonmail.com).
+
 ## API
 
 ```typescript
@@ -45,7 +46,6 @@ db = {
   delete: () => void,
   attach: (dbNameToAttach: string, alias: string, location?: string) => void,
   detach: (alias: string) => void,
-  transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => Promise<void>,
   transaction: (fn: (tx: Transaction) => void) => Promise<void>,
   execute: (query: string, params?: any[]) => QueryResult,
   executeAsync: (
@@ -101,6 +101,12 @@ await QuickSQLite.transaction('myDatabase', (tx) => {
     [0, 1]
   );
 
+  // offload from JS thread
+  await tx.executeAsync = tx.executeAsync(
+    'UPDATE sometable SET somecolumn = ? where somekey = ?',
+    [0, 1]
+  );
+
   // Any uncatched error ROLLBACK transaction
   throw new Error('Random Error!');
 
@@ -108,19 +114,6 @@ await QuickSQLite.transaction('myDatabase', (tx) => {
   tx.commit();
   // or
   tx.rollback();
-});
-```
-
-Async transactions are also possible:
-
-```ts
-await QuickSQLite.transactionAsync('myDatabase', async (tx) => {
-  tx.execute('UPDATE sometable SET somecolumn = ? where somekey = ?', [0, 1]);
-
-  await tx.executeAsync(
-    'UPDATE sometable SET somecolumn = ? where somekey = ?',
-    [0, 1]
-  );
 });
 ```
 
