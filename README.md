@@ -18,7 +18,7 @@ Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-ba
 
 Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
-**Javascript cannot represent integers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
+If you need RN 0.71 support there is currently a beta version `8.0.0-beta1`, please report any issue on the [PR](https://github.com/ospfranco/react-native-quick-sqlite/pull/108).
 
 ## Sponsors
 
@@ -228,8 +228,6 @@ QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
 On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some mbs to your app size.
-
-If you need 0.71 there is currently a beta version `8.0.0-beta1`, please report any issue on the [PR](https://github.com/ospfranco/react-native-quick-sqlite/pull/108).
 
 ## TypeORM
 
