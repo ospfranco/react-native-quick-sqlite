@@ -90,9 +90,7 @@ try {
 
 Throwing an error inside the callback will ROLLBACK the transaction.
 
-If you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction, and has less overhead.
-
-It is strongly recommended that you try/catch the code inside of the transactions since it will be internally catched if you don't handle it and nothing will be thrown into the parent application!
+If you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction and has less overhead.
 
 ```typescript
 await QuickSQLite.transaction('myDatabase', (tx) => {
