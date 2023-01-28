@@ -18,7 +18,7 @@ Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-ba
 
 Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement. On small queries you might not notice a difference with the old bridge but as you send large data to JS the speed increase is considerable.
 
-Starting on version 7.0.0 only React-Native 0.71+ is supported. This is due to internal changes to React-Native artifacts. If you are on < 0.71 use the latest 6.x.x version. You will also need to turn on the new architecture in your `podfile` and `gradle.properties`.
+Starting on version `8.0.0` only React-Native `0.71` onwards is supported. This is due to internal changes to React-Native artifacts. If you are on < `0.71` use the latest `7.x.x` version. You will also need to turn on the new architecture in your `podfile` and `gradle.properties`.
 
 TypeORM is officially supported, however, there is currently a parsing issue with React-Native 0.71 and its babel configuration.
 
