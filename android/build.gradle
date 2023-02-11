@@ -14,23 +14,20 @@ buildscript {
   }
 }
 
+def resolveBuildType() {
+    Gradle gradle = getGradle()
+    String tskReqStr = gradle.getStartParameter().getTaskRequests()['args'].toString()
+
+    return tskReqStr.contains('Release') ? 'release' : 'debug'
+}
+
 def isNewArchitectureEnabled() {
-  // To opt-in for the New Architecture, you can either:
   // - Set `newArchEnabled` to true inside the `gradle.properties` file
-  // - Invoke gradle with `-newArchEnabled=true`
-  // - Set an environment variable `ORG_GRADLE_PROJECT_newArchEnabled=true`
   return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
 }
 
-if (!isNewArchitectureEnabled()) {
-  throw new Exception("react-native-quick-sqlite requires the new architecture to build. Make sure you're running react-native 0.71 or higher and have enabled the new architecture in settings.gradle, then clean and rebuild.")
-}
-
-
 static def findNodeModulePath(baseDir, packageName) {
   def basePath = baseDir.toPath().normalize()
-  // Node's module resolution algorithm searches up to the root directory,
-  // after which the base path will be null
   while (basePath) {
     def candidatePath = Paths.get(basePath.toString(), "node_modules", packageName)
     if (candidatePath.toFile().exists()) {
@@ -100,6 +97,17 @@ android {
             abiFilters (*reactNativeArchitectures())
         }
     }
+
+    packagingOptions {
+      doNotStrip resolveBuildType() == 'debug' ? "**/**/*.so" : ''
+      excludes = [
+              "META-INF",
+              "META-INF/**",
+              "**/libjsi.so",
+              "**/libreact_nativemodule_core.so",
+              "**/libturbomodulejsijni.so"
+      ]
+    }
     
   }
   
@@ -117,7 +125,7 @@ android {
 
 dependencies {
   //noinspection GradleDynamicVersion
-  implementation 'com.facebook.react:react-native:+'
+  implementation 'com.facebook.react:react-android:+'
 }
 
 // Resolves "LOCAL_SRC_FILES points to a missing file, Check that libfb.so exists or that its path is correct".
