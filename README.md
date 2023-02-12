@@ -18,7 +18,7 @@ Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-ba
 
 Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
 
-If you need RN 0.71 support there is currently a beta version `8.0.0-beta1`, please report any issue on the [PR](https://github.com/ospfranco/react-native-quick-sqlite/pull/108).
+If you need RN 0.71 support there is currently a beta version `8.0.0-beta.2`, please report any issue on the [PR](https://github.com/ospfranco/react-native-quick-sqlite/pull/108).
 
 ## Sponsors
 
