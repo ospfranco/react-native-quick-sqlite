@@ -26,7 +26,7 @@ This library is sponsored by:
 
 [<img src="https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/sponsors/stream.png">](https://getstream.io/try-for-free/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
 
-_Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30 day trial for free!_
+_Build cross-platform messaging experiences with Stream Chat API. Sign up for _Stream's _30-day_ trial for_ free!_
 
 [_Try the React Native Chat Tutorial 💬_](https://getstream.io/chat/sdk/react-native/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
 
@@ -117,7 +117,7 @@ await QuickSQLite.transaction('myDatabase', (tx) => {
 
 ### Batch operation
 
-Batch execution allows transactional execution of a set of commands
+Batch execution allows the transactional execution of a set of commands
 
 ```typescript
 const commands = [
@@ -137,8 +137,7 @@ console.log(`Batch affected ${result.rowsAffected} rows`);
 In some scenarios, dynamic applications may need to get some metadata information about the returned result set.
 
 This can be done by testing the returned data directly, but in some cases may not be enough, for example when data is stored outside
-sqlite datatypes. When fetching data directly from tables or views linked to table columns, SQLite is able
-to identify the table declared types:
+SQLite datatypes. When fetching data directly from tables or views linked to table columns, SQLite can identify the table declared types:
 
 ```typescript
 let { metadata } = QuickSQLite.executeSql(
@@ -170,13 +169,13 @@ QuickSQLite.executeAsync(
 
 ### Attach or Detach other databases
 
-SQLite supports to attaching or detaching other database files into your main database connection through an alias.
+SQLite supports attaching or detaching other database files into your main database connection through an alias.
 You can do any operation you like on this attached database like JOIN results across tables in different schemas, or update data or objects.
-This databases can have different configurations, like journal modes, cache settings.
+These databases can have different configurations, like journal modes, and cache settings.
 
 You can, at any moment, detach a database that you don't need anymore.
 Note: You don't need to detach an attached database before closing your connection. Closing the main connection
-will dettach any attached databases.
+will detach any attached databases.
 SQLite has a limit for attached databases: A default of 10, and a global max of 125
 
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
@@ -225,15 +224,15 @@ On iOS you can use the embedded SQLite, when running `pod-install` add an enviro
 QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
-On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some mbs to your app size.
+On Android, it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some megabytes to your app size.
 
 ## TypeORM
 
-This library is pretty barebones, you can write all your SQL queries manually but for any large application a ORM is **strongly** recommended.
+This library is pretty barebones, you can write all your SQL queries manually but for any large application, an ORM is recommended.
 
-You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm). However there are some incompatibilities you need to take care of first.
+You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm). However, there are some incompatibilities you need to take care of first.
 
-Starting on Node14 all files that need to be accessed by third party modules need to be explicitly declared, typeorm does not export it's `package.json` which is needed by Metro, we need to expose it and make those changes "permanent" by using [patch-package](https://github.com/ds300/patch-package):
+Starting on Node14 all files that need to be accessed by third-party modules need to be explicitly declared, TypeORM does not export its `package.json` which is needed by Metro, we need to expose it and make those changes "permanent" by using [patch-package](https://github.com/ds300/patch-package):
 
 ```json
 // package.json stuff up here
@@ -252,7 +251,7 @@ yarn patch-package --exclude 'nothing' typeorm
 
 Now every time you install your node_modules that line will be added.
 
-Next we need to trick typeorm to resolve the dependency of `react-native-sqlite-storage` to `react-native-quick-sqlite`, on your `babel.config.js` add the following:
+Next, we need to trick TypeORM to resolve the dependency of `react-native-sqlite-storage` to `react-native-quick-sqlite`, on your `babel.config.js` add the following:
 
 ```js
 plugins: [
@@ -275,7 +274,7 @@ You will need to install the babel `module-resolver` plugin:
 yarn add babel-plugin-module-resolver
 ```
 
-After all is done, you will now be able to start the app without any metro/babel errors (you will also need to follow the instructions on how to setup typeorm), now we can feed the driver into typeorm:
+Finally, you will now be able to start the app without any metro/babel errors (you will also need to follow the instructions on how to setup typeorm), now we can feed the driver into TypeORM:
 
 ```ts
 import { typeORMDriver } from 'react-native-quick-sqlite'
@@ -294,9 +293,9 @@ datasource = new DataSource({
 
 The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/ospfranco/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/ospfranco/react-native-quick-sqlite/blob/main/android/src/main/java/com/reactnativequicksqlite/QuickSQLiteBridge.java#L16), this differs from other SQL libraries (some place it in a `www` folder, some in androids `databases` folder, etc.).
 
-If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories not in your app bundle directories.
+If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories outside your app bundle directories.
 
-Alternatively you can place/move your database file using one of the many react-native fs libraries.
+Alternatively, you can place/move your database file using one of the many react-native fs libraries.
 
 ## Enable compile-time options
 
@@ -318,7 +317,7 @@ post_install do |installer|
 end
 ```
 
-Replace the `<SQLITE_FLAGS>` part with flags you want to add.
+Replace the `<SQLITE_FLAGS>` part with the flags you want to add.
 For example, you could add `SQLITE_ENABLE_FTS5=1` to `GCC_PREPROCESSOR_DEFINITIONS` to enable FTS5 in the iOS project.
 
 ### Android
