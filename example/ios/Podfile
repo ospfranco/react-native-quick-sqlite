@@ -1,8 +1,14 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '12.4'
-install! 'cocoapods', :deterministic_uuids => false
+platform :ios, min_ios_version_supported
+prepare_react_native_project!
+
+linkage = ENV['USE_FRAMEWORKS']
+	if linkage != nil
+	  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+	  use_frameworks! :linkage => linkage.to_sym
+	end
 
 target 'QuickSQLiteExample' do
   config = use_native_modules!
@@ -15,7 +21,7 @@ target 'QuickSQLiteExample' do
     # Hermes is now enabled by default. Disable by setting this flag to false.
     # Upcoming versions of React Native may rely on get_default_flags(), but
     # we make it explicit here to aid in the React Native upgrade process.
-    :hermes_enabled => true,
+    :hermes_enabled => flags[:hermes_enabled],
     :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
@@ -41,5 +47,10 @@ target 'QuickSQLiteExample' do
       :mac_catalyst_enabled => false
     )
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
+    
+    installer.pods_project.build_configurations.each do |config|
+      config.build_settings['DEAD_CODE_STRIPPING'] = 'YES'
+    end
+
   end
 end

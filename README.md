@@ -14,11 +14,13 @@
 </div>
 <br />
 
-Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries. By using an embedded SQLite you get access to the latest security patches and features.
+Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries.
 
-Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement.
+Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement. On small queries you might not notice a difference with the old bridge but as you send large data to JS the speed increase is considerable.
 
-If you need RN 0.71 support there is currently a beta version `8.0.0-beta.2`, please report any issue on the [PR](https://github.com/ospfranco/react-native-quick-sqlite/pull/108).
+Starting on version `8.0.0` only React-Native `0.71` onwards is supported. This is due to internal changes to React-Native artifacts. If you are on < `0.71` use the latest `7.x.x` version.
+
+TypeORM is officially supported, however, there is currently a parsing issue with React-Native 0.71 and its babel configuration and therefore it will not work, nothing wrong with this package, this is purely an issue on TypeORM.
 
 ## Sponsors
 
@@ -26,7 +28,7 @@ This library is sponsored by:
 
 [<img src="https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/sponsors/stream.png">](https://getstream.io/try-for-free/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
 
-_Build cross-platform messaging experiences with Stream Chat API. Sign up for _Stream's _30-day_ trial for_ free!_
+_Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30-day trial for free!_
 
 [_Try the React Native Chat Tutorial 💬_](https://getstream.io/chat/sdk/react-native/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
 
@@ -173,9 +175,8 @@ SQLite supports attaching or detaching other database files into your main datab
 You can do any operation you like on this attached database like JOIN results across tables in different schemas, or update data or objects.
 These databases can have different configurations, like journal modes, and cache settings.
 
-You can, at any moment, detach a database that you don't need anymore.
-Note: You don't need to detach an attached database before closing your connection. Closing the main connection
-will detach any attached databases.
+You can, at any moment, detach a database that you don't need anymore. You don't need to detach an attached database before closing your connection. Closing the main connection will detach any attached databases.
+
 SQLite has a limit for attached databases: A default of 10, and a global max of 125
 
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
@@ -274,7 +275,7 @@ You will need to install the babel `module-resolver` plugin:
 yarn add babel-plugin-module-resolver
 ```
 
-Finally, you will now be able to start the app without any metro/babel errors (you will also need to follow the instructions on how to setup typeorm), now we can feed the driver into TypeORM:
+Finally, you will now be able to start the app without any metro/babel errors (you will also need to follow the instructions on how to setup TypeORM), now we can feed the driver into TypeORM:
 
 ```ts
 import { typeORMDriver } from 'react-native-quick-sqlite'

@@ -38,6 +38,8 @@ local.properties
 *.hprof
 .cxx/
 example/.cxx/
+*.keystore
+!debug.keystore
 
 # Bundle
 #
@@ -47,6 +49,9 @@ vendor/
 #
 example/ios/Pods
 example/vendor/bundle
+
+# Temporary files created by Metro to check the health of the file watcher
+63	.metro-health-check*
 
 # node.js
 #
