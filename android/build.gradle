@@ -46,7 +46,6 @@ if (findProject(":app")) {
   USE_HERMES = project(":app").ext.react.enableHermes
 } 
 
-
 repositories {
   mavenCentral()
 }
