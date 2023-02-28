@@ -79,7 +79,7 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
-    enableHermes: true,  // clean and rebuild if changing
+    hermesEnabled: true,  // clean and rebuild if changing
 ]
 
 apply plugin: 'com.facebook.react'
@@ -119,7 +119,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * on project.ext.react, JavaScript will not be compiled to Hermes Bytecode
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
-def enableHermes = project.ext.react.get("enableHermes", false);
+def hermesEnabled = project.ext.react.get("hermesEnabled", false);
 
 /**
  * Architectures to build native code for.

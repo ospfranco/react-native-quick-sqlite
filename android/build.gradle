@@ -43,7 +43,7 @@ def USE_HERMES = false
 
 if (findProject(":app")) {
   def appProjectExt = project(":app").ext
-  USE_HERMES = project(":app").ext.react.enableHermes
+  USE_HERMES = project(":app").ext.react.hermesEnabled
 } 
 
 repositories {
