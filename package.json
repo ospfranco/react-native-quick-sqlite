@@ -76,5 +76,13 @@
       ]
     ]
   },
-  "dependencies": {}
+  "dependencies": {},
+  "codegenConfig": {
+    "name": "reactnativequicksqlite",
+    "type": "modules",
+    "jsSrcsDir": "./src",
+    "android": {
+      "javaPackageName": "com.reactnativequicksqlite"
+    }
+  }
 }

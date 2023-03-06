@@ -1,12 +1,11 @@
-import { NativeModules } from 'react-native';
-
+import NativeQuickSQLite from './NativeQuickSQLiteModule';
 declare global {
   function nativeCallSyncHook(): unknown;
   var __QuickSQLiteProxy: object | undefined;
 }
 
 if (global.__QuickSQLiteProxy == null) {
-  const QuickSQLiteModule = NativeModules.QuickSQLite;
+  const QuickSQLiteModule = NativeQuickSQLite;
 
   if (QuickSQLiteModule == null) {
     throw new Error(
