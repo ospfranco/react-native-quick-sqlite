@@ -10,7 +10,7 @@
 
 @implementation QuickSQLite
 
-RCT_EXPORT_MODULE(QuickSQLite)
+RCT_EXPORT_MODULE()
 
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
@@ -38,5 +38,13 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
   osp::install(runtime, callInvoker,[documentPath UTF8String]);
   return @true;
 }
+
+#if RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params
+{
+  return std::make_shared<facebook::react::NativeQuickSQLiteModuleSpecJSI>(params);
+}
+#endif
 
 @end
