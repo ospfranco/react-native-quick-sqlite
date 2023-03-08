@@ -71,6 +71,11 @@ struct SQLiteOPResult
   double insertId;
 };
 
+struct SQLiteFunctionResult
+{
+  ResultType type;
+  string errorMessage;
+};
 struct SequelLiteralUpdateResult
 {
   ResultType type;
@@ -110,5 +115,6 @@ QuickValue createInt64QuickValue(long long value);
 QuickValue createDoubleQuickValue(double value);
 QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBufferSize);
 jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results, vector<QuickColumnMetadata> *metadata);
+int createSQLiteFunctionOptions(bool DETERMINISTIC, bool DIRECTONLY, bool INNOCUOUS, bool SUBTYPE);
 
 #endif /* JSIHelper_h */

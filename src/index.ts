@@ -22,12 +22,7 @@ if (global.__QuickSQLiteProxy == null) {
   }
 
   // Call the synchronous blocking install() function
-  const result = QuickSQLiteModule.install();
-  if (result !== true) {
-    throw new Error(
-      `Failed to install react-native-quick-sqlite: The native QuickSQLite Module could not be installed! Looks like something went wrong when installing JSI bindings: ${result}`
-    );
-  }
+  QuickSQLiteModule.install();
 
   // Check again if the constructor now exists. If not, throw an error.
   if (global.__QuickSQLiteProxy == null) {
@@ -160,6 +155,30 @@ interface ISQLite {
   ) => Promise<BatchQueryResult>;
   loadFile: (dbName: string, location: string) => FileLoadResult;
   loadFileAsync: (dbName: string, location: string) => Promise<FileLoadResult>;
+  function: (
+    dbName: string,
+    name: string,
+    nArgs: number,
+    DETERMINISTIC: boolean,
+    DIRECTONLY: boolean,
+    INNOCUOUS: boolean,
+    SUBTYPE: boolean,
+    callback: (...args: any[]) => void
+    ) => void;
+
+  aggregate: (
+      dbName: string,
+      name: string,
+      nArgs: number,
+      DETERMINISTIC: boolean,
+      DIRECTONLY: boolean,
+      INNOCUOUS: boolean,
+      SUBTYPE: boolean,
+      start: (...args: any[]) => any,
+      step: (...args: any[]) => void,
+      inverse: (...args: any[]) => void,
+      result: (...args: any[]) => any
+      ) => void;
 }
 
 const locks: Record<
@@ -181,6 +200,19 @@ const enhanceQueryResult = (result: QueryResult): void => {
   } else {
     result.rows.item = (idx: number) => result.rows._array[idx];
   }
+};
+
+const getLength = ({ length }) => {
+	if (Number.isInteger(length) && length >= 0) return length;
+	throw new TypeError('Expected function.length to be a positive integer');
+};
+
+const getFunctionOption = (options, key, required) => {
+	const value = key in options ? options[key] : null;
+	if (typeof value === 'function') return value;
+	if (value != null) throw new TypeError(`Expected the "${key}" option to be a function`);
+	if (required) throw new TypeError(`Missing required option "${key}"`);
+	return null;
 };
 
 const _open = QuickSQLite.open;
@@ -415,6 +447,13 @@ export const typeORMDriver = {
   },
 };
 
+export type FunctionOptions = {
+  deterministic?: boolean,
+  directonly?: boolean,
+  innocuous?: boolean,
+  subtype?: boolean,
+};
+
 export type QuickSQLiteConnection = {
   close: () => void;
   delete: () => void;
@@ -427,6 +466,13 @@ export type QuickSQLiteConnection = {
   executeBatchAsync: (commands: SQLBatchTuple[]) => Promise<BatchQueryResult>;
   loadFile: (location: string) => FileLoadResult;
   loadFileAsync: (location: string) => Promise<FileLoadResult>;
+  function: (name: string, fn: (...args: any[]) => void, options?: FunctionOptions) => void;
+  aggregate: (name: string, aggregateOptions: {
+    start: any,
+    step: (...args: any[]) => any,
+    result?: (...args: any[]) => any,
+    inverse?: (...args: any[]) => any,
+  }, options?: FunctionOptions) => void;
 };
 
 export const open = (options: {
@@ -434,6 +480,8 @@ export const open = (options: {
   location?: string;
 }): QuickSQLiteConnection => {
   QuickSQLite.open(options.name, options.location);
+  global.functions = [];
+  global.aggregates = [];
 
   return {
     close: () => QuickSQLite.close(options.name),
@@ -458,5 +506,38 @@ export const open = (options: {
       QuickSQLite.loadFile(options.name, location),
     loadFileAsync: (location: string) =>
       QuickSQLite.loadFileAsync(options.name, location),
+    function: (name: string, fn: (...args: any[]) => any, fnOptions?: FunctionOptions) => {
+      global[`functions.${name}`] = fn;
+      QuickSQLite.function(
+        options.name,
+        name,
+        getLength(fn),
+        !!fnOptions?.deterministic,
+        !!fnOptions?.directonly,
+        !!fnOptions?.innocuous,
+        !!fnOptions?.subtype,
+        fn
+        );
+      delete global[`functions.${name}`];
+      },
+    aggregate: (name: string, aggregateOptions, fnOptions?: FunctionOptions) => {
+      let argCount;
+      argCount = Math.max(getLength(aggregateOptions.step), aggregateOptions.inverse ? getLength(aggregateOptions.inverse) : 0);
+      if (argCount > 0) argCount -= 1;
+      if (argCount > 100) throw new RangeError('User-defined functions cannot have more than 100 arguments');
+        return QuickSQLite.aggregate(
+          options.name,
+          name,
+          argCount,
+          !!fnOptions?.deterministic,
+          !!fnOptions?.directonly,
+          !!fnOptions?.innocuous,
+          !!fnOptions?.subtype,
+          getFunctionOption (aggregateOptions, 'start', false) || null,
+          getFunctionOption (aggregateOptions, 'step', true),
+          getFunctionOption (aggregateOptions, 'inverse', false),
+          getFunctionOption (aggregateOptions, 'result', false)
+          )
+        }
   };
 };

@@ -12,6 +12,7 @@
 
 using namespace std;
 using namespace facebook;
+using namespace jsi;
 
 SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath);
 
@@ -26,3 +27,29 @@ SQLiteOPResult sqliteDetachDb(string const mainDBName, string const alias);
 SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<QuickValue> *values, vector<map<string, QuickValue>> *result, vector<QuickColumnMetadata> *metadata);
 
 SequelLiteralUpdateResult sqliteExecuteLiteral(string const dbName, string const &query);
+
+SQLiteFunctionResult sqliteCustomFunction(
+                                          Runtime& rt,
+                                          const string dbName,
+                                          const string name,
+                                          const int nArgs,
+                                          const bool DETERMINISTIC,
+                                          const bool DIRECTONLY,
+                                          const bool INNOCUOUS,
+                                          const bool SUBTYPE,
+                                          const Function& callback);
+
+SQLiteFunctionResult sqliteCustomAggregate(
+                                        Runtime& rt,
+                                        const string dbName,
+                                        const string name,
+                                        const int nArgs,
+                                        const bool DETERMINISTIC,
+                                        const bool DIRECTONLY,
+                                        const bool INNOCUOUS,
+                                        const bool SUBTYPE,
+                                        const Value& start,
+                                        const Function& step,
+                                        const Value& inverse,
+                                        const Value& result
+                                           );

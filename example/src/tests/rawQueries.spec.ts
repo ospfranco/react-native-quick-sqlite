@@ -636,5 +636,33 @@ export function registerBaseTests() {
         },
       ]);
     });
+
+    it('Function test', async () => {
+      db.function('add2', (a: number, b: number) => a + b , {deterministic: true});
+      const res = db.execute('SELECT add2(?, ?) as result', [12, 4]);
+      expect(res.rows?._array[0]?.result).to.eql(16);
+    });
+
+    // it('Aggregation test', async () => {
+    //   let sumOfAge = 0;
+    //   for (let i = 0; i < 5; i++) {
+    //     const id = chance.integer();
+    //     const name = chance.name();
+    //     const age = chance.integer();
+    //     const networth = chance.floating();
+    //     db.execute(
+    //       'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+    //       [id, name, age, networth],
+    //     );
+    //     sumOfAge+= age;
+    //   }
+
+    //   db.aggregate('sumAge', {
+    //     start: 0,
+    //     step: (total, nextValue) => total + nextValue,
+    //   });
+    //   const res = db.execute('SELECT add2(?, ?) as result', [12, 4]);
+    //   expect(res.rows?._array[0]?.result).to.eql(16);
+    // });
   });
 }

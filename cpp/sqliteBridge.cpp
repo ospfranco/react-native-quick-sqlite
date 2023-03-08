@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <map>
 #include "logs.h"
+#include "CustomAggregate.h"
 
 using namespace std;
 using namespace facebook;
@@ -473,4 +474,93 @@ SequelLiteralUpdateResult sqliteExecuteLiteral(string const dbName, string const
     SQLiteOk,
     "",
     changedRowCount};
+}
+
+
+SQLiteFunctionResult sqliteCustomFunction(
+                                          Runtime& rt,
+                                          const string dbName,
+                                          const string name,
+                                          const int nArgs,
+                                          const bool DETERMINISTIC,
+                                          const bool DIRECTONLY,
+                                          const bool INNOCUOUS,
+                                          const bool SUBTYPE,
+                                          const Function& callback)
+{
+    int exit = 0;
+    // Check if db connection is opened
+    if (dbMap.count(dbName) == 0)
+    {
+    return {
+      SQLiteError,
+      "[react-native-quick-sqlite] Database not opened: " + dbName
+    };
+    }
+
+    sqlite3 *db = dbMap[dbName];
+    const char *cstr = name.c_str();
+
+    exit = sqlite3_create_function_v2(db, cstr, nArgs, createSQLiteFunctionOptions(DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE), new CustomFunction(rt, name, callback), CustomFunction::xFunc, NULL, NULL, CustomFunction::xDestroy);
+
+    if (exit != SQLITE_OK)
+    {
+        return SQLiteFunctionResult{
+            .type = SQLiteError,
+            .errorMessage = sqlite3_errmsg(db)};
+    }
+
+    return SQLiteFunctionResult{
+        .type = SQLiteOk,
+        .errorMessage = ""};
+}
+
+
+SQLiteFunctionResult sqliteCustomAggregate(
+                                        Runtime& rt,
+                                        const string dbName,
+                                        const string name,
+                                        const int nArgs,
+                                        const bool DETERMINISTIC,
+                                        const bool DIRECTONLY,
+                                        const bool INNOCUOUS,
+                                        const bool SUBTYPE,
+                                        const Value& start,
+                                        const Function& step,
+                                        const Value& inverse,
+                                        const Value& result
+                                        )
+{
+  int exit = 0;
+    // Check if db connection is opened
+  if (dbMap.count(dbName) == 0)
+  {
+    return {
+      SQLiteError,
+      "[react-native-quick-sqlite] Database not opened: " + dbName
+    };
+  }
+
+  sqlite3 *db = dbMap[dbName];
+  const char *cstr = name.c_str();
+
+  auto xInverse = inverse.isObject() && inverse.getObject(rt).isFunction(rt) ? CustomAggregate::xInverse : NULL;
+  auto xValue = xInverse ? CustomAggregate::xValue : NULL;
+    
+  exit = sqlite3_create_window_function(db, cstr, nArgs, createSQLiteFunctionOptions(DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE), new CustomAggregate(rt, name, step, start, inverse, result), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomFunction::xDestroy);
+
+    if (exit != SQLITE_OK)
+    {
+        return SQLiteFunctionResult{
+            .type = SQLiteError,
+            .errorMessage = sqlite3_errmsg(db)};
+    }
+    else
+    {
+        dbMap[dbName] = db;
+    }
+
+    return SQLiteFunctionResult{
+        .type = SQLiteOk,
+        .errorMessage = ""};
 }

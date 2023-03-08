@@ -6,6 +6,7 @@
 //
 
 #include "JSIHelper.h"
+#include "sqlite3.h"
 
 using namespace std;
 using namespace facebook;
@@ -64,6 +65,15 @@ QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBu
     .dataType = ARRAY_BUFFER,
     .arrayBufferValue = shared_ptr<uint8_t>{arrayBufferValue},
     .arrayBufferSize = arrayBufferSize};
+}
+
+int createSQLiteFunctionOptions(bool DETERMINISTIC, bool DIRECTONLY, bool INNOCUOUS, bool SUBTYPE) {
+  int mask = SQLITE_UTF8;
+  if (DETERMINISTIC) mask |= SQLITE_DETERMINISTIC;
+  if (DIRECTONLY) mask |= SQLITE_DIRECTONLY;
+  if (INNOCUOUS) mask |= SQLITE_INNOCUOUS;
+  if (SUBTYPE) mask |= SQLITE_SUBTYPE;
+  return mask;
 }
 
 void jsiQueryArgumentsToSequelParam(jsi::Runtime &rt, jsi::Value const &params, vector<QuickValue> *target)
