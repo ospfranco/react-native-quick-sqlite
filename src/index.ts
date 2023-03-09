@@ -163,7 +163,8 @@ interface ISQLite {
     DIRECTONLY: boolean,
     INNOCUOUS: boolean,
     SUBTYPE: boolean,
-    callback: (...args: any[]) => void
+    callback: (...args: any[]) => void,
+    key?: string
     ) => void;
 
   aggregate: (
@@ -174,10 +175,11 @@ interface ISQLite {
       DIRECTONLY: boolean,
       INNOCUOUS: boolean,
       SUBTYPE: boolean,
-      start: (...args: any[]) => any,
       step: (...args: any[]) => void,
-      inverse: (...args: any[]) => void,
-      result: (...args: any[]) => any
+      start?: any,
+      inverse?: (...args: any[]) => void,
+      result?: (...args: any[]) => any,
+      key?: string
       ) => void;
 }
 
@@ -468,7 +470,7 @@ export type QuickSQLiteConnection = {
   loadFileAsync: (location: string) => Promise<FileLoadResult>;
   function: (name: string, fn: (...args: any[]) => void, options?: FunctionOptions) => void;
   aggregate: (name: string, aggregateOptions: {
-    start: any,
+    start?: any,
     step: (...args: any[]) => any,
     result?: (...args: any[]) => any,
     inverse?: (...args: any[]) => any,
@@ -507,7 +509,8 @@ export const open = (options: {
     loadFileAsync: (location: string) =>
       QuickSQLite.loadFileAsync(options.name, location),
     function: (name: string, fn: (...args: any[]) => any, fnOptions?: FunctionOptions) => {
-      global[`functions.${name}`] = fn;
+      const key = `${options.name}.functions.${name}`;
+      global[key] = fn;
       QuickSQLite.function(
         options.name,
         name,
@@ -516,28 +519,34 @@ export const open = (options: {
         !!fnOptions?.directonly,
         !!fnOptions?.innocuous,
         !!fnOptions?.subtype,
-        fn
+        fn,
+        key
         );
-      delete global[`functions.${name}`];
+      delete global[key];
       },
     aggregate: (name: string, aggregateOptions, fnOptions?: FunctionOptions) => {
       let argCount;
       argCount = Math.max(getLength(aggregateOptions.step), aggregateOptions.inverse ? getLength(aggregateOptions.inverse) : 0);
       if (argCount > 0) argCount -= 1;
       if (argCount > 100) throw new RangeError('User-defined functions cannot have more than 100 arguments');
-        return QuickSQLite.aggregate(
-          options.name,
-          name,
-          argCount,
-          !!fnOptions?.deterministic,
-          !!fnOptions?.directonly,
-          !!fnOptions?.innocuous,
-          !!fnOptions?.subtype,
-          getFunctionOption (aggregateOptions, 'start', false) || null,
-          getFunctionOption (aggregateOptions, 'step', true),
-          getFunctionOption (aggregateOptions, 'inverse', false),
-          getFunctionOption (aggregateOptions, 'result', false)
-          )
-        }
+
+      const key = `${options.name}.aggregates.${name}`;
+      global[key] = aggregateOptions;
+      QuickSQLite.aggregate(
+        options.name,
+        name,
+        argCount,
+        !!fnOptions?.deterministic,
+        !!fnOptions?.directonly,
+        !!fnOptions?.innocuous,
+        !!fnOptions?.subtype,
+        getFunctionOption (aggregateOptions, 'step', true),
+        'start' in aggregateOptions ? aggregateOptions.start : null,
+        getFunctionOption (aggregateOptions, 'inverse', false),
+        getFunctionOption (aggregateOptions, 'result', false),
+        key
+        )
+      delete global[`aggregates.${name}`];
+      }
   };
 };

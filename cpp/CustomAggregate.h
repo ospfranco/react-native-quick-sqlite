@@ -30,17 +30,17 @@ public:
     const bool invoke_result;
     const bool invoke_start;
     const bool invoke_inverse;
-    Function* inverse;
-    Function* result;
-    Value* start;
+    const Function* inverse;
+    const Function* result;
+    const Value* start;
 
     explicit CustomAggregate(
                              Runtime& rt,
                              const string name,
-                             const Function& step,
-                             const Value& start,
-                             const Value& inverse,
-                             const Value& result
+                             const Function* step,
+                             const Value* start,
+                             const Value* inverse,
+                             const Value* result
     );
 
     static void xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv);

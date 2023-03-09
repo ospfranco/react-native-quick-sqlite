@@ -18,9 +18,8 @@ export async function runTests(...registrators: Array<() => void>) {
     } = Mocha.Runner.constants;
 
     clearTests();
-    const results = [];
-    var runner = new Mocha.Runner(rootSuite) as MochaTypes.Runner;
-
+    const results:any[] = [];
+    const runner = new Mocha.Runner(rootSuite) as MochaTypes.Runner;
     runner
       .once(EVENT_RUN_BEGIN, () => {})
       .on(EVENT_SUITE_BEGIN, (suite: MochaTypes.Suite) => {

@@ -18,30 +18,28 @@ using namespace jsi;
 CustomAggregate::CustomAggregate(
                                  Runtime& rt,
                                  const string name,
-                                 const Function& step,
-                                 const Value& start,
-                                 const Value& inverse,
-                                 const Value& result
+                                 const Function* step,
+                                 const Value* start,
+                                 const Value* inverse,
+                                 const Value* result
     ) :
         CustomFunction(rt, name, step),
-        invoke_result(result.isObject() && result.getObject(rt).isFunction(rt)),
-        invoke_start(start.isObject() && start.getObject(rt).isFunction(rt)),
-        invoke_inverse(inverse.isObject() && inverse.getObject(rt).isFunction(rt))
+        invoke_result(result->isObject() && result->getObject(rt).isFunction(rt)),
+        invoke_start(start->isObject() && start->getObject(rt).isFunction(rt)),
+        invoke_inverse(inverse->isObject() && inverse->getObject(rt).isFunction(rt))
         {
             // we need to copy this function, reason being that Javascript destroys the argument storage once the function call is finished.
-            this->inverse = (Function*) malloc(sizeof(Function));
-            const Function& inverseFunction = invoke_inverse ? inverse.getObject(rt).getFunction(rt) : Function::createFromHostFunction(rt, PropNameID::forAscii(rt, "inverse"), 0, [](Runtime& rt, const Value& thisValue, const Value* arguments, size_t count) -> Value { return Value::null(); });
-            memcpy(this->inverse, &inverseFunction, sizeof(inverseFunction));
-            this->result = (Function*) malloc(sizeof(Function));
-            const Function& resultFunction = invoke_result ? result.getObject(rt).getFunction(rt) : Function::createFromHostFunction(rt, PropNameID::forAscii(rt, "result"), 0, [](Runtime& rt, const Value& thisValue, const Value* arguments, size_t count) -> Value { return Value::null(); });
-            memcpy(this->result, &resultFunction, sizeof(resultFunction));
-            this->start = (Value*) malloc(sizeof(Value));
-            memcpy(this->start, &start, sizeof(start));
+            const function<Value(Runtime&, const Value&, const Value*, size_t)>& nullFunction = [](Runtime& rt, const Value& thisValue, const Value* arguments, size_t count) -> Value { return Value::undefined(); };
+            const Function& inverseFunction = invoke_inverse ? inverse->getObject(rt).getFunction(rt) : Function::createFromHostFunction(rt, PropNameID::forAscii(rt, "inverse"), 0, nullFunction);
+            this->inverse = &inverseFunction;
+            const Function& resultFunction = invoke_result ? result->getObject(rt).getFunction(rt) : Function::createFromHostFunction(rt, PropNameID::forAscii(rt, "result"), 0, nullFunction);
+            this->result = &resultFunction;
+            this->start = start;
         }
 
 void CustomAggregate::xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
     CustomAggregate* self = (CustomAggregate*) sqlite3_user_data(invocation);
-    CustomAggregate::xStepBase(invocation, argc, argv, self->fnCpy);
+    CustomAggregate::xStepBase(invocation, argc, argv, self->fn);
 }
 
 void CustomAggregate::xInverse(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
@@ -61,22 +59,24 @@ void CustomAggregate::xStepBase(sqlite3_context* invocation, int argc, sqlite3_v
     CustomAggregate* self = (CustomAggregate*) sqlite3_user_data(invocation);
     Accumulator* acc = self->GetAccumulator(invocation);
 
-    Value value[argc];
-    getArguments(self->rt, argv, argc, value);
-
-    Value maybeReturnValue = ptrtm->call(self->rt, value, argc);
+    Value* value = getArguments(self->rt, argv, argc);
+    Value convertedValue[argc+1];
+    memcpy(&convertedValue[0], acc->value, sizeof(Value));
+    for (int i = 0; i < argc; i++) memcpy(&convertedValue[i+1], &value[i], sizeof(Value));
+    
+    const Value maybeReturnValue = ptrtm->call(self->rt, convertedValue, argc + 1);
 
     if (maybeReturnValue.isNull() || maybeReturnValue.isUndefined()) {
         self->PropagateJSError(invocation);
     } else {
-        acc->value = &maybeReturnValue;
+        memcpy(acc->value, &maybeReturnValue, sizeof(maybeReturnValue));
     }
 }
 
 inline void CustomAggregate::xValueBase(sqlite3_context* invocation, bool is_final) {
     CustomAggregate* self = (CustomAggregate*) sqlite3_user_data(invocation);
     Accumulator* acc = self->GetAccumulator(invocation);
-    if (acc->value->isNull() || acc->value->isUndefined()) return;
+    if (acc->value == nullptr) return;
 
     if (!is_final) {
         acc->is_window = true;
@@ -85,18 +85,19 @@ inline void CustomAggregate::xValueBase(sqlite3_context* invocation, bool is_fin
         return;
     }
 
-    Value& result = *acc->value;
     if (self->invoke_result) {
-        const Value& maybeResult = self->result->call(self->rt, result, 1);
+        const Value& maybeResult = self->result->call(self->rt, *acc->value, 1);
         if (maybeResult.isNull() || maybeResult.isUndefined()) {
             self->PropagateJSError(invocation);
             return;
         }
 
-//        result = maybeResult;
+        
+    } else {
+        jsToSqliteValue(*acc->value, self->rt, invocation);
     }
 
-    jsToSqliteValue(result, self->rt, invocation);
+    
     if (is_final) DestroyAccumulator(invocation);
 }
 
@@ -104,15 +105,18 @@ Accumulator* CustomAggregate::GetAccumulator(sqlite3_context* invocation) {
     CustomAggregate* self = (CustomAggregate*) sqlite3_user_data(invocation);
     Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));
     if (!acc->initialized) {
-        assert(acc->value->isNull() || acc->value->isUndefined());
         acc->initialized = true;
         if (invoke_start) {
-            Value maybeSeed = self->start->getObject(rt).getFunction(rt).call(rt, Value::null(), 0);
+            const Object& startObject = self->start->getObject(rt);
+            const Function& startFunction = startObject.getFunction(rt);
+            Value maybeSeed = startFunction.call(rt);
             if (maybeSeed.isNull() || maybeSeed.isUndefined()) PropagateJSError(invocation);
             else acc->value = &maybeSeed;
         } else {
-            assert(!(self->start->isNull() || self->start->isUndefined()));
-            acc->value = self->start;
+            if (self->start->isNull() || self->start->isUndefined())
+                throw JSError(rt, "[react-native-quick-sqlite][aggregate] start should not be null or undefined");
+            acc->value = (Value*) malloc(sizeof(*self->start));
+            memcpy(acc->value, self->start, sizeof(*self->start));
         }
     }
     return acc;
@@ -121,8 +125,7 @@ Accumulator* CustomAggregate::GetAccumulator(sqlite3_context* invocation) {
 void CustomAggregate::DestroyAccumulator(sqlite3_context* invocation) {
     Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));
     assert(acc->initialized);
-    Value undefined = Value::undefined();
-    acc->value = &undefined;
+    acc->value = nullptr;
 }
 
 void CustomAggregate::PropagateJSError(sqlite3_context* invocation) {

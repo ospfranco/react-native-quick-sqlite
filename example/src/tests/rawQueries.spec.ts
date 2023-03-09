@@ -329,7 +329,7 @@ export function registerBaseTests() {
     });
 
     it('Transaction, rejects on callback error', async () => {
-      const promised = db.transaction(tx => {
+      const promised = db.transaction(() => {
         throw new Error('Error from callback');
       });
 
@@ -532,7 +532,7 @@ export function registerBaseTests() {
     });
 
     it('Async transaction, rejects on callback error', async () => {
-      const promised = db.transaction(async tx => {
+      const promised = db.transaction(async () => {
         throw new Error('Error from callback');
       });
 
@@ -643,26 +643,29 @@ export function registerBaseTests() {
       expect(res.rows?._array[0]?.result).to.eql(16);
     });
 
-    // it('Aggregation test', async () => {
-    //   let sumOfAge = 0;
-    //   for (let i = 0; i < 5; i++) {
-    //     const id = chance.integer();
-    //     const name = chance.name();
-    //     const age = chance.integer();
-    //     const networth = chance.floating();
-    //     db.execute(
-    //       'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-    //       [id, name, age, networth],
-    //     );
-    //     sumOfAge+= age;
-    //   }
+    it('Aggregation test', async () => {
+      let sumOfAge = 0;
+      for (let i = 0; i < 5; i++) {
+        const id = chance.integer();
+        const name = chance.name();
+        const age = chance.integer({
+          min: 5,
+          max: 100
+        });
+        const networth = chance.floating();
+        db.execute(
+          'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
+          [id, name, age, networth],
+        );
+        sumOfAge+= age;
+      }
 
-    //   db.aggregate('sumAge', {
-    //     start: 0,
-    //     step: (total, nextValue) => total + nextValue,
-    //   });
-    //   const res = db.execute('SELECT add2(?, ?) as result', [12, 4]);
-    //   expect(res.rows?._array[0]?.result).to.eql(16);
-    // });
+      db.aggregate('sumAge', {
+        start: 0,
+        step: (total, nextValue) => total + nextValue
+      }, { deterministic: false });
+      const res = db.execute('SELECT sumAge(age) as sumOfAge from User');
+      expect(res.rows?._array[0]?.sumOfAge).to.eql(sumOfAge);
+    });
   });
 }

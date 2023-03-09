@@ -486,7 +486,7 @@ SQLiteFunctionResult sqliteCustomFunction(
                                           const bool DIRECTONLY,
                                           const bool INNOCUOUS,
                                           const bool SUBTYPE,
-                                          const Function& callback)
+                                          const Function* callback)
 {
     int exit = 0;
     // Check if db connection is opened
@@ -525,10 +525,10 @@ SQLiteFunctionResult sqliteCustomAggregate(
                                         const bool DIRECTONLY,
                                         const bool INNOCUOUS,
                                         const bool SUBTYPE,
-                                        const Value& start,
-                                        const Function& step,
-                                        const Value& inverse,
-                                        const Value& result
+                                        const Value* start,
+                                        const Function* step,
+                                        const Value* inverse,
+                                        const Value* result
                                         )
 {
   int exit = 0;
@@ -544,7 +544,9 @@ SQLiteFunctionResult sqliteCustomAggregate(
   sqlite3 *db = dbMap[dbName];
   const char *cstr = name.c_str();
 
-  auto xInverse = inverse.isObject() && inverse.getObject(rt).isFunction(rt) ? CustomAggregate::xInverse : NULL;
+    const bool inverseIsObject = inverse->isObject();
+    const bool inverseIsFunction = inverseIsObject && inverse->getObject(rt).isFunction(rt);
+  auto xInverse = inverseIsFunction ? CustomAggregate::xInverse : NULL;
   auto xValue = xInverse ? CustomAggregate::xValue : NULL;
     
   exit = sqlite3_create_window_function(db, cstr, nArgs, createSQLiteFunctionOptions(DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE), new CustomAggregate(rt, name, step, start, inverse, result), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomFunction::xDestroy);

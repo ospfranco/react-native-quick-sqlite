@@ -10,14 +10,12 @@ using namespace jsi;
 CustomFunction::CustomFunction(
     Runtime& rt,
     const string name,
-    const Function& fn
+    const Function* fn
 ) :
     rt(rt),
-    name(name)
+    name(name),
+    fn(fn)
     {
-        // we need to copy this function, reason being that Javascript destroys the argument storage once the function call is finished.
-        this->fnCpy = (Function*) malloc(sizeof(Function));
-        memcpy(this->fnCpy, &fn, sizeof(fn));
     }
 
 CustomFunction::~CustomFunction() {}
@@ -26,8 +24,12 @@ void CustomFunction::xDestroy(void* self) {
     delete static_cast<CustomFunction*>(self);
 }
 
-void CustomFunction::getArguments(Runtime& rt, sqlite3_value** argv, int argc, Value* value) {
-    for (int i = 0; i < argc; i++) {
+Value* CustomFunction::getArguments(Runtime& rt, sqlite3_value** argv, int argc, Value* value, const size_t startIndex) {
+    if (value == nullptr) {
+        value = (Value*) malloc(sizeof(Value) * argc);
+    }
+
+    for (int i = startIndex; i < startIndex + argc; i++) {
         int type = sqlite3_value_type(argv[i]);
         switch (type) {
             case SQLITE_BLOB:
@@ -45,6 +47,8 @@ void CustomFunction::getArguments(Runtime& rt, sqlite3_value** argv, int argc, V
                 break;
         }
     }
+    
+    return value;
 }
 
 void CustomFunction::xFunc(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
@@ -53,7 +57,7 @@ void CustomFunction::xFunc(sqlite3_context* invocation, int argc, sqlite3_value*
     Value value[argc];
     CustomFunction::getArguments(self->rt, argv, argc, value);
     try {
-        const Value mayBeResult = self->fnCpy->call(self->rt, value, argc);
+        const Value mayBeResult = self->fn->call(self->rt, value, argc);
         if (!mayBeResult.isNull() && !mayBeResult.isUndefined()) {
             CustomFunction::jsToSqliteValue(mayBeResult, self->rt, invocation);
             return;
