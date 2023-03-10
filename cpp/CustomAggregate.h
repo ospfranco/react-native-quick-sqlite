@@ -37,7 +37,7 @@ public:
     explicit CustomAggregate(
                              Runtime& rt,
                              const string name,
-                             const Function* step,
+                             const shared_ptr<Function> step,
                              const Value* start,
                              const Value* inverse,
                              const Value* result

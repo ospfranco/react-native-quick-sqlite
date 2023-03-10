@@ -16,7 +16,7 @@
 
 using namespace std;
 using namespace facebook;
-
+using namespace jsi;
 /**
  * Enum for QuickValue to store/determine correct type for dynamic JSI values
  */
@@ -116,5 +116,9 @@ QuickValue createDoubleQuickValue(double value);
 QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBufferSize);
 jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results, vector<QuickColumnMetadata> *metadata);
 int createSQLiteFunctionOptions(bool DETERMINISTIC, bool DIRECTONLY, bool INNOCUOUS, bool SUBTYPE);
+bool isEmpty(Runtime& rt, const Value* v);
+bool isFunction(Runtime& rt, const Value* v);
+Function getFunction(Runtime& rt, const Value* v);
+Array getArgsToArray (Runtime& rt, Value* v, size_t count);
 
 #endif /* JSIHelper_h */

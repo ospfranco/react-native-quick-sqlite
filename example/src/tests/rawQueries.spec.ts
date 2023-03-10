@@ -645,6 +645,7 @@ export function registerBaseTests() {
 
     it('Aggregation test', async () => {
       let sumOfAge = 0;
+      let sumOfWorth = 0;
       for (let i = 0; i < 5; i++) {
         const id = chance.integer();
         const name = chance.name();
@@ -658,14 +659,27 @@ export function registerBaseTests() {
           [id, name, age, networth],
         );
         sumOfAge+= age;
+        sumOfWorth+=networth;
       }
 
       db.aggregate('sumAge', {
         start: 0,
         step: (total, nextValue) => total + nextValue
       }, { deterministic: false });
-      const res = db.execute('SELECT sumAge(age) as sumOfAge from User');
-      expect(res.rows?._array[0]?.sumOfAge).to.eql(sumOfAge);
+      let res;
+      for (let i = 0; i < 100; i++) {
+        res = db.execute('SELECT sumAge(age) as sumOfAge from User');
+        expect(res.rows?._array[0]?.sumOfAge).to.eql(sumOfAge);
+      }
+
+      db.aggregate('sumWorth', {
+        start: 0,
+        step: (total, nextValue) => total + nextValue
+      }, { deterministic: false });
+      for (let i = 0; i < 100; i++) {
+        res = db.execute('SELECT sumWorth(networth) as sumWorth from User');
+        expect(res.rows?._array[0]?.sumWorth).to.eql(sumOfWorth);
+      }
     });
   });
 }

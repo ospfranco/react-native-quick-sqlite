@@ -37,7 +37,7 @@ SQLiteFunctionResult sqliteCustomFunction(
                                           const bool DIRECTONLY,
                                           const bool INNOCUOUS,
                                           const bool SUBTYPE,
-                                          const Function* callback);
+                                          const shared_ptr<Function> callback);
 
 SQLiteFunctionResult sqliteCustomAggregate(
                                         Runtime& rt,
@@ -48,8 +48,8 @@ SQLiteFunctionResult sqliteCustomAggregate(
                                         const bool DIRECTONLY,
                                         const bool INNOCUOUS,
                                         const bool SUBTYPE,
+                                        const shared_ptr<Function> step,
                                         const Value* start,
-                                        const Function* step,
                                         const Value* inverse,
                                         const Value* result
                                            );

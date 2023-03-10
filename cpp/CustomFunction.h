@@ -14,7 +14,7 @@ class CustomFunction {
     protected:
         const string name;
         Runtime& rt;
-        const Function* fn;
+        const shared_ptr<Function> fn;
         static void PropagateJSError(sqlite3_context* invocation, string error);
         string GetDataErrorPrefix();
 
@@ -22,7 +22,7 @@ class CustomFunction {
         CustomFunction(
             Runtime& rt,
             const string name,
-            const Function* fn
+            const shared_ptr<Function> fn
         );
         virtual ~CustomFunction();
         static void xDestroy(void* self);

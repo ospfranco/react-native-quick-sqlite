@@ -509,8 +509,8 @@ export const open = (options: {
     loadFileAsync: (location: string) =>
       QuickSQLite.loadFileAsync(options.name, location),
     function: (name: string, fn: (...args: any[]) => any, fnOptions?: FunctionOptions) => {
-      const key = `${options.name}.functions.${name}`;
-      global[key] = fn;
+      // const key = `${options.name}.functions.${name}`;
+      // global[key] = fn;
       QuickSQLite.function(
         options.name,
         name,
@@ -519,10 +519,10 @@ export const open = (options: {
         !!fnOptions?.directonly,
         !!fnOptions?.innocuous,
         !!fnOptions?.subtype,
-        fn,
-        key
+        fn
+        // key
         );
-      delete global[key];
+      // delete global[key];
       },
     aggregate: (name: string, aggregateOptions, fnOptions?: FunctionOptions) => {
       let argCount;
@@ -546,7 +546,7 @@ export const open = (options: {
         getFunctionOption (aggregateOptions, 'result', false),
         key
         )
-      delete global[`aggregates.${name}`];
+      delete global[key];
       }
   };
 };

@@ -10,7 +10,7 @@ using namespace jsi;
 CustomFunction::CustomFunction(
     Runtime& rt,
     const string name,
-    const Function* fn
+    const shared_ptr<Function> fn
 ) :
     rt(rt),
     name(name),
@@ -47,18 +47,18 @@ Value* CustomFunction::getArguments(Runtime& rt, sqlite3_value** argv, int argc,
                 break;
         }
     }
-    
+
     return value;
 }
 
 void CustomFunction::xFunc(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
     CustomFunction* self = (CustomFunction*) sqlite3_user_data(invocation);
-    
+
     Value value[argc];
     CustomFunction::getArguments(self->rt, argv, argc, value);
     try {
         const Value mayBeResult = self->fn->call(self->rt, value, argc);
-        if (!mayBeResult.isNull() && !mayBeResult.isUndefined()) {
+        if (!isEmpty(self->rt, &mayBeResult)) {
             CustomFunction::jsToSqliteValue(mayBeResult, self->rt, invocation);
             return;
         }

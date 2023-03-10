@@ -64,7 +64,7 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
 
     return {};
   });
-  
+
   auto attach = HOSTFN("attach", 4) {
     if(count < 3) {
       throw JSError(rt, "[react-native-quick-sqlite][attach] Incorrect number of arguments");
@@ -98,7 +98,7 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
 
     return {};
   });
-  
+
   auto detach = HOSTFN("detach", 2) {
     if(count < 2) {
       throw JSError(rt, "[react-native-quick-sqlite][detach] Incorrect number of arguments");
@@ -440,12 +440,12 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
     {
         throw JSError(rt, "[react-native-quick-sqlite][function] Too less arguments passed");
     }
-      
+
     if (count > 9)
     {
         throw JSError(rt, "[react-native-quick-sqlite][function] Too many arguments passed");
     }
-      
+
     const string dbName = args[0].asString(rt).utf8(rt);
     const string name = args[1].asString(rt).utf8(rt);
     const int nArgs = args[2].asNumber();
@@ -453,20 +453,7 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
     const bool DIRECTONLY = args[4].asBool();
     const bool INNOCUOUS = args[5].asBool();
     const bool SUBTYPE = args[6].asBool();
-      
-
-    // method 1: (unstable) throws BAD ACCESS ERROR sometimes
-    // const Function fn = args[7].getObject(rt).getFunction(rt);
-
-    // method 2 - declare global function in javascript, seems to be working consistently.
-    const string key = args[8].isString() ? args[8].asString(rt).utf8(rt) : dbName + ".functions." + name;
-    const bool hasGlobalProperty = rt.global().hasProperty(rt, key.c_str());
-    if (!hasGlobalProperty) {
-      throw JSError(rt, "[react-native-quick-sqlite][function] global propery " + key + " doesn't exists");
-    }
-    const Function fn = rt.global().getPropertyAsFunction(rt, key.c_str());
-    Function* callback = clone<Function>(&fn);
-
+    const shared_ptr<Function> fn = make_shared<Function>(args[7].getObject(rt).getFunction(rt));
     const SQLiteFunctionResult result = sqliteCustomFunction(
                                 rt,
                                 dbName,
@@ -476,7 +463,7 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
                                 DIRECTONLY,
                                 INNOCUOUS,
                                 SUBTYPE,
-                                callback);
+                                fn);
 
       if (result.type == SQLiteOk) {
           return true;
@@ -491,12 +478,12 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
         {
             throw JSError(rt, "[react-native-quick-sqlite][aggregate] Too less arguments passed");
         }
-             
+
         if (count > 12)
         {
             throw JSError(rt, "[react-native-quick-sqlite][aggregate] Too many arguments passed");
         }
-         
+
         const string dbName = args[0].asString(rt).utf8(rt);
         const string name = args[1].asString(rt).utf8(rt);
         const int nArgs = args[2].asNumber();
@@ -504,28 +491,15 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
         const bool DIRECTONLY = args[4].asBool();
         const bool INNOCUOUS = args[5].asBool();
         const bool SUBTYPE = args[6].asBool();
-        //const Value& start = args[7];
-        //const Function& step = args[8].getObject(rt).getFunction(rt);
-        //const Value& inverse = args[9];
-        //const Value& result = args[10];
-        const string key = args[11].isString() ? args[11].asString(rt).utf8(rt) : dbName + ".aggregates." + name;
+        const shared_ptr<Function> step = make_shared<Function>(getFunction(rt, &args[7]));
+        const Value& start = args[8];
+        const Value& inverse = args[9];
+        const Value& result = args[10];
+        Value* startCloned = clone<Value>(&start);
+        Value* inverseCloned = clone<Value>(&inverse);
+        Value* resultCloned = clone<Value>(&result);
 
-        const bool hasGlobalProperty = rt.global().hasProperty(rt, key.c_str());
-        if (!hasGlobalProperty) {
-            throw JSError(rt, "[react-native-quick-sqlite][aggregate] global propery " + key + " doesn't exists");
-        }
-        const Object& object = rt.global().getPropertyAsObject(rt, key.c_str());
-        const Value& start = object.getProperty(rt, "start");
-        const Function& step = object.getProperty(rt, "step").asObject(rt).asFunction(rt);
-        const Value& inverse = object.getProperty(rt, "inverse");
-        const Value& result = object.getProperty(rt, "result");
-        const Value& nullValue = Value::null();
-        Value* startCloned = clone<Value>(start.isNull() ? &nullValue : &start);
-        Function* stepCloned = clone<Function>(&step);
-        Value* inverseCloned = clone<Value>(inverse.isObject() && inverse.getObject(rt).isFunction(rt) ? &nullValue : &inverse);
-        Value* resultCloned = clone<Value>(inverse.isObject() && inverse.getObject(rt).isFunction(rt) ? &nullValue : &result);
-
-        const SQLiteFunctionResult r = sqliteCustomAggregate(rt, dbName, name, nArgs, DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE, startCloned, stepCloned, inverseCloned, resultCloned);
+        const SQLiteFunctionResult r = sqliteCustomAggregate(rt, dbName, name, nArgs, DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE, step, startCloned, inverseCloned, resultCloned);
 
         if (r.type == SQLiteOk) {
         return true;
