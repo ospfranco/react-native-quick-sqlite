@@ -116,6 +116,8 @@ QuickValue createDoubleQuickValue(double value);
 QuickValue createArrayBufferQuickValue(uint8_t *arrayBufferValue, size_t arrayBufferSize);
 jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult status, vector<map<string, QuickValue>> *results, vector<QuickColumnMetadata> *metadata);
 int createSQLiteFunctionOptions(bool DETERMINISTIC, bool DIRECTONLY, bool INNOCUOUS, bool SUBTYPE);
+template<typename T>
+T* clone(const T* source);
 bool isEmpty(Runtime& rt, const Value* v);
 bool isFunction(Runtime& rt, const Value* v);
 Function getFunction(Runtime& rt, const Value* v);

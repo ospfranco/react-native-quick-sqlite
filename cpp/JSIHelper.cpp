@@ -217,6 +217,14 @@ jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult sta
   return move(res);
 }
 
+template<typename T>
+T* clone(const T* source) {
+    size_t sourceSize = sizeof(source);
+    auto dest = (T*) malloc(sourceSize);
+    memmove(dest, source, sourceSize);
+    return dest;
+};
+
 bool isFunction(Runtime& rt, const Value* v) {
     return v->isObject() && v->asObject(rt).isFunction(rt);
 }
@@ -229,15 +237,6 @@ Function getFunction(Runtime& rt, const Value* v) {
 bool isEmpty(Runtime& rt, const Value* v) {
     return v->isNull() || v->isUndefined();
 }
-
-//Function getOrCreareFunction(Runtime& rt, Value v, Value fallback) {
-//    if (isFunction(rt, v))
-//        return getFunction(rt, v);
-//
-//    const HostFunctionType fallbackFunction
-//        = [&fallback](Runtime& rt, const Value& thisValue, const Value* args, size_t count) -> Value { return fallback; };
-//    return Function::createFromHostFunction(rt, PropNameID::forAscii(rt, ""), 0, fallbackFunction);
-//}
 
 Array getArgsToArray (Runtime& rt, Value* v, size_t count) {
     Array argsArray = Array(rt, count);

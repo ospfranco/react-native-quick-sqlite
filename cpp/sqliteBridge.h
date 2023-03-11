@@ -40,16 +40,19 @@ SQLiteFunctionResult sqliteCustomFunction(
                                           const shared_ptr<Function> callback);
 
 SQLiteFunctionResult sqliteCustomAggregate(
-                                        Runtime& rt,
-                                        const string dbName,
-                                        const string name,
-                                        const int nArgs,
-                                        const bool DETERMINISTIC,
-                                        const bool DIRECTONLY,
-                                        const bool INNOCUOUS,
-                                        const bool SUBTYPE,
-                                        const shared_ptr<Function> step,
-                                        const Value* start,
-                                        const Value* inverse,
-                                        const Value* result
-                                           );
+                                           Runtime& rt,
+                                           const string dbName,
+                                           const string name,
+                                           const int nArgs,
+                                           const bool DETERMINISTIC,
+                                           const bool DIRECTONLY,
+                                           const bool INNOCUOUS,
+                                           const bool SUBTYPE,
+                                           const shared_ptr<Function> step,
+                                           const bool startIsFunction,
+                                           const bool inverseIsFunction,
+                                           const bool resultIsFunction,
+                                           const shared_ptr<Function> start,
+                                           const shared_ptr<Function> inverse,
+                                           const shared_ptr<Function> result
+                                        );

@@ -526,9 +526,12 @@ SQLiteFunctionResult sqliteCustomAggregate(
                                         const bool INNOCUOUS,
                                         const bool SUBTYPE,
                                         const shared_ptr<Function> step,
-                                        const Value* start,
-                                        const Value* inverse,
-                                        const Value* result
+                                        const bool startIsFunction,
+                                        const bool inverseIsFunction,
+                                        const bool resultIsFunction,
+                                        const shared_ptr<Function> start,
+                                        const shared_ptr<Function> inverse,
+                                        const shared_ptr<Function> result
                                         )
 {
   int exit = 0;
@@ -544,10 +547,10 @@ SQLiteFunctionResult sqliteCustomAggregate(
   sqlite3 *db = dbMap[dbName];
   const char *cstr = name.c_str();
 
-  auto xInverse = isFunction(rt, inverse) ? CustomAggregate::xInverse : NULL;
+  auto xInverse = inverseIsFunction ? CustomAggregate::xInverse : NULL;
   auto xValue = xInverse ? CustomAggregate::xValue : NULL;
     
-  exit = sqlite3_create_window_function(db, cstr, nArgs, createSQLiteFunctionOptions(DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE), new CustomAggregate(rt, name, step, start, inverse, result), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomFunction::xDestroy);
+  exit = sqlite3_create_window_function(db, cstr, nArgs, createSQLiteFunctionOptions(DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE), new CustomAggregate(rt, name, step, startIsFunction, inverseIsFunction, resultIsFunction, start, inverse, result), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomFunction::xDestroy);
 
     if (exit != SQLITE_OK)
     {

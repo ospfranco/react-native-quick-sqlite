@@ -18,14 +18,6 @@ namespace osp {
 string docPathStr;
 shared_ptr<react::CallInvoker> invoker;
 
-template<typename T>
-T* clone(const T* source) {
-    size_t sourceSize = sizeof(source);
-    auto dest = (T*) malloc(sourceSize);
-    memmove(dest, source, sourceSize);
-    return dest;
-};
-
 void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const char *docPath)
 {
   docPathStr = std::string(docPath);
@@ -479,7 +471,7 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
             throw JSError(rt, "[react-native-quick-sqlite][aggregate] Too less arguments passed");
         }
 
-        if (count > 12)
+        if (count > 14)
         {
             throw JSError(rt, "[react-native-quick-sqlite][aggregate] Too many arguments passed");
         }
@@ -491,18 +483,35 @@ void install(Runtime &rt, shared_ptr<react::CallInvoker> jsCallInvoker, const ch
         const bool DIRECTONLY = args[4].asBool();
         const bool INNOCUOUS = args[5].asBool();
         const bool SUBTYPE = args[6].asBool();
-        const shared_ptr<Function> step = make_shared<Function>(getFunction(rt, &args[7]));
-        const Value& start = args[8];
-        const Value& inverse = args[9];
-        const Value& result = args[10];
-        Value* startCloned = clone<Value>(&start);
-        Value* inverseCloned = clone<Value>(&inverse);
-        Value* resultCloned = clone<Value>(&result);
+        const bool startIsFunction = args[7].asBool();
+        const bool inverseIsFunction = args[8].asBool();
+        const bool resultIsFunction = args[9].asBool();
+        const shared_ptr<Function> step = make_shared<Function>(getFunction(rt, &args[10]));
+        const shared_ptr<Function> start = make_shared<Function>(getFunction(rt, &args[11]));
+        const shared_ptr<Function> inverse = make_shared<Function>(getFunction(rt, &args[12]));
+        const shared_ptr<Function> result = make_shared<Function>(getFunction(rt, &args[13]));
 
-        const SQLiteFunctionResult r = sqliteCustomAggregate(rt, dbName, name, nArgs, DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE, step, startCloned, inverseCloned, resultCloned);
+        const SQLiteFunctionResult r
+            = sqliteCustomAggregate(
+                                    rt,
+                                    dbName,
+                                    name,
+                                    nArgs,
+                                    DETERMINISTIC,
+                                    DIRECTONLY,
+                                    INNOCUOUS,
+                                    SUBTYPE,
+                                    step,
+                                    startIsFunction,
+                                    inverseIsFunction,
+                                    resultIsFunction,
+                                    start,
+                                    inverse,
+                                    result
+                                    );
 
         if (r.type == SQLiteOk) {
-        return true;
+            return true;
         }
 
         throw jsi::JSError(rt, "[react-native-quick-sqlite][function] " + r.errorMessage);

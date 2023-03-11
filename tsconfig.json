@@ -17,6 +17,7 @@
     "strict": false,
     "target": "esnext",
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "types": ["node"]
   }
 }

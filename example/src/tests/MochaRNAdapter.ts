@@ -49,6 +49,23 @@ export const beforeEach = (f: () => void): void => {
   mochaContext.beforeEach(f);
 };
 
+export const afterEach = (f: () => void): void => {
+  mochaContext.afterEach(f);
+};
+
+export const  pluckFromJson = (jsonObj: any, keys: string[]): any => {
+  const resultObj: any = {}; // create an empty object to store the result
+
+  // iterate through the keys array and add key-value pairs to the result object
+  keys.forEach(key => {
+    if (jsonObj.hasOwnProperty(key)) {
+      resultObj[key] = jsonObj[key];
+    }
+  });
+
+  return resultObj; // return the result object
+}
+
 export const beforeAll = (f: any) => {
   mochaContext.beforeAll(f);
 };

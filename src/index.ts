@@ -164,7 +164,6 @@ interface ISQLite {
     INNOCUOUS: boolean,
     SUBTYPE: boolean,
     callback: (...args: any[]) => void,
-    key?: string
     ) => void;
 
   aggregate: (
@@ -175,11 +174,13 @@ interface ISQLite {
       DIRECTONLY: boolean,
       INNOCUOUS: boolean,
       SUBTYPE: boolean,
+      startIsFunction: boolean,
+      inverseIsFunction: boolean,
+      resultIsFunction: boolean,
       step: (...args: any[]) => void,
-      start?: any,
+      start?: (...args: any[]) => void,
       inverse?: (...args: any[]) => void,
-      result?: (...args: any[]) => any,
-      key?: string
+      result?: (...args: any[]) => any
       ) => void;
 }
 
@@ -209,12 +210,15 @@ const getLength = ({ length }) => {
 	throw new TypeError('Expected function.length to be a positive integer');
 };
 
-const getFunctionOption = (options, key, required) => {
+const getFunctionOption = (options, key, required, defaultValue = null): () => any | null | never => {
 	const value = key in options ? options[key] : null;
 	if (typeof value === 'function') return value;
-	if (value != null) throw new TypeError(`Expected the "${key}" option to be a function`);
-	if (required) throw new TypeError(`Missing required option "${key}"`);
-	return null;
+	if (required) {
+    if (value != null) throw new TypeError(`Expected the "${key}" option to be a function`);
+    throw new TypeError(`Missing required option "${key}"`);
+  }
+
+	return defaultValue || null;
 };
 
 const _open = QuickSQLite.open;
@@ -509,8 +513,6 @@ export const open = (options: {
     loadFileAsync: (location: string) =>
       QuickSQLite.loadFileAsync(options.name, location),
     function: (name: string, fn: (...args: any[]) => any, fnOptions?: FunctionOptions) => {
-      // const key = `${options.name}.functions.${name}`;
-      // global[key] = fn;
       QuickSQLite.function(
         options.name,
         name,
@@ -520,9 +522,7 @@ export const open = (options: {
         !!fnOptions?.innocuous,
         !!fnOptions?.subtype,
         fn
-        // key
         );
-      // delete global[key];
       },
     aggregate: (name: string, aggregateOptions, fnOptions?: FunctionOptions) => {
       let argCount;
@@ -530,8 +530,7 @@ export const open = (options: {
       if (argCount > 0) argCount -= 1;
       if (argCount > 100) throw new RangeError('User-defined functions cannot have more than 100 arguments');
 
-      const key = `${options.name}.aggregates.${name}`;
-      global[key] = aggregateOptions;
+      console.log(name, aggregateOptions.start);
       QuickSQLite.aggregate(
         options.name,
         name,
@@ -540,13 +539,14 @@ export const open = (options: {
         !!fnOptions?.directonly,
         !!fnOptions?.innocuous,
         !!fnOptions?.subtype,
+        typeof aggregateOptions.start === 'function',
+        typeof aggregateOptions.inverse === 'function',
+        typeof aggregateOptions.result === 'function',
         getFunctionOption (aggregateOptions, 'step', true),
-        'start' in aggregateOptions ? aggregateOptions.start : null,
-        getFunctionOption (aggregateOptions, 'inverse', false),
-        getFunctionOption (aggregateOptions, 'result', false),
-        key
+        getFunctionOption (aggregateOptions, 'start', false, () => aggregateOptions?.start ?? null),
+        getFunctionOption (aggregateOptions, 'inverse', false, () => undefined),
+        getFunctionOption (aggregateOptions, 'result', false, result => result ),
         )
-      delete global[key];
       }
   };
 };

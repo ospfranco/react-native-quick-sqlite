@@ -19,28 +19,32 @@ using namespace facebook;
 using namespace jsi;
 
 
-struct Accumulator { public:
-    Value* value;
-    bool initialized;
-    bool is_window;
+struct Accumulator {
+    public:
+        Value value;
+        bool initialized;
+        bool is_window;
 };
 
 class CustomAggregate : public CustomFunction {
 public:
-    const bool invoke_result;
-    const bool invoke_start;
-    const bool invoke_inverse;
-    const Function* inverse;
-    const Function* result;
-    const Value* start;
+    const bool startIsFunction;
+    const bool inverseIsFunction;
+    const bool resultIsFunction;
+    const shared_ptr<Function> inverse;
+    const shared_ptr<Function> result;
+    const shared_ptr<Function> start;
 
     explicit CustomAggregate(
                              Runtime& rt,
                              const string name,
                              const shared_ptr<Function> step,
-                             const Value* start,
-                             const Value* inverse,
-                             const Value* result
+                             const bool startIsFunction,
+                             const bool inverseIsFunction,
+                             const bool resultIsFunction,
+                             const shared_ptr<Function> start,
+                             const shared_ptr<Function> inverse,
+                             const shared_ptr<Function> result
     );
 
     static void xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv);
@@ -50,7 +54,7 @@ public:
 
 private:
 
-    static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const Function* ptrtm);
+    static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const shared_ptr<Function> ptrtm);
     static inline void xValueBase(sqlite3_context* invocation, bool is_final);
 
     Accumulator* GetAccumulator(sqlite3_context* invocation);
