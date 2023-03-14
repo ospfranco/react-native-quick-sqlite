@@ -559,10 +559,6 @@ SQLiteFunctionResult sqliteCustomAggregate(
             .type = SQLiteError,
             .errorMessage = sqlite3_errmsg(db)};
     }
-    else
-    {
-        dbMap[dbName] = db;
-    }
 
     return SQLiteFunctionResult{
         .type = SQLiteOk,
