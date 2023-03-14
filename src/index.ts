@@ -22,7 +22,12 @@ if (global.__QuickSQLiteProxy == null) {
   }
 
   // Call the synchronous blocking install() function
-  QuickSQLiteModule.install();
+  const result = QuickSQLiteModule.install();
+  if (result !== true) {
+    throw new Error(
+      `Failed to install react-native-quick-sqlite: The native QuickSQLite Module could not be installed! Looks like something went wrong when installing JSI bindings: ${result}`
+    );
+  }
 
   // Check again if the constructor now exists. If not, throw an error.
   if (global.__QuickSQLiteProxy == null) {
@@ -486,8 +491,6 @@ export const open = (options: {
   location?: string;
 }): QuickSQLiteConnection => {
   QuickSQLite.open(options.name, options.location);
-  global.functions = [];
-  global.aggregates = [];
 
   return {
     close: () => QuickSQLite.close(options.name),
@@ -530,7 +533,6 @@ export const open = (options: {
       if (argCount > 0) argCount -= 1;
       if (argCount > 100) throw new RangeError('User-defined functions cannot have more than 100 arguments');
 
-      console.log(name, aggregateOptions.start);
       QuickSQLite.aggregate(
         options.name,
         name,

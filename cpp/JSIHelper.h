@@ -16,7 +16,6 @@
 
 using namespace std;
 using namespace facebook;
-using namespace jsi;
 /**
  * Enum for QuickValue to store/determine correct type for dynamic JSI values
  */
@@ -118,9 +117,9 @@ jsi::Value createSequelQueryExecutionResult(jsi::Runtime &rt, SQLiteOPResult sta
 int createSQLiteFunctionOptions(bool DETERMINISTIC, bool DIRECTONLY, bool INNOCUOUS, bool SUBTYPE);
 template<typename T>
 T* clone(const T* source);
-bool isEmpty(Runtime& rt, const Value* v);
-bool isFunction(Runtime& rt, const Value* v);
-Function getFunction(Runtime& rt, const Value* v);
-Array getArgsToArray (Runtime& rt, Value* v, size_t count);
+bool isEmpty(jsi::Runtime& rt, const jsi::Value* v);
+bool isFunction(jsi::Runtime& rt, const jsi::Value* v);
+jsi::Function getFunction(jsi::Runtime& rt, const jsi::Value* v);
+jsi::Array getArgsToArray (jsi::Runtime& rt, jsi::Value* v, size_t count);
 
 #endif /* JSIHelper_h */

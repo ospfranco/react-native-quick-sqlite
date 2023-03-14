@@ -10,7 +10,6 @@
 
 using namespace std;
 using namespace facebook;
-using namespace jsi;
 
 QuickValue createNullQuickValue()
 {
@@ -225,21 +224,21 @@ T* clone(const T* source) {
     return dest;
 };
 
-bool isFunction(Runtime& rt, const Value* v) {
+bool isFunction(jsi::Runtime& rt, const jsi::Value* v) {
     return v->isObject() && v->asObject(rt).isFunction(rt);
 }
 
-Function getFunction(Runtime& rt, const Value* v) {
+jsi::Function getFunction(jsi::Runtime& rt, const jsi::Value* v) {
     assert(isFunction(rt, v));
     return v->asObject(rt).asFunction(rt);
 }
 
-bool isEmpty(Runtime& rt, const Value* v) {
+bool isEmpty(jsi::Runtime& rt, const jsi::Value* v) {
     return v->isNull() || v->isUndefined();
 }
 
-Array getArgsToArray (Runtime& rt, Value* v, size_t count) {
-    Array argsArray = Array(rt, count);
+jsi::Array getArgsToArray (jsi::Runtime& rt, jsi::Value* v, size_t count) {
+    jsi::Array argsArray = jsi::Array(rt, count);
     for ( size_t i = 0; i < count; i++ ) {
       argsArray.setValueAtIndex(rt, i, v[i]);
     }

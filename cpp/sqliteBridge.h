@@ -12,7 +12,6 @@
 
 using namespace std;
 using namespace facebook;
-using namespace jsi;
 
 SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath);
 
@@ -29,7 +28,7 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
 SequelLiteralUpdateResult sqliteExecuteLiteral(string const dbName, string const &query);
 
 SQLiteFunctionResult sqliteCustomFunction(
-                                          Runtime& rt,
+                                          jsi::Runtime& rt,
                                           const string dbName,
                                           const string name,
                                           const int nArgs,
@@ -37,10 +36,10 @@ SQLiteFunctionResult sqliteCustomFunction(
                                           const bool DIRECTONLY,
                                           const bool INNOCUOUS,
                                           const bool SUBTYPE,
-                                          const shared_ptr<Function> callback);
+                                          const std::shared_ptr<jsi::Function> callback);
 
 SQLiteFunctionResult sqliteCustomAggregate(
-                                           Runtime& rt,
+                                           jsi::Runtime& rt,
                                            const string dbName,
                                            const string name,
                                            const int nArgs,
@@ -48,11 +47,11 @@ SQLiteFunctionResult sqliteCustomAggregate(
                                            const bool DIRECTONLY,
                                            const bool INNOCUOUS,
                                            const bool SUBTYPE,
-                                           const shared_ptr<Function> step,
+                                           const std::shared_ptr<jsi::Function> step,
                                            const bool startIsFunction,
                                            const bool inverseIsFunction,
                                            const bool resultIsFunction,
-                                           const shared_ptr<Function> start,
-                                           const shared_ptr<Function> inverse,
-                                           const shared_ptr<Function> result
+                                           const std::shared_ptr<jsi::Function> start,
+                                           const std::shared_ptr<jsi::Function> inverse,
+                                           const std::shared_ptr<jsi::Function> result
                                         );

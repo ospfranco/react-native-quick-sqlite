@@ -20,6 +20,7 @@
 
 using namespace std;
 using namespace facebook;
+using namespace osp;
 
 map<string, sqlite3 *> dbMap = map<string, sqlite3 *>();
 
@@ -478,7 +479,7 @@ SequelLiteralUpdateResult sqliteExecuteLiteral(string const dbName, string const
 
 
 SQLiteFunctionResult sqliteCustomFunction(
-                                          Runtime& rt,
+                                          jsi::Runtime& rt,
                                           const string dbName,
                                           const string name,
                                           const int nArgs,
@@ -486,7 +487,7 @@ SQLiteFunctionResult sqliteCustomFunction(
                                           const bool DIRECTONLY,
                                           const bool INNOCUOUS,
                                           const bool SUBTYPE,
-                                          const shared_ptr<Function> callback)
+                                          const shared_ptr<jsi::Function> callback)
 {
     int exit = 0;
     // Check if db connection is opened
@@ -517,7 +518,7 @@ SQLiteFunctionResult sqliteCustomFunction(
 
 
 SQLiteFunctionResult sqliteCustomAggregate(
-                                        Runtime& rt,
+                                        jsi::Runtime& rt,
                                         const string dbName,
                                         const string name,
                                         const int nArgs,
@@ -525,13 +526,13 @@ SQLiteFunctionResult sqliteCustomAggregate(
                                         const bool DIRECTONLY,
                                         const bool INNOCUOUS,
                                         const bool SUBTYPE,
-                                        const shared_ptr<Function> step,
+                                        const std::shared_ptr<jsi::Function> step,
                                         const bool startIsFunction,
                                         const bool inverseIsFunction,
                                         const bool resultIsFunction,
-                                        const shared_ptr<Function> start,
-                                        const shared_ptr<Function> inverse,
-                                        const shared_ptr<Function> result
+                                        const std::shared_ptr<jsi::Function> start,
+                                        const std::shared_ptr<jsi::Function> inverse,
+                                        const std::shared_ptr<jsi::Function> result
                                         )
 {
   int exit = 0;
