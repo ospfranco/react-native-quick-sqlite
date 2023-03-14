@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {SafeAreaView, ScrollView, Text} from 'react-native';
 import 'reflect-metadata';
-import {registerBaseTests, registerAggregateTests, runTests} from './tests/index';
-// import {registerTypeORMTests} from './tests/typeorm.spec';
+import {registerBaseTests, registerAggregateTests, runTests} from './tests';
 
 export default function App() {
   const [results, setResults] = useState<any>([]);
@@ -10,7 +9,7 @@ export default function App() {
   useEffect(() => {
     setResults([]);
     runTests(
-      // registerBaseTests,
+      registerBaseTests,
       registerAggregateTests
       // registerTypeORMTests
     ).then(setResults);

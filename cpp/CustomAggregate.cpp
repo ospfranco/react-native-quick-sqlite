@@ -60,13 +60,13 @@ void CustomAggregate::xStepBase(sqlite3_context* invocation, int argc, sqlite3_v
 
     Value* value = getArguments(self->rt, argv, argc);
     Value convertedValue[argc+1];
-    memcpy(&convertedValue[0], &acc->value, sizeof(acc->value));
-    for (int i = 0; i < argc; i++) convertedValue[i+1] = move(value[i]);
+    convertedValue[0] = copyValue(self->rt, acc->value);
+    for (int i = 0; i < argc; i++) convertedValue[i+1] = copyValue(self->rt, value[i]);
     
     Value maybeReturnValue = ptrtm.get()->call(self->rt, convertedValue, argc + 1);
 
     if (!maybeReturnValue.isUndefined()) {
-        acc->value = move(maybeReturnValue);
+        acc->value = copyValue(self->rt, maybeReturnValue);
     }
 }
 
@@ -81,7 +81,7 @@ void CustomAggregate::xValueBase(sqlite3_context* invocation, bool is_final) {
         return;
     }
 
-    Value result = move(acc->value);
+    Value result = copyValue(self->rt, acc->value);
     if (self->resultIsFunction) {
         result = self->result.get()->call(self->rt, result);
         
@@ -96,13 +96,14 @@ void CustomAggregate::xValueBase(sqlite3_context* invocation, bool is_final) {
 }
 
 Accumulator* CustomAggregate::GetAccumulator(sqlite3_context* invocation) {
+    CustomAggregate* self = (CustomAggregate*) sqlite3_user_data(invocation);
     Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));
 
     if (acc->initialized) return acc;
 
     acc->initialized = true;
     Value maybeSeed = this->start.get()->call(rt);
-    acc->value = move(maybeSeed);
+    acc->value = copyValue(self->rt, maybeSeed);
     return acc;
 }
 

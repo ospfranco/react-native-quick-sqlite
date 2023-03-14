@@ -29,6 +29,7 @@ class CustomFunction {
         static void jsToSqliteValue(const Value& value, Runtime& rt, sqlite3_context* invocation);
         static void xFunc(sqlite3_context* invocation, int argc, sqlite3_value** argv);
         static Value* getArguments(Runtime& rt, sqlite3_value** argv, int argc, Value* value = nullptr, const size_t startIndex = 0);
+        static Value copyValue (Runtime& rt, Value& value);
 };
 
 #endif /* CustomFunction_hpp */

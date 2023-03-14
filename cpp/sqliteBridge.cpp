@@ -550,7 +550,7 @@ SQLiteFunctionResult sqliteCustomAggregate(
   auto xInverse = inverseIsFunction ? CustomAggregate::xInverse : NULL;
   auto xValue = xInverse ? CustomAggregate::xValue : NULL;
     
-  exit = sqlite3_create_window_function(db, cstr, nArgs, createSQLiteFunctionOptions(DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE), new CustomAggregate(rt, name, step, startIsFunction, inverseIsFunction, resultIsFunction, start, inverse, result), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomFunction::xDestroy);
+  exit = sqlite3_create_window_function(db, cstr, nArgs, createSQLiteFunctionOptions(DETERMINISTIC, DIRECTONLY, INNOCUOUS, SUBTYPE), new CustomAggregate(rt, name, step, startIsFunction, inverseIsFunction, resultIsFunction, start, inverse, result), CustomAggregate::xStep, CustomAggregate::xFinal, move(xValue), move(xInverse), CustomFunction::xDestroy);
 
     if (exit != SQLITE_OK)
     {

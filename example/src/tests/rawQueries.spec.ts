@@ -4,7 +4,7 @@ import {
   QuickSQLiteConnection,
   SQLBatchTuple,
 } from 'react-native-quick-sqlite';
-import {beforeEach, describe, it} from './MochaRNAdapter';
+import {afterEach, beforeEach, describe, it} from './MochaRNAdapter';
 import chai from 'chai';
 
 let expect = chai.expect;
@@ -12,13 +12,11 @@ const chance = new Chance();
 let db: QuickSQLiteConnection;
 
 export function registerBaseTests() {
-  beforeEach(() => {
-    try {
-      if (db) {
-        db.close();
-        db.delete();
-      }
+  describe('Raw queries', () => {
+    let get: (SQL: any, ...args: any[]) => any;
+    let all: (SQL: any, ...args: any[]) => any[] | undefined;
 
+    beforeEach(() => {
       db = open({
         name: 'test',
       });
@@ -27,12 +25,17 @@ export function registerBaseTests() {
       db.execute(
         'CREATE TABLE User ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth REAL) STRICT;',
       );
-    } catch (e) {
-      console.warn('error on before each', e);
-    }
-  });
 
-  describe('Raw queries', () => {
+      get = (SQL, ...args) => db.execute(`SELECT ${SQL}`, args)?.rows?._array[0];
+      all = (SQL, ...args) => db.execute(`SELECT ${SQL} WINDOW win AS (ORDER BY rowid ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY rowid`, args)?.rows?._array;
+    });
+
+    afterEach(() => {
+      if (!db) return;
+      db.close();
+      db.delete();
+    })
+
     it('Insert', async () => {
       const id = chance.integer();
       const name = chance.name();
@@ -643,7 +646,26 @@ export function registerBaseTests() {
       expect(res.rows?._array[0]?.result).to.eql(16);
     });
 
-    describe("Aggregation tests", async () => {
+    it('should be able to register multiple functions with the same name', function () {
+      db.function('fn', () => 0);
+      db.function('fn', (a) => 1);
+      db.function('fn', (a, b) => 2);
+      db.function('fn', (a, b, c) => 3);
+      db.function('fn', (a, b, c, d) => 4);
+      expect(get('fn() as f')).to.deep.equal({f: 0});
+      expect(get('fn(555) as f')).to.deep.equal({f: 1});
+      expect(get('fn(555, 555) as f')).to.deep.equal({f: 2 });
+      expect(get('fn(555, 555, 555) as f')).to.deep.equal({f: 3 });
+      expect(get('fn(555, 555, 555, 555) as f')).to.deep.equal({f: 4});
+      db.function('fn', (a, b) => 'foobar');
+      expect(get('fn() as f')).to.deep.equal({f: 0 });
+      expect(get('fn(555) as f')).to.deep.equal({f: 1});
+      expect(get('fn(555, 555) as f')).to.deep.equal({f: 'foobar'});
+      expect(get('fn(555, 555, 555) as f')).to.deep.equal({f: 3});
+      expect(get('fn(555, 555, 555, 555) as f')).to.deep.equal({f: 4});
+    });
+
+    describe("Aggregation basic tests", async () => {
       let sumOfAge: number;
       let sumOfWorth: number;
 

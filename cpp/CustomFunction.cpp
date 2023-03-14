@@ -69,7 +69,33 @@ void CustomFunction::xFunc(sqlite3_context* invocation, int argc, sqlite3_value*
     }
 }
 
+
+
+Value CustomFunction::copyValue (Runtime& rt, Value& value) {
+    if (value.isNumber()) {
+        return Value(value.asNumber());
+    } else if (value.isBigInt()) {
+        return Value(value.asBigInt(rt));
+    } else if (value.isString()) {
+        return Value(String::createFromUtf8(rt, value.asString(rt).utf8(rt).c_str()));
+    } else if (value.isNull()) {
+        return Value::null();
+    } else if (value.isObject()) {
+        const Object obj = value.asObject(rt);
+        if (obj.isArray(rt)) {
+            return Value(obj.asArray(rt));
+        } else if (obj.isFunction(rt)) {
+            return Value(obj.asFunction(rt));
+        }
+
+        return Value(value.asObject(rt));
+    }
+
+    return Value::undefined();
+}
+
 void CustomFunction::jsToSqliteValue(const Value& value, Runtime& rt, sqlite3_context *invocation) {
+    CustomFunction* self = (CustomFunction*) sqlite3_user_data(invocation);
     if (value.isNumber()) {
         return sqlite3_result_double(
             invocation,
@@ -88,6 +114,8 @@ void CustomFunction::jsToSqliteValue(const Value& value, Runtime& rt, sqlite3_co
     } else if (value.isNull() || value.isUndefined()) {
         return sqlite3_result_null(invocation);
     }
+
+    throw JSError(rt, self->GetDataErrorPrefix() + " an invalid value");
 }
 
 
