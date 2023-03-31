@@ -26,18 +26,6 @@ Starting on version `8.0.0` only React-Native `0.71` onwards is supported. This 
 
 TypeORM is officially supported, however, there is currently a parsing issue with React-Native 0.71 and its babel configuration and therefore it will not work, nothing wrong with this package, this is purely an issue on TypeORM.
 
-## Sponsors
-
-This library is sponsored by:
-
-[<img src="https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/sponsors/stream.png">](https://getstream.io/try-for-free/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
-
-_Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30-day trial for free!_
-
-[_Try the React Native Chat Tutorial 💬_](https://getstream.io/chat/sdk/react-native/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
-
-If you want to sponsor the development of this library, [get in touch](mailto:ospfranco@protonmail.com).
-
 ## API
 
 ```typescript
