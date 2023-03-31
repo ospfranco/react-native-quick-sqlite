@@ -1,3 +1,7 @@
+# Repo moved to [margelo/react-native-quick-sqlite](https://github.com/margelo/react-native-quick-sqlite)
+
+Margelo has taken over the development of the package. Many thanks to them!
+
 ![screenshot](https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/header2.png)
 
 <div align="center">
